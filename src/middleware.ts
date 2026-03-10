@@ -1,3 +1,6 @@
+export const config = {
+  runtime: 'nodejs',
+};
 import type { MiddlewareHandler } from 'astro';
 import { resolveTenantFromRequest, tenantBasePath } from '~/lib/tenants';
 import { getWebsiteByHost } from '~/lib/website-resolver';
