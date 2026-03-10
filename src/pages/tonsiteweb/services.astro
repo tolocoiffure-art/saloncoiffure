@@ -1,0 +1,217 @@
+---
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Services',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Widget ******************* -->
+
+  <Hero
+    id="services"
+    tagline="Nos services"
+    title="Des sites vitrines clé-en-main, pensés pour les PME romandes"
+    subtitle="TonSiteWeb.ch combine automatisation et expertise humaine pour livrer des sites haut de gamme."
+    actions={[{ variant: 'primary', text: 'Voir les packs', href: '/pricing' }]}
+  >
+    <Fragment slot="image">
+      <div class="relative aspect-[5/3] overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-slate-900 to-slate-800 p-10 text-left text-white shadow-2xl">
+        <p class="text-sm uppercase tracking-[0.35em] text-blue-200/80">Services automatisés</p>
+        <h4 class="mt-4 text-4xl font-semibold">Design · Contenu · Maintenance</h4>
+        <p class="mt-6 max-w-xl text-lg text-blue-100/90">
+          Une plateforme propriétaire qui orchestre la production pendant que nos experts se concentrent sur la qualité et la relation client.
+        </p>
+      </div>
+    </Fragment>
+  </Hero>
+
+  <!-- Features2 Widget ************** -->
+
+  <Features2
+    title="Trois offres, une même exigence"
+    subtitle="Choisissez la formule qui correspond à votre rythme de croissance."
+    columns={3}
+    items={[
+      {
+        title: 'Essentiel',
+        description:
+          'Site vitrine de 5 sections, intégration de vos contenus et mise en ligne accompagnée.',
+        icon: 'tabler:layout',
+      },
+      {
+        title: 'Automatisation',
+        description:
+          'Formulaires, prises de rendez‑vous et intégrations API sur devis pour automatiser vos flux.',
+        icon: 'tabler:api',
+      },
+      {
+        title: 'Maintenance sécurité',
+        description:
+          'Mises à jour techniques, sauvegardes, gestion d’emails pro et support planifié à 79 CHF/mois.',
+        icon: 'tabler:shield-check',
+      },
+    ]}
+  />
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    id="content"
+    isReversed
+    items={[
+      {
+        title: 'Production automatisée',
+        description:
+          'Notre pipeline assemble votre site en s’appuyant sur des gabarits sectoriels que nous adaptons à votre identité.',
+        icon: 'tabler:cube',
+      },
+      {
+        title: 'Contrôle humain',
+        description:
+          'Designers, rédacteurs et experts SEO valident chaque livrable pour garantir cohérence et conformité.',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'Livraison planifiée',
+        description:
+          'Nous partageons un rétroplanning clair et adaptons la mise en ligne selon vos contraintes métier.',
+        icon: 'tabler:inbox',
+      },
+      {
+        title: 'Suivi essentiel',
+        description:
+          'Points de contrôle réguliers, assistance pour vos mises à jour et recommandations pragmatiques.',
+        icon: 'tabler:report-analytics',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Notre méthodologie hybride</h3>
+      Automatisation pour la vitesse, experts pour la qualité.
+    </Fragment>
+
+    <Fragment slot="image">
+      <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-slate-900 to-slate-800 p-10 text-left text-white shadow-xl">
+        <h4 class="text-3xl font-semibold">Pipeline supervisé</h4>
+        <p class="mt-6 max-w-sm text-blue-100/90">
+          Chaque projet suit un contrôle humain complet&nbsp;: contenus, design, conformité RGPD et tests de navigation.
+        </p>
+      </div>
+    </Fragment>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    id="seo"
+    isAfterContent
+    items={[
+      {
+        title: 'Balises on‑page',
+        description:
+          'Titres et méta‑descriptions de base.',
+        icon: 'tabler:map-pin',
+      },
+      {
+        title: 'Contenus visuels',
+        description:
+          'Sélection de visuels libres de droits ou coordination avec vos prestataires locaux pour un rendu cohérent.',
+        icon: 'tabler:photo',
+      },
+      {
+        title: 'Campagnes d’acquisition',
+        description:
+          'Landing pages, formulaires et scénarios email automatisés sur devis selon vos objectifs.',
+        icon: 'tabler:send',
+      },
+      {
+        title: 'Processus simple',
+        description:
+          'Échanges par email et validations par étapes. Pas d’espace client à gérer.',
+        icon: 'tabler:layout-dashboard',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Des leviers pour durer</h3>
+      Nous activons les bons outils pour générer des résultats mesurables.
+    </Fragment>
+
+    <Fragment slot="image">
+      <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-700 p-10 text-left text-white shadow-xl">
+        <h4 class="text-3xl font-semibold">Acquisition maîtrisée</h4>
+        <p class="mt-6 max-w-sm text-blue-100/90">
+          Nous vous aidons à prioriser les leviers efficaces et à mesurer les résultats réellement utiles à votre activité.
+        </p>
+      </div>
+    </Fragment>
+  </Content>
+
+  <!-- Features2 Widget ************** -->
+
+  <Features2
+    id="support"
+    title="Support & maintenance"
+    subtitle="Restez concentrés sur votre métier, nous gérons le reste."
+    columns={3}
+    items={[
+      {
+        title: 'Support planifié',
+        description: 'Réponses sous un jour ouvré par email ou téléphone, suivi via votre espace client.',
+        icon: 'tabler:headset',
+      },
+      {
+        title: 'Surveillance essentielle',
+        description: 'Vérifications régulières des performances et alertes en cas de problème détecté.',
+        icon: 'tabler:antenna',
+      },
+      {
+        title: 'Mises à jour sécurité',
+        description: 'Application des correctifs critiques, sauvegardes et restauration si nécessaire.',
+        icon: 'tabler:tools',
+      },
+      {
+        title: 'Conformité RGPD',
+        description: 'Politique de cookies, mentions légales et bannière de consentement adaptées à la Suisse.',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'Gestion des emails',
+        description: 'Configuration et support de vos comptes @votredomaine.ch avec SPF/DKIM.',
+        icon: 'tabler:mail',
+      },
+      {
+        title: 'Évolutions sur devis',
+        description: 'Ajout de pages, modules ou automatisations supplémentaires selon vos objectifs.',
+        icon: 'tabler:arrows-left-right',
+      },
+    ]}
+  />
+
+  <!-- CallToAction Widget *********** -->
+
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Planifier une démo',
+        href: '/contact#form',
+        icon: 'tabler:device-desktop-analytics',
+      },
+    ]}
+  >
+    <Fragment slot="title">
+      Discutons de votre prochaine mise en ligne
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      Partagez vos objectifs; nous préparons un plan de lancement pragmatique avec TonSiteWeb.ch.
+    </Fragment>
+  </CallToAction>
+</Layout>

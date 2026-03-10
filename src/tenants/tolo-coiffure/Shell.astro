@@ -1,0 +1,351 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import type { MetaData } from '~/types';
+import { toloCoiffureTheme } from './theme';
+import { toloCoiffureConfig } from './config';
+
+type PageKey = 'home' | 'atelier' | 'services' | 'galerie' | 'contact';
+
+interface Props {
+  page?: PageKey;
+  metadata?: MetaData;
+}
+
+const { page = 'home', metadata = {} } = Astro.props as Props;
+
+const withBase = (path: string) => path || '/';
+const nav = [
+  { key: 'atelier', href: withBase('/atelier'), label: "L'Atelier" },
+  { key: 'services', href: withBase('/services'), label: 'Services' },
+  { key: 'galerie', href: withBase('/galerie'), label: 'Galerie' },
+  { key: 'contact', href: withBase('/contact'), label: 'Contact' },
+];
+
+const styleVars = {
+  '--tc-bg': toloCoiffureTheme.colors.background,
+  '--tc-surface': toloCoiffureTheme.colors.surface,
+  '--tc-text': toloCoiffureTheme.colors.text,
+  '--tc-muted': toloCoiffureTheme.colors.muted,
+  '--tc-accent': toloCoiffureTheme.colors.accent,
+  '--tc-line': toloCoiffureTheme.colors.line,
+  '--tc-dark': toloCoiffureTheme.colors.dark,
+  '--tc-max': toloCoiffureTheme.layout.maxWidth,
+  '--tc-gap': toloCoiffureTheme.layout.sectionGap,
+  '--tc-font-heading': toloCoiffureTheme.typography.heading,
+  '--tc-font-body': toloCoiffureTheme.typography.body,
+};
+---
+
+<Layout metadata={metadata} brandKey={toloCoiffureTheme.brandKey} styleVars={styleVars}>
+  <div class="tc-shell">
+    <header class="tc-header">
+      <a class="tc-logo" href={withBase('')} aria-label="Tolo Coiffure">
+        <span class="tc-logo-top">TOLO</span>
+        <span class="tc-logo-bottom">COIFFURE</span>
+      </a>
+      <nav class="tc-nav" aria-label="Navigation principale">
+        {nav.map((item) => (
+          <a class={item.key === page ? 'is-active' : ''} href={item.href}>
+            {item.label}
+          </a>
+        ))}
+      </nav>
+      <div class="tc-contact">
+        <a class="tc-phone" href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer">{toloCoiffureConfig.phone}</a>
+        <a
+          class="tc-cta"
+          href={toloCoiffureConfig.bookingUrl}
+          target={toloCoiffureConfig.bookingChannel === 'whatsapp' ? '_blank' : undefined}
+          rel={toloCoiffureConfig.bookingChannel === 'whatsapp' ? 'noreferrer' : undefined}
+        >
+          {toloCoiffureConfig.bookingLabel}
+        </a>
+      </div>
+    </header>
+
+    <main class="tc-main">
+      <slot />
+    </main>
+
+    <footer class="tc-footer">
+      <div class="tc-footer-grid">
+        <div class="tc-footer-block">
+          <p class="tc-footer-label">Atelier</p>
+          <p class="tc-footer-title">Tolo Coiffure</p>
+          <p class="tc-footer-text">{toloCoiffureConfig.address}</p>
+          <p class="tc-footer-text">Téléphone — <a href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer">{toloCoiffureConfig.phone}</a></p>
+          <p class="tc-footer-text">Email — <a href={`mailto:${toloCoiffureConfig.email}`}>{toloCoiffureConfig.email}</a></p>
+        </div>
+        <div class="tc-footer-block">
+          <p class="tc-footer-label">Horaires</p>
+          <ul class="tc-hours">
+            <li><span>Lu</span><span>10:00 – 18:00</span></li>
+            <li><span>Ma–Je</span><span>09:00 – 19:00</span></li>
+            <li><span>Ve–Sa</span><span>08:00 – 18:00</span></li>
+          </ul>
+          <a class="tc-footer-link" href={toloCoiffureConfig.mapLink} target="_blank" rel="noreferrer">Voir la carte</a>
+        </div>
+        <div class="tc-footer-map">
+          <iframe
+            title="Tolo Coiffure — Lausanne"
+            src={toloCoiffureConfig.mapEmbed}
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      </div>
+      <div class="tc-footer-note">
+        {metadata.description || 'Atelier de coiffure haut de gamme à Lausanne. Coloration précise, balayage maîtrisé, soins profonds.'}
+      </div>
+    </footer>
+  </div>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+    :global(body) {
+      background: var(--tc-bg);
+      color: var(--tc-text);
+      font-family: var(--tc-font-body);
+      letter-spacing: -0.01em;
+    }
+
+    .tc-shell {
+      min-height: 100vh;
+      background: var(--tc-bg);
+      color: var(--tc-text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tc-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.25rem 2rem;
+      background: color-mix(in srgb, var(--tc-bg) 88%, #ffffff 12%);
+      border-bottom: 1px solid var(--tc-line);
+      backdrop-filter: blur(12px);
+    }
+
+    .tc-logo {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      text-decoration: none;
+      color: var(--tc-text);
+      letter-spacing: 0.18em;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .tc-logo-top {
+      font-family: var(--tc-font-heading);
+      font-size: 1rem;
+    }
+    .tc-logo-bottom {
+      font-size: 0.8rem;
+      color: var(--tc-muted);
+      letter-spacing: 0.22em;
+    }
+
+    .tc-nav {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      font-size: 0.95rem;
+    }
+    .tc-nav a {
+      position: relative;
+      text-decoration: none;
+      color: var(--tc-text);
+      padding: 0.4rem 0.2rem;
+      letter-spacing: 0.04em;
+    }
+    .tc-nav a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--tc-accent);
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+    .tc-nav a:hover::after,
+    .tc-nav a.is-active::after {
+      opacity: 1;
+    }
+    .tc-nav a.is-active {
+      color: var(--tc-text);
+      font-weight: 600;
+    }
+
+    .tc-contact {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .tc-phone {
+      font-weight: 600;
+      color: var(--tc-text);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .tc-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      border: 1.4px solid var(--tc-accent);
+      color: var(--tc-text);
+      text-decoration: none;
+      background: color-mix(in srgb, var(--tc-accent) 8%, transparent);
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .tc-cta:hover {
+      background: color-mix(in srgb, var(--tc-accent) 16%, var(--tc-bg) 84%);
+      border-color: color-mix(in srgb, var(--tc-accent) 80%, var(--tc-text) 20%);
+    }
+
+    .tc-main {
+      width: min(var(--tc-max), 100%);
+      max-width: calc(var(--tc-max) + 4rem);
+      margin: 0 auto;
+      padding: 2.5rem 2rem var(--tc-gap);
+      flex: 1;
+    }
+
+    .tc-footer {
+      background: var(--tc-dark);
+      color: color-mix(in srgb, #f5efe8 92%, #ffffff 8%);
+      padding: 3rem 2rem 2.5rem;
+      margin-top: 3rem;
+    }
+
+    .tc-footer a {
+      color: inherit;
+    }
+
+    .tc-footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem 2rem;
+      max-width: calc(var(--tc-max) + 4rem);
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    .tc-footer-block {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .tc-footer-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, #f5efe8 80%, #ffffff 20%);
+    }
+    .tc-footer-title {
+      font-family: var(--tc-font-heading);
+      font-size: 1.35rem;
+      letter-spacing: 0.03em;
+    }
+    .tc-footer-text {
+      font-size: 0.95rem;
+      color: color-mix(in srgb, #f5efe8 78%, #ffffff 22%);
+    }
+    .tc-hours {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0.25rem;
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.95rem;
+    }
+    .tc-hours li {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .tc-footer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 0.6rem;
+    }
+
+    .tc-footer-map {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--tc-accent) 36%, transparent);
+      box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.45);
+    }
+    .tc-footer-map iframe {
+      width: 100%;
+      height: 240px;
+      border: 0;
+      display: block;
+    }
+
+    .tc-footer-note {
+      max-width: calc(var(--tc-max) + 4rem);
+      margin: 1.8rem auto 0;
+      padding-top: 1.25rem;
+      border-top: 1px solid color-mix(in srgb, var(--tc-accent) 28%, transparent);
+      font-size: 0.9rem;
+      color: color-mix(in srgb, #f5efe8 68%, #ffffff 32%);
+    }
+
+    @media (max-width: 980px) {
+      .tc-header {
+        grid-template-columns: 1fr;
+        row-gap: 0.75rem;
+        text-align: center;
+      }
+      .tc-nav {
+        order: 3;
+        flex-wrap: wrap;
+      }
+      .tc-contact {
+        justify-content: center;
+      }
+      .tc-main {
+        padding: 2rem 1.5rem calc(var(--tc-gap) * 0.9);
+      }
+      .tc-footer-grid {
+        grid-template-columns: 1fr;
+      }
+      .tc-footer-map iframe {
+        height: 200px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tc-header {
+        padding: 1rem 1.25rem;
+      }
+      .tc-nav {
+        gap: 0.9rem;
+        font-size: 0.92rem;
+      }
+      .tc-main {
+        padding: 1.5rem 1.2rem calc(var(--tc-gap) * 0.85);
+      }
+    }
+  </style>
+</Layout>

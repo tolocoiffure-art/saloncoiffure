@@ -1,0 +1,1068 @@
+{
+  "summary": {
+    "apiRoutes": 33,
+    "declaredEnvKeys": 28,
+    "discoveredEnvKeys": 33,
+    "missingRequiredKeys": [
+      "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+      "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+    ]
+  },
+  "endpoints": [
+    {
+      "file": "src/pages/api/auth/forgot-password.ts",
+      "route": "/api/auth/forgot-password",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/auth/reset-password.ts",
+      "route": "/api/auth/reset-password",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/auth/session.ts",
+      "route": "/api/auth/session",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/auth/signin.ts",
+      "route": "/api/auth/signin",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/auth/signup.ts",
+      "route": "/api/auth/signup",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/clients/[id].ts",
+      "route": "/api/backend/clients/[id]",
+      "methods": [
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/clients/index.ts",
+      "route": "/api/backend/clients",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/dashboard/summary.ts",
+      "route": "/api/backend/dashboard/summary",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/documents/[id].ts",
+      "route": "/api/backend/documents/[id]",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/documents/index.ts",
+      "route": "/api/backend/documents",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/invoices/[id].ts",
+      "route": "/api/backend/invoices/[id]",
+      "methods": [
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/invoices/index.ts",
+      "route": "/api/backend/invoices",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/projects/[id].ts",
+      "route": "/api/backend/projects/[id]",
+      "methods": [
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/projects/index.ts",
+      "route": "/api/backend/projects",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/subscriptions/[id].ts",
+      "route": "/api/backend/subscriptions/[id]",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon",
+        "stripe.core",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "STRIPE_SECRET_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "STRIPE_PUBLISHABLE_KEY",
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/support/[id].ts",
+      "route": "/api/backend/support/[id]",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/support/index.ts",
+      "route": "/api/backend/support",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/tasks/[id].ts",
+      "route": "/api/backend/tasks/[id]",
+      "methods": [
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/tasks/index.ts",
+      "route": "/api/backend/tasks",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/team.ts",
+      "route": "/api/backend/team",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/backend/websites/[id].ts",
+      "route": "/api/backend/websites/[id]",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon",
+        "email.resend",
+        "google.sa"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "RESEND_API_KEY",
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "SENDER_EMAIL",
+        "SENDER_NAME",
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID",
+        "GOOGLE_DOCS_SECTION_TEMPLATE_ID"
+      ],
+      "missingKeys": [
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ]
+    },
+    {
+      "file": "src/pages/api/backend/websites/index.ts",
+      "route": "/api/backend/websites",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "supabase.anon",
+        "google.sa"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID",
+        "GOOGLE_DOCS_SECTION_TEMPLATE_ID"
+      ],
+      "missingKeys": [
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ]
+    },
+    {
+      "file": "src/pages/api/contact.ts",
+      "route": "/api/contact",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/demo.ts",
+      "route": "/api/demo",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ],
+      "optionalKeys": [],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/domains/search.ts",
+      "route": "/api/domains/search",
+      "methods": [
+        "GET"
+      ],
+      "deps": [],
+      "requiredKeys": [],
+      "optionalKeys": [],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/feedback.ts",
+      "route": "/api/feedback",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/health.ts",
+      "route": "/api/health",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "supabase.admin",
+        "stripe.core",
+        "stripe.webhook"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/payment/checkout.ts",
+      "route": "/api/payment/checkout",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "stripe.core",
+        "stripe.price_overrides"
+      ],
+      "requiredKeys": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY",
+        "PRICE_ESSENTIAL",
+        "PRICE_ADVANCED",
+        "PRICE_CARE_79",
+        "PRICE_CARE_149",
+        "PRICE_CARE_249",
+        "PRICE_ESSENTIAL_999",
+        "PRICE_ESSENTIAL_1249",
+        "PRICE_ESSENTIAL_1500"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/payment/portal.ts",
+      "route": "/api/payment/portal",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "stripe.core"
+      ],
+      "requiredKeys": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/payment/redirect.ts",
+      "route": "/api/payment/redirect",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "stripe.core",
+        "stripe.price_overrides"
+      ],
+      "requiredKeys": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY",
+        "PRICE_ESSENTIAL",
+        "PRICE_ADVANCED",
+        "PRICE_CARE_79",
+        "PRICE_CARE_149",
+        "PRICE_CARE_249",
+        "PRICE_ESSENTIAL_999",
+        "PRICE_ESSENTIAL_1249",
+        "PRICE_ESSENTIAL_1500"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/payment/session.ts",
+      "route": "/api/payment/session",
+      "methods": [
+        "GET"
+      ],
+      "deps": [
+        "stripe.core"
+      ],
+      "requiredKeys": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/stripe-webhook.ts",
+      "route": "/api/stripe-webhook",
+      "methods": [
+        "POST"
+      ],
+      "deps": [
+        "supabase.admin",
+        "stripe.core",
+        "stripe.webhook",
+        "email.resend"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "RESEND_API_KEY"
+      ],
+      "optionalKeys": [
+        "STRIPE_PUBLISHABLE_KEY",
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missingKeys": []
+    },
+    {
+      "file": "src/pages/api/subscriptions/[id].ts",
+      "route": "/api/subscriptions/[id]",
+      "methods": [
+        "DELETE",
+        "PATCH"
+      ],
+      "deps": [
+        "supabase.anon",
+        "stripe.core"
+      ],
+      "requiredKeys": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "STRIPE_SECRET_KEY"
+      ],
+      "optionalKeys": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY",
+        "STRIPE_PUBLISHABLE_KEY"
+      ],
+      "missingKeys": []
+    }
+  ],
+  "envPresence": {
+    "DEPLOY_AUTOMATION_ENABLED": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": true,
+      "anywhere": true
+    },
+    "DOMAIN_ROOT": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": true,
+      "anywhere": true
+    },
+    "GODADDY_API_KEY": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "GODADDY_API_SECRET": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "GOOGLE_DOCS_SECTION_TEMPLATE_ID": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "GOOGLE_DRIVE_PARENT_FOLDER_ID": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "GOOGLE_SERVICE_ACCOUNT_EMAIL": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "MODE": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "ORIGIN": {
+      "process": false,
+      "env": false,
+      "production": true,
+      "example": false,
+      "anywhere": true
+    },
+    "PRICE_ADVANCED": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_CARE_149": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_CARE_249": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_CARE_79": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_ESSENTIAL": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_ESSENTIAL_1249": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_ESSENTIAL_1500": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PRICE_ESSENTIAL_999": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": false,
+      "anywhere": false
+    },
+    "PUBLIC_SUPABASE_ANON_KEY": {
+      "process": false,
+      "env": true,
+      "production": false,
+      "example": false,
+      "anywhere": true
+    },
+    "PUBLIC_SUPABASE_URL": {
+      "process": false,
+      "env": true,
+      "production": false,
+      "example": false,
+      "anywhere": true
+    },
+    "RESEND_API_KEY": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "SENDER_NAME": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "STRIPE_PUBLISHABLE_KEY": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "STRIPE_SECRET_KEY": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "SUPABASE_ANON_KEY": {
+      "process": false,
+      "env": false,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "SUPABASE_URL": {
+      "process": false,
+      "env": false,
+      "production": true,
+      "example": true,
+      "anywhere": true
+    },
+    "SUPPORT_EMAIL": {
+      "process": false,
+      "env": false,
+      "production": true,
+      "example": false,
+      "anywhere": true
+    },
+    "VERCEL_PROJECT_ID": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": true,
+      "anywhere": true
+    },
+    "VERCEL_TEAM_ID": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": true,
+      "anywhere": true
+    },
+    "VERCEL_TOKEN": {
+      "process": false,
+      "env": false,
+      "production": false,
+      "example": true,
+      "anywhere": true
+    },
+    "ZAPIER_WEBHOOK_URL": {
+      "process": false,
+      "env": true,
+      "production": true,
+      "example": false,
+      "anywhere": true
+    }
+  },
+  "integrations": {
+    "supabase.admin": {
+      "required": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ],
+      "optional": [],
+      "missing": []
+    },
+    "supabase.anon": {
+      "required": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY"
+      ],
+      "optional": [
+        "PUBLIC_SUPABASE_URL",
+        "PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "missing": []
+    },
+    "stripe.core": {
+      "required": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "optional": [
+        "STRIPE_PUBLISHABLE_KEY"
+      ],
+      "missing": []
+    },
+    "stripe.webhook": {
+      "required": [
+        "STRIPE_WEBHOOK_SECRET"
+      ],
+      "optional": [],
+      "missing": []
+    },
+    "email.resend": {
+      "required": [
+        "RESEND_API_KEY"
+      ],
+      "optional": [
+        "SENDER_EMAIL",
+        "SENDER_NAME"
+      ],
+      "missing": []
+    },
+    "google.sa": {
+      "required": [
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ],
+      "optional": [
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID",
+        "GOOGLE_DOCS_SECTION_TEMPLATE_ID"
+      ],
+      "missing": [
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY"
+      ]
+    },
+    "vercel.api": {
+      "required": [
+        "VERCEL_TOKEN"
+      ],
+      "optional": [
+        "VERCEL_PROJECT_ID",
+        "VERCEL_TEAM_ID"
+      ],
+      "missing": []
+    },
+    "stripe.price_overrides": {
+      "required": [],
+      "optional": [
+        "PRICE_ESSENTIAL",
+        "PRICE_ADVANCED",
+        "PRICE_CARE_79",
+        "PRICE_CARE_149",
+        "PRICE_CARE_249",
+        "PRICE_ESSENTIAL_999",
+        "PRICE_ESSENTIAL_1249",
+        "PRICE_ESSENTIAL_1500"
+      ],
+      "missing": []
+    }
+  },
+  "checks": {},
+  "meta": {
+    "generatedAt": "2025-11-06T17:20:37.666Z",
+    "ping": false
+  }
+}

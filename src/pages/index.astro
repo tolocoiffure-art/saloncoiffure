@@ -1,0 +1,3619 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import { getBrandFromHost } from '~/lib/brand';
+import { BRANDS } from '~/lib/brands.config';
+
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Content from '~/components/widgets/Content.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import { getImage } from '~/data/imageInventory';
+import type { ImageId } from '~/data/imageInventory';
+import { resolveLocaleFromRequest } from '~/lib/locale';
+import { resolveTenantFromRequest } from '~/lib/tenants';
+import { resolveTonSiteWebComponent } from '~/tenants/tonsiteweb/router';
+
+import type { MetaData } from '~/types';
+import type { BrandKey } from '~/lib/brand';
+import MaisonShell from '~/tenants/maison-cortes/ui/Shell.astro';
+import { maisonCortesCopy } from '~/tenants/maison-cortes/copy';
+
+type SimpleItem = { title: string; description: string; icon?: string };
+
+type HeroView = {
+  title: string;
+  subtitle: string;
+  tagline: string;
+  actions: { variant?: string; text: string; href: string; icon?: string }[];
+  background: string;
+  overlayClass?: string;
+  className?: string;
+  card?: {
+    badge?: string;
+    title: string;
+    description: string;
+    background?: string;
+    overlayClass?: string;
+    className?: string;
+  };
+};
+
+type SectionView = {
+  title: string;
+  subtitle?: string;
+  tagline?: string;
+  items: SimpleItem[];
+  variant?: 'tiles' | 'stacked';
+  classes?: Record<string, unknown>;
+  bgClass?: string;
+};
+
+type ProcessView = SectionView & {
+  content?: string;
+  image?: { src: string; overlayClass?: string; badge?: string };
+  isReversed?: boolean;
+};
+
+type BrandView = {
+  metadata: MetaData;
+  hero: HeroView;
+  features: SectionView;
+  process: ProcessView;
+  steps: SectionView & { image?: { src: string; overlayClass?: string; badge?: string } };
+  options: SectionView;
+  faqs: { title: string; subtitle: string; items: SimpleItem[] };
+  cta: { title: string; subtitle: string; actions: { variant?: string; text: string; href: string; icon?: string }[] };
+};
+
+const tenant = resolveTenantFromRequest(Astro.request);
+const TonComponent =
+  tenant.slug === 'tonsiteweb'
+    ? resolveTonSiteWebComponent(
+        'home',
+        Astro.url instanceof URL ? Astro.url : new URL(Astro.request.url),
+        Astro.request
+      )
+    : null;
+
+const hostCandidates = [
+  Astro.request.headers.get('x-forwarded-host'),
+  Astro.request.headers.get('host'),
+  new URL(Astro.request.url).host,
+]
+  .flatMap((value) => (value || '').split(','))
+  .map((value) => value.toLowerCase().trim().split(':')[0])
+  .filter(Boolean);
+const isToloHost = hostCandidates.some((host) => host.includes('tolocoiffure.ch'));
+if (tenant.slug === 'tolo-coiffure' || isToloHost) {
+  return Astro.rewrite('/tolo-coiffure');
+}
+
+// Route Atelier Mémoire hosts to the dedicated tenant pages to avoid fallback content
+if (tenant.slug === 'ateliermemoire' && !(Astro.url?.pathname || '').startsWith('/atelier-memoire')) {
+  const target = new URL('/atelier-memoire', Astro.url instanceof URL ? Astro.url : new URL(Astro.request.url));
+  return Astro.redirect(target.toString(), 308);
+}
+
+const host = Astro.request.headers.get('host');
+const brandKey = getBrandFromHost(host);
+const hostLower = (host || '').toLowerCase();
+const isMaisonHost = hostLower.includes('maisoncortes');
+const maisonBasePath = isMaisonHost ? '' : '/maison-cortes';
+const isMaisonLanding = brandKey === 'maisoncortes';
+const maisonLandingMetadata: MetaData = {
+  title: 'MAISON CORTES — Archive',
+  description: 'Archive maison. Catalogue limite et selection privee.',
+  ignoreTitleTemplate: true,
+};
+const maisonLandingCopy = maisonCortesCopy.locales.fr;
+
+export const prerender = false;
+
+const brand = BRANDS[brandKey] || BRANDS.pedro;
+const img = (id: ImageId) => getImage(id);
+const isUrgent = brandKey === 'urgent';
+const isTransport = brandKey === 'transport';
+const whatsapp = brand?.whatsapp || 'https://wa.me/41767982793';
+const isExperience = brandKey === 'laclemanexperience';
+const isLausanne = brandKey === 'lausanne';
+const defaultLocale = brandKey === 'laclemanexperience' ? 'en' : 'fr';
+const locale = resolveLocaleFromRequest(Astro.request, defaultLocale);
+const lang = isExperience
+  ? ['fr', 'en', 'de', 'it', 'ar', 'zh'].includes(locale)
+    ? locale
+    : defaultLocale
+  : isLausanne
+    ? ['fr', 'en', 'de', 'it', 'ar', 'zh'].includes(locale)
+      ? locale
+      : 'fr'
+    : 'fr';
+const isEn = lang === 'en';
+const isDe = lang === 'de';
+const isIt = lang === 'it';
+const isAr = lang === 'ar';
+const isZh = lang === 'zh';
+const lamT = <T,>(fr: T, en: T, de: T, it: T): T => {
+  if (!isLausanne) return fr;
+  if (isEn) return en;
+  if (isDe) return de;
+  if (isIt) return it;
+  return fr;
+};
+const lceT = <T,>(fr: T, en: T, de: T, it: T, ar?: T, zh?: T): T => {
+  if (!isExperience) return fr;
+  if (isEn) return en;
+  if (isDe) return de;
+  if (isIt) return it;
+  if (isAr && ar !== undefined) return ar;
+  if (isZh && zh !== undefined) return zh;
+  return fr;
+};
+
+const experienceFormats = [
+  { title: 'Demi-journée', description: '2–4h · 2–6 pers. · Couples, VIP visiteurs', icon: 'tabler:clock-hour-4' },
+  { title: 'Journée', description: '5–8h · 2–8 pers. · Découverte complète', icon: 'tabler:calendar-time' },
+  { title: 'Soirée signature', description: '3–4h · 2–10 pers. · Dîner, célébration', icon: 'tabler:moon-stars' },
+  { title: 'Immersion', description: '2–3 jours · 2–6 pers. · UHNW, corporate', icon: 'tabler:route' },
+];
+
+const experienceConcierge = [
+  {
+    title: 'Interlocuteur unique',
+    description: 'WhatsApp + téléphone, réponse rapide J-7 → J+1',
+    icon: 'tabler:headset',
+  },
+  {
+    title: 'Brief écrit',
+    description: 'Partagé aux bateliers, vignerons, chefs locaux. Pas d’improvisation.',
+    icon: 'tabler:clipboard-list',
+  },
+  {
+    title: 'Plan B météo',
+    description: 'Validé à l’avance, expérience maintenue sans perte de qualité.',
+    icon: 'tabler:cloud-check',
+  },
+];
+
+const experienceLogistics = [
+  {
+    title: 'Créneaux verrouillés',
+    description: 'Sunset, transferts porte-à-porte, tampons horaires intégrés.',
+    icon: 'tabler:clock-check',
+  },
+  {
+    title: 'Transferts privés',
+    description: 'Mercedes V/E, bateau-taxi si pertinent, chauffeurs brieffés.',
+    icon: 'tabler:car',
+  },
+  {
+    title: 'Autorisations & privatisations',
+    description: 'Caves, bateaux, tables d’hôtes réellement privatisés.',
+    icon: 'tabler:lock-square-rounded',
+  },
+];
+
+const experienceCommitments = [
+  { title: 'Privatisation réelle', description: 'Jamais de mélange de groupes.', icon: 'tabler:shield-lock' },
+  { title: 'Horaires respectés', description: 'Ou compensation si décalage.', icon: 'tabler:clock-bolt' },
+  {
+    title: 'Partenaires directs',
+    description: 'Bateliers, vignerons, chefs locaux, sans intermédiaire.',
+    icon: 'tabler:users',
+  },
+  { title: 'Plan B météo', description: 'Alternatives prêtes et validées.', icon: 'tabler:umbrella' },
+];
+
+const experienceFormatsData = lceT(
+  experienceFormats,
+  [
+    { title: 'Half-day', description: '2–4h · 2–6 ppl · Couples, VIP visitors', icon: 'tabler:clock-hour-4' },
+    { title: 'Full day', description: '5–8h · 2–8 ppl · Complete discovery', icon: 'tabler:calendar-time' },
+    { title: 'Signature evening', description: '3–4h · 2–10 ppl · Dinner, celebration', icon: 'tabler:moon-stars' },
+    { title: 'Immersion', description: '2–3 days · 2–6 ppl · UHNW, corporate', icon: 'tabler:route' },
+  ],
+  [
+    { title: 'Halbtags', description: '2–4h · 2–6 Pers. · Paare, VIP-Besucher', icon: 'tabler:clock-hour-4' },
+    { title: 'Ganzer Tag', description: '5–8h · 2–8 Pers. · Komplette Entdeckung', icon: 'tabler:calendar-time' },
+    { title: 'Signature-Abend', description: '3–4h · 2–10 Pers. · Dinner, Celebration', icon: 'tabler:moon-stars' },
+    { title: 'Immersion', description: '2–3 Tage · 2–6 Pers. · UHNW, Corporate', icon: 'tabler:route' },
+  ],
+  [
+    { title: 'Mezza giornata', description: '2–4h · 2–6 pers. · Coppie, visitatori VIP', icon: 'tabler:clock-hour-4' },
+    { title: 'Giornata intera', description: '5–8h · 2–8 pers. · Scoperta completa', icon: 'tabler:calendar-time' },
+    { title: 'Serata signature', description: '3–4h · 2–10 pers. · Cena, celebrazione', icon: 'tabler:moon-stars' },
+    { title: 'Immersione', description: '2–3 giorni · 2–6 pers. · UHNW, corporate', icon: 'tabler:route' },
+  ],
+  [
+    { title: 'نصف يوم', description: '2–4س · 2–6 أشخاص · ثنائيات وزوار VIP', icon: 'tabler:clock-hour-4' },
+    { title: 'يوم كامل', description: '5–8س · 2–8 أشخاص · اكتشاف كامل', icon: 'tabler:calendar-time' },
+    { title: 'أمسية مميزة', description: '3–4س · 2–10 أشخاص · عشاء/احتفال', icon: 'tabler:moon-stars' },
+    { title: 'إقامة غامرة', description: '2–3 أيام · 2–6 أشخاص · عملاء مميزون/شركات', icon: 'tabler:route' },
+  ],
+  [
+    { title: '半天', description: '2–4小时 · 2–6人 · 情侣/贵宾访客', icon: 'tabler:clock-hour-4' },
+    { title: '整天', description: '5–8小时 · 2–8人 · 全面体验', icon: 'tabler:calendar-time' },
+    { title: '招牌夜晚', description: '3–4小时 · 2–10人 · 晚宴/庆祝', icon: 'tabler:moon-stars' },
+    { title: '沉浸式', description: '2–3天 · 2–6人 · 高端/企业', icon: 'tabler:route' },
+  ]
+);
+
+const experienceConciergeData = lceT(
+  experienceConcierge,
+  [
+    { title: 'Single concierge', description: 'WhatsApp + phone, responsive from D-7 to D+1.', icon: 'tabler:headset' },
+    {
+      title: 'Written brief',
+      description: 'Shared with skippers, winemakers, chefs. No improvisation.',
+      icon: 'tabler:clipboard-list',
+    },
+    {
+      title: 'Weather plan B',
+      description: 'Validated upfront, experience quality preserved.',
+      icon: 'tabler:cloud-check',
+    },
+  ],
+  [
+    { title: 'Ein Concierge', description: 'WhatsApp + Telefon, reaktionsschnell J-7 → J+1.', icon: 'tabler:headset' },
+    {
+      title: 'Schriftliches Briefing',
+      description: 'Mit Skippern, Winzern, Köchen geteilt. Keine Improvisation.',
+      icon: 'tabler:clipboard-list',
+    },
+    { title: 'Wetter-Plan B', description: 'Vorab validiert, Qualität bleibt.', icon: 'tabler:cloud-check' },
+  ],
+  [
+    { title: 'Concierge unico', description: 'WhatsApp + telefono, reattivo da D-7 a D+1.', icon: 'tabler:headset' },
+    {
+      title: 'Brief scritto',
+      description: 'Condiviso con skipper, vignaioli, chef. Nessuna improvvisazione.',
+      icon: 'tabler:clipboard-list',
+    },
+    { title: 'Piano B meteo', description: 'Validato in anticipo, esperienza preservata.', icon: 'tabler:cloud-check' },
+  ],
+  [
+    { title: 'كونسيرج واحد', description: 'واتساب + هاتف، استجابة من J-7 إلى J+1.', icon: 'tabler:headset' },
+    {
+      title: 'موجز مكتوب',
+      description: 'يُشارك مع الملاحين، صناع النبيذ والطهاة. بلا ارتجال.',
+      icon: 'tabler:clipboard-list',
+    },
+    { title: 'خطة طقس بديلة', description: 'معتمدة مسبقاً للحفاظ على جودة التجربة.', icon: 'tabler:cloud-check' },
+  ],
+  [
+    { title: '单一礼宾', description: 'WhatsApp+电话，J-7 至 J+1 及时响应。', icon: 'tabler:headset' },
+    { title: '书面简报', description: '分享给船长、酒农、主厨，零即兴。', icon: 'tabler:clipboard-list' },
+    { title: '天气B案', description: '提前确认，体验质量不打折。', icon: 'tabler:cloud-check' },
+  ]
+);
+
+const experienceLogisticsData = lceT(
+  experienceLogistics,
+  [
+    {
+      title: 'Locked slots',
+      description: 'Sunset timings, door-to-door transfers, buffer times.',
+      icon: 'tabler:clock-check',
+    },
+    {
+      title: 'Private transfers',
+      description: 'Mercedes V/E, boat taxi if relevant, briefed drivers.',
+      icon: 'tabler:car',
+    },
+    {
+      title: 'Permits & privatisations',
+      description: 'Cellars, boats, hosted tables truly privatised.',
+      icon: 'tabler:lock-square-rounded',
+    },
+  ],
+  [
+    {
+      title: 'Fixe Slots',
+      description: 'Sunset-Zeiten, Tür-zu-Tür-Transfers, Pufferzeiten.',
+      icon: 'tabler:clock-check',
+    },
+    {
+      title: 'Private Transfers',
+      description: 'Mercedes V/E, Bootstaxi falls sinnvoll, gebriefte Fahrer.',
+      icon: 'tabler:car',
+    },
+    {
+      title: 'Bewilligungen & Privatisierungen',
+      description: 'Keller, Boote, Gastgebertafeln wirklich privat.',
+      icon: 'tabler:lock-square-rounded',
+    },
+  ],
+  [
+    {
+      title: 'Slot bloccati',
+      description: 'Orari sunset, transfer door-to-door, tempi cuscinetto.',
+      icon: 'tabler:clock-check',
+    },
+    {
+      title: 'Transfer privati',
+      description: 'Mercedes V/E, taxi boat se serve, autisti briefati.',
+      icon: 'tabler:car',
+    },
+    {
+      title: 'Permessi & privatizzazioni',
+      description: 'Cantine, barche, tavole davvero privatizzate.',
+      icon: 'tabler:lock-square-rounded',
+    },
+  ],
+  [
+    {
+      title: 'مواعيد مقفلة',
+      description: 'أوقات الغروب، نقل باب لباب، هوامش زمنية مدمجة.',
+      icon: 'tabler:clock-check',
+    },
+    { title: 'تنقلات خاصة', description: 'مرسيدس V/E أو تاكسي بحري، سائقون موجّهون.', icon: 'tabler:car' },
+    {
+      title: 'تصاريح وخصخصة',
+      description: 'سراديب، قوارب، موائد مضيفة مخصخصة فعلياً.',
+      icon: 'tabler:lock-square-rounded',
+    },
+  ],
+  [
+    { title: '锁定档期', description: '日落时间段，门到门接送，预留缓冲。', icon: 'tabler:clock-check' },
+    { title: '专属接送', description: '奔驰V/E或水上接驳，司机已对齐。', icon: 'tabler:car' },
+    { title: '许可与私享', description: '酒窖/游船/私宴真正私享。', icon: 'tabler:lock-square-rounded' },
+  ]
+);
+
+const experienceCommitmentsData = lceT(
+  experienceCommitments,
+  [
+    { title: 'Real privatisation', description: 'Never mixing groups.', icon: 'tabler:shield-lock' },
+    { title: 'Timing respected', description: 'Or compensated.', icon: 'tabler:clock-bolt' },
+    { title: 'Direct partners', description: 'Local skippers, winemakers, chefs.', icon: 'tabler:users' },
+    { title: 'Weather plan B', description: 'Alternatives ready and validated.', icon: 'tabler:umbrella' },
+  ],
+  [
+    { title: 'Echte Privatisierung', description: 'Keine Gruppendurchmischung.', icon: 'tabler:shield-lock' },
+    { title: 'Timing eingehalten', description: 'Oder kompensiert.', icon: 'tabler:clock-bolt' },
+    { title: 'Direkte Partner', description: 'Lokale Skipper, Winzer, Köche.', icon: 'tabler:users' },
+    { title: 'Wetter-Plan B', description: 'Alternativen bereit und validiert.', icon: 'tabler:umbrella' },
+  ],
+  [
+    { title: 'Vera privatizzazione', description: 'Mai gruppi mescolati.', icon: 'tabler:shield-lock' },
+    { title: 'Timing rispettato', description: 'O compensato.', icon: 'tabler:clock-bolt' },
+    { title: 'Partner diretti', description: 'Skipper, vignaioli, chef locali.', icon: 'tabler:users' },
+    { title: 'Piano B meteo', description: 'Alternative pronte e validate.', icon: 'tabler:umbrella' },
+  ],
+  [
+    { title: 'خصخصة حقيقية', description: 'لا مزج بين المجموعات.', icon: 'tabler:shield-lock' },
+    { title: 'مواعيد محترمة', description: 'أو تعويض عند التأخير.', icon: 'tabler:clock-bolt' },
+    { title: 'شركاء مباشرين', description: 'ملاحون، صناع نبيذ، طهاة محليون.', icon: 'tabler:users' },
+    { title: 'خطة طقس بديلة', description: 'بدائل جاهزة ومعتمدة.', icon: 'tabler:umbrella' },
+  ],
+  [
+    { title: '真实私享', description: '绝不混团。', icon: 'tabler:shield-lock' },
+    { title: '严格守时', description: '如有延误则补偿。', icon: 'tabler:clock-bolt' },
+    { title: '直连伙伴', description: '本地船长、酒农、主厨。', icon: 'tabler:users' },
+    { title: '天气B案', description: '备用方案随时启用。', icon: 'tabler:umbrella' },
+  ]
+);
+
+const baseMove: BrandView = {
+  metadata: {
+    title: 'Pedro Déménagement — Déménagement rapide en Suisse romande',
+    ignoreTitleTemplate: true,
+    description:
+      'Équipe locale, protection du mobilier et planning maîtrisé pour déménager sereinement en Suisse romande.',
+  },
+  hero: {
+    tagline: 'Déménagement',
+    title: 'Déménagement rapide, efficace et sans stress',
+    subtitle:
+      'Équipe basée en Suisse romande. Nous planifions, emballons et transportons vos biens avec soin, que ce soit pour un appartement, une maison ou un bureau.',
+    actions: [
+      { variant: 'primary', text: 'Obtenir un devis', href: '/contact#form', icon: 'tabler:arrow-right' },
+      { icon: 'tabler:brand-whatsapp', text: brand.phone || '+41 76 798 27 93', href: whatsapp },
+    ],
+    background: `linear-gradient(135deg, rgba(248,250,252,0.06), rgba(226,232,240,0.02)), url('${img('hero_happy_boxes_plants')}')`,
+    overlayClass: 'pedro-hero-overlay',
+    className: 'pedro-hero hero-light',
+    card: {
+      badge: 'Jour J maîtrisé',
+      title: 'Planification → Protection → Transport',
+      description:
+        'Chef d’équipe dédié, check-list des accès et protections sol/murs pour un déménagement sans surprises.',
+      background: `linear-gradient(135deg, rgba(15,23,42,0.55), rgba(15,23,42,0.42), rgba(255,255,255,0.12)), url('${img('men_loading_e_cat_truck')}')`,
+      overlayClass: 'pedro-hero-card-overlay',
+      className: 'panel-surface text-white border border-white/35 shadow-xl',
+    },
+  },
+  features: {
+    tagline: 'Pourquoi nous choisir',
+    title: 'La précision suisse appliquée à votre déménagement',
+    subtitle: 'Une équipe locale, un matériel adapté et une organisation claire pour protéger vos biens.',
+    items: [
+      {
+        title: 'Équipe lémanique',
+        description: 'Déménageurs basés entre Genève et Lausanne, disponibles en semaine et le samedi.',
+        icon: 'tabler:users',
+      },
+      {
+        title: 'Protection du mobilier',
+        description: 'Housses, couvertures, sangles et cartons renforcés pour limiter tout risque de casse.',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'Accès & autorisations',
+        description: 'Repérage des parkings, réservations de places et coordination ascenseur/monte-meubles.',
+        icon: 'tabler:map-pin',
+      },
+      {
+        title: 'Suivi unique',
+        description: 'Un interlocuteur qui coordonne la date, l’équipe et les éventuels imprévus.',
+        icon: 'tabler:headset',
+      },
+    ],
+    bgClass: 'bg-white',
+    classes: {
+      container: 'max-w-6xl',
+      items: { panel: 'bg-white text-slate-900 rounded-2xl p-6 gap-4 shadow-sm border border-slate-100' },
+    },
+  },
+  process: {
+    tagline: 'Processus',
+    title: 'Votre déménagement en 3 temps',
+    items: [
+      {
+        title: 'Préparation & devis',
+        description: 'Visio ou visite express pour estimer le volume, les accès et le matériel nécessaire.',
+      },
+      {
+        title: 'Emballage & protection',
+        description: 'Cartons, housses matelas, démontage du mobilier et protection des sols/murs.',
+      },
+      {
+        title: 'Transport & installation',
+        description: 'Chargement sécurisé, trajet optimisé, remontage et reprise des protections.',
+      },
+    ],
+    content: 'Vous savez qui vient, avec quel camion et à quelle heure. Nous validons chaque étape avant le jour J.',
+    image: {
+      src: img('professional_van_4'),
+      overlayClass: 'pedro-process-overlay',
+      badge: 'Planning',
+    },
+    classes: { container: 'bg-white rounded-3xl shadow-sm px-6 md:px-10 py-10' },
+    isReversed: true,
+  },
+  steps: {
+    title: 'Notre accompagnement',
+    tagline: 'Parcours client',
+    items: [
+      {
+        title: '1. Échange rapide',
+        description: 'Un appel ou une visio pour comprendre vos dates et contraintes.',
+        icon: 'tabler:phone',
+      },
+      {
+        title: '2. Devis détaillé',
+        description: 'Volume estimé, accès, options et planning.',
+        icon: 'tabler:file-description',
+      },
+      {
+        title: '3. Jour J',
+        description: 'Protection des zones de passage, chargement et transport sécurisé.',
+        icon: 'tabler:truck',
+      },
+      {
+        title: '4. Installation',
+        description: 'Remontage, mise en place et reprise des emballages principaux.',
+        icon: 'tabler:home',
+      },
+    ],
+    classes: {
+      container: 'bg-white rounded-3xl shadow-sm px-6 md:px-10 py-10',
+      headline: { title: 'text-slate-900', subtitle: 'text-slate-600' },
+      items: { title: 'text-slate-900', description: 'text-slate-600' },
+    },
+    image: {
+      src: img('professional_van_3'),
+      overlayClass: 'pedro-steps-overlay',
+      badge: 'Disponibilité',
+    },
+  },
+  options: {
+    tagline: 'Services complémentaires',
+    title: 'Options utiles',
+    subtitle: 'Selon votre logement et vos contraintes',
+    variant: 'tiles',
+    items: [
+      {
+        title: 'Emballage & déballage',
+        description: 'Cartons, penderies, protections vaisselle et emballage des objets fragiles.',
+        icon: 'tabler:package',
+      },
+      {
+        title: 'Démontage / remontage',
+        description: 'Meubles, lits, armoires et dressing remontés proprement à l’arrivée.',
+        icon: 'tabler:tools',
+      },
+      {
+        title: 'Nettoyage de sortie',
+        description: 'Option ménage de fin de bail pour rendre votre logement en ordre.',
+        icon: 'tabler:sparkles',
+      },
+    ],
+  },
+  faqs: {
+    title: 'Questions fréquentes',
+    subtitle: 'Transparence sur l’organisation et la facture.',
+    items: [
+      {
+        title: 'Quel est le délai pour obtenir un devis ?',
+        description:
+          'Nous répondons sous 24h avec un prix indicatif basé sur le volume, les accès et la date souhaitée.',
+      },
+      {
+        title: 'Pouvez-vous emballer pour nous ?',
+        description:
+          'Oui. Nous pouvons fournir cartons, penderies, protections vaisselle et réaliser tout l’emballage/déballage.',
+      },
+      {
+        title: 'Gérez-vous les pianos ou objets lourds ?',
+        description:
+          'Notre système standard prend en charge des pièces jusqu’à 250 kg. Au-delà, nous mobilisons un partenaire spécialisé.',
+      },
+      {
+        title: 'Intervenez-vous le week-end ?',
+        description: 'Le samedi est possible selon disponibilité. Pour le dimanche, nous étudions au cas par cas.',
+      },
+    ],
+  },
+  cta: {
+    title: 'Prêt à planifier votre déménagement ?',
+    subtitle:
+      'Expliquez votre volume, vos dates et vos adresses. Nous envoyons une proposition claire avec planning et options.',
+    actions: [
+      { variant: 'primary', text: 'Demander un devis', href: '/contact#form', icon: 'tabler:mail-forward' },
+      { text: 'Voir les tarifs', href: '/pricing' },
+    ],
+  },
+};
+
+const views: Record<BrandKey, BrandView> = {
+  pedro: baseMove,
+  laclemanexperience: {
+    ...baseMove,
+    metadata: {
+      title: lceT(
+        'Lac Léman Experience — Croisières, vignobles et tables d’hôtes',
+        'Lac Léman Experience — Private cruises, vineyards & hosted tables',
+        'Lac Léman Experience — Private Cruises, Weinberge & Gastgebertafeln',
+        'Lac Léman Experience — Crociere private, vigneti UNESCO e tavole d’hôtes',
+        'Lac Léman Experience — رحلات خاصة، كروم، موائد مضيفة',
+        'Lac Léman Experience — 私享游船、葡萄园与私宴体验'
+      ),
+      ignoreTitleTemplate: true,
+      description: lceT(
+        'Expériences privées autour du Léman : croisières sunset, vignobles UNESCO, tables d’hôtes et échappées alpines.',
+        'Private experiences around Lake Geneva: sunset cruises, UNESCO vineyards, hosted tables and alpine escapes.',
+        'Private Erlebnisse rund um den Genfersee: Sunset-Cruises, UNESCO-Weinberge, Gastgebertafeln und alpine Ausflüge.',
+        'Esperienze private sul Lago Lemano: crociere al tramonto, vigneti UNESCO, tavole d’hôtes e fughe alpine.',
+        'تجارب خاصة حول ليمان: رحلات غروب، كروم اليونسكو، موائد مضيفة وهروب للألب.',
+        '莱蒙湖私享：日落游船、联合国教科文组织葡萄园、私宴与高山度假。'
+      ),
+    },
+    hero: {
+      tagline: lceT(
+        'Expériences Léman',
+        'Lake Geneva experiences',
+        'Genfersee-Erlebnisse',
+        'Esperienze Lago Lemano',
+        'تجارب ليمان',
+        '莱蒙湖体验'
+      ),
+      title: lceT(
+        'Croisières privées, vignobles UNESCO, tables d’hôtes',
+        'Private cruises, UNESCO vineyards, hosted tables',
+        'Private Kreuzfahrten, UNESCO-Weinberge, Gastgebertafeln',
+        'Crociere private, vigneti UNESCO, tavole d’hôtes',
+        'رحلات خاصة، كروم اليونسكو، موائد مضيفة',
+        '私享游船、联合国教科文组织葡萄园、私宴'
+      ),
+      subtitle: lceT(
+        'Un concierge dédié, des partenaires locaux et des itinéraires adaptés après brief écrit entre lac, montagnes et villes.',
+        'A dedicated concierge, local partners, and itineraries shaped after a written brief across lake, mountains, and city.',
+        'Dedizierter Concierge, lokale Partner und Routen nach schriftlichem Briefing über See, Berge und Stadt.',
+        'Concierge dedicato, partner locali e itinerari definiti dopo un brief scritto tra lago, montagne e città.',
+        'كونسيرج مخصص، شركاء محليون ومسارات مضبوطة بعد موجز مكتوب بين البحيرة والجبال والمدينة.',
+        '专属礼宾 + 本地伙伴，书面确认后定制湖山城行程。'
+      ),
+      actions: [
+        {
+          variant: 'primary',
+          text: lceT(
+            'Réserver une expérience',
+            'Book an experience',
+            'Erlebnis buchen',
+            'Prenotare un’esperienza',
+            'احجز تجربة',
+            '预订体验'
+          ),
+          href: '/contact#form',
+          icon: 'tabler:mail-forward',
+        },
+        {
+          text: lceT(
+            'Parler à un concierge',
+            'Talk to a concierge',
+            'Mit dem Concierge sprechen',
+            'Parlare con un concierge',
+            'تحدث إلى الكونسيرج',
+            '联系礼宾'
+          ),
+          href: whatsapp,
+          icon: 'tabler:phone',
+        },
+      ],
+      background: `linear-gradient(135deg, rgba(15,118,110,0.22), rgba(30,41,59,0.28), rgba(253,230,138,0.16)), url('${img('silent_boat_still_lake')}')`,
+      overlayClass: 'bg-gradient-to-br from-emerald-950/35 via-slate-900/45 to-amber-100/20',
+      className: 'brand-laclemanexperience hero-light',
+      card: {
+        badge: lceT('Conciergerie', 'Concierge', 'Concierge', 'Concierge', 'كونسيرج', '礼宾'),
+        title: lceT(
+          'Itinéraires saisonniers',
+          'Seasonal itineraries',
+          'Saisonale Routen',
+          'Itinerari stagionali',
+          'مسارات موسمية',
+          '季节行程'
+        ),
+        description: lceT(
+          'Lac au printemps, vignobles UNESCO en été, tables d’hôtes en automne, bains alpins en hiver.',
+          'Lake in spring, UNESCO vineyards in summer, hosted tables in autumn, alpine baths in winter.',
+          'See im Frühling, UNESCO-Weinberge im Sommer, Gastgebertafeln im Herbst, alpine Bäder im Winter.',
+          'Lago in primavera, vigneti UNESCO in estate, tavole d’hôtes in autunno, bagni alpini in inverno.',
+          'بحيرة في الربيع، كروم اليونسكو صيفاً، موائد مضيفة خريفاً، حمامات جبلية شتاءً.',
+          '春天湖面，夏天葡萄园，秋天私宴，冬天山间温泉。'
+        ),
+        background: `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(226,232,240,0.18)), url('${img('quiet_luxury_lake_lifestyle')}')`,
+        overlayClass: 'bg-gradient-to-br from-emerald-900/25 via-slate-900/25 to-white/18',
+        className: 'panel-surface text-slate-900',
+      },
+    },
+    features: {
+      tagline: lceT(
+        'Pourquoi Lac Léman Experience',
+        'Why Lac Léman Experience',
+        'Warum Lac Léman Experience',
+        'Perché Lac Léman Experience',
+        'لماذا تجارب ليمان',
+        '为什么选择莱蒙体验'
+      ),
+      title: lceT(
+        'Expériences privées, partenaires locaux',
+        'Private experiences, local partners',
+        'Private Erlebnisse, lokale Partner',
+        'Esperienze private, partner locali',
+        'تجارب خاصة، شركاء محليون',
+        '私享体验，本地伙伴'
+      ),
+      subtitle: lceT(
+        'Nous combinons lac, montagne et ville avec des artisans et vignerons triés sur le volet.',
+        'We blend lake, mountains, and city with vetted boat captains, winemakers, and chefs.',
+        'Wir kombinieren See, Berge und Stadt mit geprüften Kapitänen, Winzern und Köchen.',
+        'Unendo lago, montagna e città con capitani, vignaioli e chef selezionati.',
+        'نجمع بين البحيرة والجبال والمدينة مع قادة قوارب، صناع نبيذ وطهاة مختارين.',
+        '湖、山、城串联，甄选船长、酿酒师和主厨合作。'
+      ),
+      variant: 'tiles',
+      columns: 4,
+      items: [
+        {
+          title: lceT(
+            'Concierge dédié',
+            'Dedicated concierge',
+            'Dedizierter Concierge',
+            'Concierge dedicato',
+            'كونسيرج مخصص',
+            '专属礼宾'
+          ),
+          description: lceT(
+            'Un interlocuteur unique pour l’itinéraire, la logistique et les surprises.',
+            'One contact for the itinerary, logistics, and surprises.',
+            'Eine Ansprechperson für Route, Logistik und Überraschungen.',
+            'Un solo referente per itinerario, logistica e imprevisti.',
+            'جهة اتصال واحدة للمسار واللوجستيات والمفاجآت.',
+            '行程、物流与惊喜，一位礼宾全程负责。'
+          ),
+          icon: 'tabler:headset',
+        },
+        {
+          title: lceT(
+            'Partenaires directs',
+            'Direct partners',
+            'Direkte Partner',
+            'Partner diretti',
+            'شركاء مباشرين',
+            '直接合作伙伴'
+          ),
+          description: lceT(
+            'Bateliers privés, vignerons UNESCO, chefs locaux, sans intermédiaire.',
+            'Private captains, UNESCO winemakers, local chefs—no intermediaries.',
+            'Private Kapitäne, UNESCO-Winzer, lokale Köche – ohne Vermittler.',
+            'Capitani privati, vignaioli UNESCO, chef locali — senza intermediari.',
+            'قباطنة خاصون، صناع نبيذ معتمدون من اليونسكو، طهاة محليون — بلا وسطاء.',
+            '私家船长、联合国教科文组织酿酒师、本地主厨——无中间商。'
+          ),
+          icon: 'tabler:medal',
+        },
+        {
+          title: lceT('Saisonnalité', 'Seasonality', 'Saisonalität', 'Stagionalità', 'موسمية', '顺应季节'),
+          description: lceT(
+            'Programme qui suit la météo, la vigne et les festivals locaux.',
+            'Program follows weather, vines, and local festivals.',
+            'Programm folgt Wetter, Reben und lokalen Festen.',
+            'Programma che segue meteo, vite e feste locali.',
+            'برنامج يتبع الطقس والكروم والمهرجانات المحلية.',
+            '行程随天气、葡萄藤和本地节庆而变。'
+          ),
+          icon: 'tabler:calendar',
+        },
+        {
+          title: lceT(
+            'Logistique verrouillée',
+            'Locked logistics',
+            'Fixierte Logistik',
+            'Logistica bloccata',
+            'لوجستيات محكمة',
+            '严谨物流'
+          ),
+          description: lceT(
+            'Transferts, horaires précis, brief discret des équipes.',
+            'Transfers, precise timings, discreet team briefs.',
+            'Transfers, präzise Zeiten, diskrete Briefings.',
+            'Transfer, orari precisi, briefing discreti.',
+            'تنقلات، توقيت دقيق، إحاطة هادئة للفرق.',
+            '接送、精准时间、低调对接团队。'
+          ),
+          icon: 'tabler:clock',
+        },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-emerald-200/40 bg-white/85 text-slate-900' },
+      },
+      bgClass: 'bg-gradient-to-br from-emerald-50/60 via-amber-50/35 to-white',
+    },
+    process: {
+      tagline: lceT('Processus', 'Process', 'Ablauf', 'Processo', 'العملية', '流程'),
+      title: lceT(
+        'Processus sans friction',
+        'Frictionless flow',
+        'Reibungsloser Ablauf',
+        'Flusso senza attriti',
+        'تدفق بلا احتكاك',
+        '无摩擦流程'
+      ),
+      items: [
+        {
+          title: lceT(
+            '1. Brief (10 min)',
+            '1. Brief (10 min)',
+            '1. Briefing (10 Min)',
+            '1. Brief (10 min)',
+            '1. موجز (10 دقائق)',
+            '1. 简述（10分钟）'
+          ),
+          description: lceT(
+            'Dates, envies, budget, contraintes. Call/WhatsApp.',
+            'Dates, wishes, budget, constraints. Call/WhatsApp.',
+            'Daten, Wünsche, Budget, Constraints. Call/WhatsApp.',
+            'Date, desideri, budget, vincoli. Call/WhatsApp.',
+            'تواريخ، رغبات، ميزانية، قيود. اتصال/واتساب.',
+            '日期、偏好、预算、限制。电话/WhatsApp。'
+          ),
+          icon: 'tabler:message',
+        },
+        {
+          title: lceT(
+            '2. Proposition PDF',
+            '2. PDF proposal',
+            '2. PDF-Vorschlag',
+            '2. Proposta PDF',
+            '2. عرض PDF',
+            '2. PDF 提案'
+          ),
+          description: lceT(
+            'Itinéraire, horaires, transferts, prix. Envoyé sous 24h.',
+            'Itinerary, timings, transfers, pricing. Sent within 24h.',
+            'Route, Zeiten, Transfers, Preise. Versand innerhalb 24h.',
+            'Itinerario, orari, transfer, prezzi. Inviato entro 24h.',
+            'مسار، أوقات، تنقلات، أسعار. يُرسل خلال 24 ساعة.',
+            '行程、时间、接送、价格，24小时内发送。'
+          ),
+          icon: 'tabler:file-description',
+        },
+        {
+          title: lceT('3. Confirmation', '3. Confirmation', '3. Bestätigung', '3. Conferma', '3. تأكيد', '3. 确认'),
+          description: lceT(
+            'Acompte, privatisations, brief partenaires et plan B météo.',
+            'Deposit, privatisations, partner briefs, and weather plan B.',
+            'Anzahlung, Privatisierungen, Partner-Briefings, Wetter-Plan B.',
+            'Acconto, privatizzazioni, briefing partner, piano B meteo.',
+            'عربون، خصخصة، إحاطات الشركاء، خطة طقس بديلة.',
+            '订金、私享锁定、合作方对接及天气B方案。'
+          ),
+          icon: 'tabler:check',
+        },
+        {
+          title: lceT('4. Jour J', '4. Day-of', '4. Am Tag X', '4. Giorno J', '4. يوم التنفيذ', '4. 当日'),
+          description: lceT(
+            'Concierge joignable, équipes alignées, confirmations la veille.',
+            'Concierge on-call, teams aligned, confirmations the day before.',
+            'Concierge erreichbar, Teams abgestimmt, Bestätigungen am Vortag.',
+            'Concierge reperibile, team allineati, conferme il giorno prima.',
+            'كونسيرج متاح، فرق متناسقة، تأكيدات في اليوم السابق.',
+            '礼宾随叫随到，团队对齐，提前一天确认。'
+          ),
+          icon: 'tabler:phone',
+        },
+      ],
+      content: lceT(
+        'Tout est verrouillé avant votre arrivée : transferts, hôtes, météo, plan B discret si besoin.',
+        'Everything is locked before you arrive: transfers, hosts, weather, discreet plan B ready if needed.',
+        'Alles ist fixiert, bevor Sie ankommen: Transfers, Gastgeber, Wetter, diskreter Plan B bereit.',
+        'Tutto è bloccato prima del vostro arrivo: transfer, host, meteo, piano B discreto pronto.',
+        'كل شيء مؤمَّن قبل وصولك: تنقلات، مضيفون، طقس، خطة بديلة جاهزة.',
+        '在您到来前全部锁定：接送、接待、天气预案B就绪。'
+      ),
+      image: {
+        src: img('leman_horizon_minimal_2'),
+        overlayClass: 'bg-gradient-to-br from-emerald-900/22 via-slate-900/22 to-amber-50/26',
+        badge: 'Conciergerie',
+      },
+      classes: {
+        container:
+          'bg-gradient-to-br from-emerald-50/70 via-white to-white rounded-3xl shadow-sm px-6 md:px-10 py-10 text-slate-900',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: lceT('Parcours client', 'Guest journey', 'Gästeweg', 'Percorso ospite', 'رحلة الضيف', '宾客旅程'),
+      tagline: lceT('Coordination', 'Coordination', 'Koordination', 'Coordinazione', 'تنسيق', '统筹'),
+      items: [
+        {
+          title: lceT('Brief express', 'Express brief', 'Kurzes Briefing', 'Brief rapido', 'موجز سريع', '快速沟通'),
+          description: lceT(
+            '10 minutes pour comprendre vos attentes.',
+            '10 minutes to capture expectations.',
+            '10 Minuten für Erwartungen.',
+            '10 minuti per capire le aspettative.',
+            '10 دقائق لفهم توقعاتكم.',
+            '10 分钟了解需求。'
+          ),
+          icon: 'tabler:message',
+        },
+        {
+          title: lceT(
+            'Proposition verrouillée',
+            'Locked proposal',
+            'Fixierter Vorschlag',
+            'Proposta bloccata',
+            'عرض مقفل',
+            '锁定方案'
+          ),
+          description: lceT(
+            'Timing, lieux, transferts, budget.',
+            'Timing, venues, transfers, budget.',
+            'Timing, Orte, Transfers, Budget.',
+            'Orari, luoghi, transfer, budget.',
+            'توقيت، أماكن، تنقلات، ميزانية.',
+            '时间、场地、接送、预算。'
+          ),
+          icon: 'tabler:clipboard-check',
+        },
+        {
+          title: lceT(
+            'Expérience sur place',
+            'On-site experience',
+            'Erlebnis vor Ort',
+            'Esperienza in loco',
+            'تجربة على الأرض',
+            '现场体验'
+          ),
+          description: lceT(
+            'Hôtes briefés, transferts et horaires maîtrisés.',
+            'Hosts briefed, transfers and timings controlled.',
+            'Gastgeber gebrieft, Transfers und Zeiten im Griff.',
+            'Host briefati, trasferte e orari sotto controllo.',
+            'مضيفون موجّهون، تنقلات وأوقات مضبوطة.',
+            '接待方已简报，接送与时间可控。'
+          ),
+          icon: 'tabler:map-pin',
+        },
+        {
+          title: lceT('Suivi', 'Follow-up', 'Nachbetreuung', 'Follow-up', 'متابعة', '后续跟进'),
+          description: lceT(
+            'Photos, recommandations, réservations suivantes.',
+            'Photos, recommendations, next bookings.',
+            'Fotos, Empfehlungen, nächste Buchungen.',
+            'Foto, raccomandazioni, prossime prenotazioni.',
+            'صور، توصيات، حجوزات لاحقة.',
+            '照片、建议与后续预订。'
+          ),
+          icon: 'tabler:sparkles',
+        },
+      ],
+      classes: { container: 'bg-white rounded-3xl shadow-sm px-6 md:px-10 py-10 text-slate-900' },
+      image: {
+        src: img('wine_glass_lavaux'),
+        overlayClass: 'bg-gradient-to-br from-emerald-900/22 via-slate-900/18 to-amber-50/22',
+        badge: 'Ready',
+      },
+    },
+    options: {
+      tagline: lceT(
+        'Expériences signature',
+        'Signature experiences',
+        'Signature-Erlebnisse',
+        'Esperienze signature',
+        'تجارب مميزة',
+        '标志性体验'
+      ),
+      title: lceT('Sélection Léman', 'Léman selection', 'Léman Auswahl', 'Selezione Léman', 'اختيار ليمان', '莱蒙甄选'),
+      subtitle: lceT(
+        'Privatisées, orchestrées, saisonnières',
+        'Privatised, orchestrated, seasonal',
+        'Privatisiert, orchestriert, saisonal',
+        'Privatizzate, orchestrate, stagionali',
+        'مخصَّصة، منسَّقة، موسمية',
+        '私享策划，随季而变'
+      ),
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-emerald-200/40 bg-white/92 text-slate-900' },
+      },
+      bgClass: 'bg-gradient-to-br from-emerald-50/70 via-white to-white',
+      items: [
+        {
+          title: lceT(
+            'Croisière sunset',
+            'Sunset cruise',
+            'Sunset Cruise',
+            'Crociera al tramonto',
+            'رحلة غروب خاصة',
+            '日落游船'
+          ),
+          description: lceT(
+            'Bateau privé, sommelière à bord, plateau fromages.',
+            'Private boat, sommelier onboard, cheese pairing.',
+            'Privates Boot, Sommelière an Bord, Käsebegleitung.',
+            'Barca privata, sommelier a bordo, abbinamento formaggi.',
+            'قارب خاص، خبيرة نبيذ، أطباق أجبان.',
+            '私享游船，侍酒师与奶酪搭配。'
+          ),
+          icon: 'tabler:sailboat',
+        },
+        {
+          title: lceT(
+            'Vignobles UNESCO',
+            'UNESCO vineyards',
+            'UNESCO-Weinberge',
+            'Vigneti UNESCO',
+            'كروم اليونسكو',
+            '联合国教科文组织葡萄园'
+          ),
+          description: lceT(
+            'Vigneron hôte, cave voûtée, accords vins-fromages.',
+            'Winemaker host, vaulted cellar, wine-cheese pairings.',
+            'Winzer-Host, Gewölbekeller, Wein-Käse-Pairings.',
+            'Vignaiolo ospite, cantina a volta, abbinamenti vino-formaggi.',
+            'مضيف صانع نبيذ، قبو مقبب، تناغم نبيذ-جبن.',
+            '酒农接待，拱顶酒窖，酒酪搭配。'
+          ),
+          icon: 'tabler:glass-full',
+        },
+        {
+          title: lceT('Table d’hôtes', 'Hosted table', 'Table d’hôtes', 'Table d’hôtes', 'مائدة مضيفة', '私宴'),
+          description: lceT(
+            'Chef local, chalet privatisé, produits lac + alpages.',
+            'Local chef, privatised chalet, lake + alpine produce.',
+            'Lokaler Chef, privates Chalet, See- und Alpenprodukte.',
+            'Chef locale, chalet privato, prodotti lago + alpi.',
+            'طاهٍ محلي، شاليه خاص، منتجات البحيرة والجبال.',
+            '本地主厨，私享木屋，湖畔与山间食材。'
+          ),
+          icon: 'tabler:snowflake',
+        },
+        {
+          title: lceT('Échappée alpine', 'Alpine escape', 'Alpine Auszeit', 'Fuga alpina', 'مهرب جبلي', '阿尔卑斯之旅'),
+          description: lceT(
+            'Train panoramique, bains thermaux, dîner en altitude.',
+            'Panoramic train, thermal baths, dinner at altitude.',
+            'Panoramazug, Thermalbad, Dinner in der Höhe.',
+            'Treno panoramico, terme, cena in quota.',
+            'قطار بانورامي، حمامات حارة، عشاء على ارتفاع.',
+            '全景火车、温泉、山顶晚餐。'
+          ),
+          icon: 'tabler:mountain',
+        },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Lac Léman Experience',
+      subtitle: lceT(
+        'Pour un déroulé sans friction',
+        'For a frictionless stay',
+        'Für einen reibungslosen Ablauf',
+        'Per un percorso senza attriti',
+        'لإقامة بلا احتكاك',
+        '顺畅体验'
+      ),
+      items: [
+        {
+          title: lceT(
+            'Combien de temps à l’avance ?',
+            'How early to book?',
+            'Wie früh buchen?',
+            'Quanto prima prenotare?',
+            'كم المدة المسبقة للحجز؟',
+            '需要提前多久预订？'
+          ),
+          description: lceT(
+            'Idéalement 7–10 jours. Nous pouvons accélérer selon disponibilité partenaires.',
+            'Ideally 7–10 days. We can accelerate depending on partner availability.',
+            'Ideal 7–10 Tage. Beschleunigung je nach Partnerverfügbarkeit möglich.',
+            'Idealmente 7–10 giorni. Possiamo accelerare secondo disponibilità dei partner.',
+            'يفضل 7–10 أيام. يمكننا التسريع حسب توفر الشركاء.',
+            '理想提前 7–10 天；可按伙伴档期加速。'
+          ),
+        },
+        {
+          title: lceT('Météo ?', 'Weather?', 'Wetter?', 'Meteo?', 'الطقس؟', '天气？'),
+          description: lceT(
+            'Plan B discret prévu pour la navigation et les dégustations extérieures.',
+            'Discrete plan B ready for navigation and outdoor tastings.',
+            'Diskreter Plan B für Navigation und Degustationen draussen.',
+            'Piano B discreto per navigazione e degustazioni all’aperto.',
+            'خطة بديلة جاهزة للملاحة والتذوق في الهواء الطلق.',
+            '航行/户外品鉴均有低调 B 案。'
+          ),
+        },
+        {
+          title: lceT('Privatisation ?', 'Privatisation?', 'Privatisierung?', 'Privatizzazione?', 'الخصخصة؟', '私享？'),
+          description: lceT(
+            'Oui. Bateaux, caves et tables d’hôtes sont privatisés ou semi-privatisés selon le format.',
+            'Yes. Boats, cellars, and hosted tables are private or semi-private depending on format.',
+            'Ja. Boote, Keller und Gastgebertafeln sind je nach Format privat oder semi-privat.',
+            'Sì. Barche, cantine e tavole d’hôtes sono private o semi-private a seconda del formato.',
+            'نعم. القوارب والسراديب والموائد مضبوطة لتكون خاصة أو شبه خاصة حسب الصيغة.',
+            '是的，船只、酒窖和私宴按需求私享/半私享。'
+          ),
+        },
+        {
+          title: lceT('Transferts ?', 'Transfers?', 'Transfers?', 'Transfer?', 'التنقلات؟', '接送？'),
+          description: lceT(
+            'Chauffeur privé ou bateau-taxi selon parcours. Horaires verrouillés.',
+            'Private driver or boat taxi depending on route. Timings locked.',
+            'Privater Fahrer oder Bootstaxi je nach Strecke. Zeiten fixiert.',
+            'Autista privato o taxi boat a seconda del percorso. Orari bloccati.',
+            'سائق خاص أو تاكسي بحري حسب المسار. أوقات مقفلة.',
+            '根据线路安排专车或水上接驳，时间锁定。'
+          ),
+        },
+      ],
+    },
+    cta: {
+      title: lceT(
+        'Prêt pour une expérience Léman ?',
+        'Ready for a Lake Geneva experience?',
+        'Bereit für ein Genfersee-Erlebnis?',
+        'Pronti per un’esperienza Léman?',
+        'جاهزون لتجربة ليمان؟',
+        '准备好莱蒙体验了吗？'
+      ),
+      subtitle: lceT(
+        'Dites-nous vos dates et vos envies (lac, vignobles, montagne). On orchestre le reste.',
+        'Tell us your dates and wishes (lake, vineyards, mountain). We orchestrate the rest.',
+        'Sagen Sie uns Ihre Daten und Wünsche (See, Weinberge, Berge). Wir orchestrieren den Rest.',
+        'Indicateci date e desideri (lago, vigneti, montagna). Al resto pensiamo noi.',
+        'أخبرونا بالتواريخ ورغباتكم (بحيرة، كروم، جبال). نتولى الباقي.',
+        '告诉我们日期与偏好（湖、葡萄园、山），其余交给我们。'
+      ),
+      actions: [
+        {
+          variant: 'primary',
+          text: lceT(
+            'Réserver une expérience',
+            'Book an experience',
+            'Erlebnis buchen',
+            'Prenotare un’esperienza',
+            'احجز تجربة',
+            '预订体验'
+          ),
+          href: '/contact#form',
+          icon: 'tabler:mail-forward',
+        },
+        {
+          text: lceT(
+            'Parler à un concierge',
+            'Talk to a concierge',
+            'Mit dem Concierge sprechen',
+            'Parlare con un concierge',
+            'تحدث إلى الكونسيرج',
+            '联系礼宾'
+          ),
+          href: whatsapp,
+          icon: 'tabler:phone',
+        },
+      ],
+    },
+  },
+  lausanne: {
+    ...baseMove,
+    metadata: {
+      title: lamT(
+        'Déménagement Lausanne — Votre déménagement local',
+        'Lausanne Moving — Your local move',
+        'Umzug Lausanne — Ihr lokaler Umzug',
+        'Trasloco Losanna — Il tuo trasloco locale'
+      ),
+      description: lamT(
+        'Déménagement Lausanne & Vaud : accès en ville assurés, protections professionnelles, service transparent et fiable.',
+        'Lausanne & Vaud moves: urban access handled, pro protections, transparent and reliable service.',
+        'Umzüge Lausanne & Waadt: Stadtzugänge gesichert, Profi-Schutzmaterial, transparenter, verlässlicher Service.',
+        'Traslochi Losanna & Vaud: accessi urbani gestiti, protezioni professionali, servizio trasparente e affidabile.'
+      ),
+      ignoreTitleTemplate: true,
+    },
+    hero: {
+      ...baseMove.hero,
+      tagline: lamT('Déménagement Lausanne', 'Lausanne moving', 'Umzug Lausanne', 'Trasloco Losanna'),
+      title: lamT(
+        'Départs depuis Lausanne et toute la Riviera',
+        'Departures from Lausanne and the Riviera',
+        'Abfahrten ab Lausanne und Riviera',
+        'Partenze da Losanna e dalla Riviera'
+      ),
+      subtitle: lamT(
+        'Accès urbains gérés, autorisations parking et coordination ascenseur/monte-meubles pour un jour J fluide.',
+        'Urban access handled, parking permits, lift/hoist coordination for a smooth moving day.',
+        'Stadtzugänge geregelt, Parkbewilligungen, Lift/Steiger-Koordination für einen reibungslosen Tag X.',
+        'Accessi urbani gestiti, permessi di parcheggio, coordinamento ascensore/piattaforma per un giorno J fluido.'
+      ),
+      className: 'pedro-hero lausanne-hero-light',
+      actions: [
+        {
+          variant: 'primary',
+          text: lamT('Obtenir un devis', 'Get a quote', 'Offerte anfordern', 'Richiedi un preventivo'),
+          href: '/contact#form',
+          icon: 'tabler:arrow-right',
+        },
+        {
+          icon: 'tabler:brand-whatsapp',
+          text: brand.phone || '+41 76 798 27 93',
+          href: whatsapp,
+        },
+      ],
+      background: `linear-gradient(180deg, rgba(2,6,23,0.04), rgba(2,6,23,0.1)), url('${img('professional_van_5')}')`,
+      overlayClass: 'lausanne-hero-overlay',
+      card: {
+        ...baseMove.hero.card!,
+        title: lamT(
+          'Accès urbains, timing précis',
+          'Urban access, precise timing',
+          'Stadtzugang, präzises Timing',
+          'Accesso urbano, timing preciso'
+        ),
+        description: lamT(
+          'Repérage des parkings, créneaux ascenseur, coordination syndic et concierge avant passage.',
+          'Parking scouting, lift slots, building coordination handled ahead of time.',
+          'Parkplatz-Scouting, Lift-Slots, Hausverwaltung/Concierge abgestimmt im Voraus.',
+          'Sopralluogo parcheggi, slot ascensore, coordinamento con amministrazione/concièrge in anticipo.'
+        ),
+        background: `linear-gradient(140deg, rgba(2,6,23,0.54), rgba(15,23,42,0.44), rgba(2,6,23,0.74)), url('${img('strong_man_packing_1')}')`,
+        overlayClass: 'bg-gradient-to-br from-slate-950/30 via-slate-900/32 to-slate-950/46',
+        className: 'panel-surface text-white border border-white/20 shadow-2xl',
+      },
+    },
+    features: {
+      ...baseMove.features,
+      title: lamT(
+        'Prêt pour Lausanne et l’Arc lémanique',
+        'Ready for Lausanne and the Riviera',
+        'Bereit für Lausanne und die Riviera',
+        'Pronti per Losanna e la Riviera'
+      ),
+      subtitle: lamT(
+        'Une équipe locale, un matériel adapté et une organisation claire pour protéger vos biens.',
+        'Local team, proper gear, and clear planning to protect your belongings.',
+        'Lokales Team, passendes Material und klare Planung zum Schutz Ihres Hab und Guts.',
+        'Team locale, attrezzatura adeguata e pianificazione chiara per proteggere i tuoi beni.'
+      ),
+      items: [
+        {
+          title: lamT('Accès en ville', 'City access', 'Stadtzugang', 'Accesso città'),
+          description: lamT(
+            'Autorisations parking et créneaux ascenseur gérés pour vous.',
+            'Parking permits and lift slots handled for you.',
+            'Parkbewilligungen und Lift-Slots für Sie erledigt.',
+            'Permessi parcheggio e slot ascensore gestiti per te.'
+          ),
+          icon: 'tabler:map-pin',
+        },
+        {
+          title: lamT('Proximité', 'Proximity', 'Nähe', 'Prossimità'),
+          description: lamT(
+            'Équipe basée entre Lausanne et Genève pour limiter les trajets à vide.',
+            'Team based between Lausanne and Geneva to reduce dead miles.',
+            'Team zwischen Lausanne und Genf stationiert, um Leerfahrten zu reduzieren.',
+            'Team tra Losanna e Ginevra per limitare chilometri a vuoto.'
+          ),
+          icon: 'tabler:route',
+        },
+        {
+          title: lamT('Protections', 'Protections', 'Schutzmaterial', 'Protezioni'),
+          description: lamT(
+            'Couvertures, housses matelas, sols/murs protégés.',
+            'Covers, mattress bags, protected floors/walls.',
+            'Decken, Matratzenhüllen, geschützte Böden/Wände.',
+            'Coperte, sacchi materasso, pavimenti/pareti protetti.'
+          ),
+          icon: 'tabler:shield-check',
+        },
+        {
+          title: lamT('Suivi unique', 'Single lead', 'Ein Ansprechpartner', 'Un referente unico'),
+          description: lamT(
+            'Un chef d’équipe qui coordonne les imprévus et la remise des clés.',
+            'One crew lead handling surprises and key handover.',
+            'Ein Teamleiter koordiniert Unvorhergesehenes und Schlüsselübergabe.',
+            'Un caposquadra gestisce imprevisti e consegna chiavi.'
+          ),
+          icon: 'tabler:headset',
+        },
+      ],
+    },
+    process: {
+      ...baseMove.process,
+      tagline: lamT('Processus', 'Process', 'Ablauf', 'Processo'),
+      title: lamT(
+        'Votre déménagement en 3 temps',
+        'Your move in 3 steps',
+        'Ihr Umzug in 3 Schritten',
+        'Il tuo trasloco in 3 step'
+      ),
+      items: [
+        {
+          title: lamT('Préparation & devis', 'Prep & quote', 'Vorbereitung & Offerte', 'Preparazione e preventivo'),
+          description: lamT(
+            'Visio ou visite express pour estimer le volume, les accès et le matériel nécessaire.',
+            'Video call or quick visit to size volume, access, and needed gear.',
+            'Videoanruf oder Kurzbesuch zur Einschätzung von Volumen, Zugang und Material.',
+            'Videochiamata o sopralluogo rapido per stimare volume, accessi e materiale.'
+          ),
+        },
+        {
+          title: lamT(
+            'Emballage & protection',
+            'Packing & protection',
+            'Verpackung & Schutz',
+            'Imballaggio e protezione'
+          ),
+          description: lamT(
+            'Cartons, housses matelas, démontage du mobilier et protection des sols/murs.',
+            'Boxes, mattress bags, furniture disassembly, floor/wall protection.',
+            'Kartons, Matratzenhüllen, Möbelabbau und Schutz für Böden/Wände.',
+            'Scatole, sacchi materasso, smontaggio mobili e protezione di pavimenti/pareti.'
+          ),
+        },
+        {
+          title: lamT(
+            'Transport & installation',
+            'Transport & installation',
+            'Transport & Aufbau',
+            'Trasporto e installazione'
+          ),
+          description: lamT(
+            'Chargement sécurisé, trajet optimisé, remontage et reprise des protections.',
+            'Secure loading, optimised route, reassembly, and cleanup.',
+            'Sicheres Laden, optimierte Strecke, Wiederaufbau und Abbau der Schutzmaterialien.',
+            'Carico sicuro, percorso ottimizzato, rimontaggio e ritiro protezioni.'
+          ),
+        },
+      ],
+      content: lamT(
+        'Vous savez qui vient, avec quel camion et à quelle heure. Nous validons chaque étape avant le jour J.',
+        'You know who’s coming, with which truck and when. We lock every step before moving day.',
+        'Sie wissen, wer kommt, mit welchem LKW und wann. Wir fixieren alles vor dem Umzugstag.',
+        'Sai chi arriva, con quale camion e a che ora. Blocchiamo ogni fase prima del giorno J.'
+      ),
+      image: {
+        src: img('professional_van_5'),
+        overlayClass: 'bg-gradient-to-br from-slate-900/35 via-slate-900/25 to-white/10',
+        badge: 'Planning',
+      },
+    },
+    steps: {
+      ...baseMove.steps,
+      title: lamT('Notre accompagnement', 'Our support', 'Unsere Begleitung', 'Il nostro supporto'),
+      tagline: lamT('Parcours client', 'Client journey', 'Kundenweg', 'Percorso cliente'),
+      items: [
+        {
+          title: lamT('1. Échange rapide', '1. Quick call', '1. Kurzer Call', '1. Chiamata rapida'),
+          description: lamT(
+            'Un appel ou une visio pour comprendre vos dates et contraintes.',
+            'A call or video to capture dates and constraints.',
+            'Ein Call oder Video, um Termine und Einschränkungen zu klären.',
+            'Una call o video per capire date e vincoli.'
+          ),
+          icon: 'tabler:phone',
+        },
+        {
+          title: lamT('2. Devis détaillé', '2. Detailed quote', '2. Detaillierte Offerte', '2. Preventivo dettagliato'),
+          description: lamT(
+            'Volume estimé, accès, options et planning.',
+            'Estimated volume, access, options, and schedule.',
+            'Geschätztes Volumen, Zugang, Optionen und Zeitplan.',
+            'Volume stimato, accessi, opzioni e planning.'
+          ),
+          icon: 'tabler:file-description',
+        },
+        {
+          title: lamT('3. Jour J', '3. Moving day', '3. Umzugstag', '3. Giorno J'),
+          description: lamT(
+            'Protection des zones de passage, chargement et transport sécurisé.',
+            'Protect passages, load and transport safely.',
+            'Schutz der Laufwege, sicheres Laden und Transport.',
+            'Protezione passaggi, carico e trasporto sicuro.'
+          ),
+          icon: 'tabler:truck',
+        },
+        {
+          title: lamT('4. Installation', '4. Installation', '4. Aufbau', '4. Installazione'),
+          description: lamT(
+            'Remontage, mise en place et reprise des emballages principaux.',
+            'Reassembly, placement, and removal of main packing.',
+            'Wiederaufbau, Platzierung und Abbau der Hauptverpackung.',
+            'Rimontaggio, posizionamento e ritiro degli imballaggi principali.'
+          ),
+          icon: 'tabler:home',
+        },
+      ],
+    },
+    options: {
+      ...baseMove.options,
+      tagline: lamT('Services complémentaires', 'Add-on services', 'Zusatzservices', 'Servizi aggiuntivi'),
+      title: lamT('Options utiles', 'Useful options', 'Nützliche Optionen', 'Opzioni utili'),
+      subtitle: lamT(
+        'Selon votre logement et vos contraintes',
+        'Based on your home and constraints',
+        'Nach Wohnung und Rahmenbedingungen',
+        'In base alla casa e ai vincoli'
+      ),
+      items: [
+        {
+          title: lamT('Emballage & déballage', 'Packing & unpacking', 'Packen & Auspacken', 'Imballaggio & disimballo'),
+          description: lamT(
+            'Cartons, penderies, protections vaisselle et emballage des objets fragiles.',
+            'Boxes, wardrobes, dish protection, fragile packing.',
+            'Kartons, Kleiderboxen, Geschirrschutz und Verpackung empfindlicher Stücke.',
+            'Scatole, appendiabiti, protezioni per stoviglie e imballo oggetti fragili.'
+          ),
+          icon: 'tabler:package',
+        },
+        {
+          title: lamT('Démontage / remontage', 'Disassembly / reassembly', 'Ab- / Aufbau', 'Smontaggio / rimontaggio'),
+          description: lamT(
+            'Meubles, lits, armoires et dressing remontés proprement à l’arrivée.',
+            'Furniture, beds, wardrobes cleanly reassembled on arrival.',
+            'Möbel, Betten, Schränke sauber wieder aufgebaut.',
+            'Mobili, letti, armadi rimontati con cura all’arrivo.'
+          ),
+          icon: 'tabler:tools',
+        },
+        {
+          title: lamT('Nettoyage de sortie', 'Move-out cleaning', 'Auszugsreinigung', 'Pulizia di fine locazione'),
+          description: lamT(
+            'Option ménage de fin de bail pour rendre votre logement en ordre.',
+            'Move-out cleaning option to hand back a clean home.',
+            'Reinigungsoption zum ordentlichen Wohnungsrückgabe.',
+            'Opzione pulizia di fine locazione per consegnare in ordine.'
+          ),
+          icon: 'tabler:sparkles',
+        },
+      ],
+    },
+    faqs: {
+      title: lamT('Questions fréquentes', 'Frequent questions', 'Häufige Fragen', 'Domande frequenti'),
+      subtitle: lamT(
+        'Transparence sur l’organisation et la facture.',
+        'Transparent on organization and pricing.',
+        'Transparenz zu Organisation und Rechnung.',
+        'Trasparenza su organizzazione e fattura.'
+      ),
+      items: [
+        {
+          title: lamT(
+            'Quel est le délai pour obtenir un devis ?',
+            'How fast is the quote?',
+            'Wie schnell kommt die Offerte?',
+            'Quanto velocemente il preventivo?'
+          ),
+          description: lamT(
+            'Nous répondons sous 24h avec un prix indicatif basé sur le volume, les accès et la date souhaitée.',
+            'We reply within 24h with an indicative price based on volume, access, and desired date.',
+            'Antwort innert 24h mit Richtpreis basierend auf Volumen, Zugang und gewünschtem Datum.',
+            'Rispondiamo entro 24h con un prezzo indicativo basato su volume, accessi e data desiderata.'
+          ),
+        },
+        {
+          title: lamT(
+            'Pouvez-vous emballer pour nous ?',
+            'Can you pack for us?',
+            'Können Sie für uns packen?',
+            'Potete occuparvi dell’imballo?'
+          ),
+          description: lamT(
+            'Oui. Nous pouvons fournir cartons, penderies, protections vaisselle et réaliser tout l’emballage/déballage.',
+            'Yes. We can supply boxes, wardrobes, dish protection and do all packing/unpacking.',
+            'Ja. Wir stellen Kartons, Kleiderboxen, Geschirrschutz und übernehmen das Packen/Entpacken.',
+            'Sì. Possiamo fornire scatole, appendiabiti, protezioni per stoviglie e occuparci di tutto l’imballo/disimballo.'
+          ),
+        },
+        {
+          title: lamT(
+            'Gérez-vous les pianos ou objets lourds ?',
+            'Do you handle pianos/heavy items?',
+            'Transportieren Sie Pianos/schwere Stücke?',
+            'Gestite pianoforti/oggetti pesanti?'
+          ),
+          description: lamT(
+            'Nous pouvons déplacer des objets jusqu’à 200 kg maximum. Au-delà, il faudra faire appel à un service spécialisé.',
+            'We move items up to ~200kg; beyond that, a specialist is needed.',
+            'Wir bewegen Stücke bis ca. 200 kg; darüber braucht es Spezialisten.',
+            'Spostiamo oggetti fino a ~200 kg; oltre serve uno specialista.'
+          ),
+        },
+        {
+          title: lamT(
+            'Intervenez-vous le week-end ?',
+            'Do you work weekends?',
+            'Arbeiten Sie am Wochenende?',
+            'Lavorate nel weekend?'
+          ),
+          description: lamT(
+            'Le samedi est possible selon disponibilité. Pour le dimanche, nous étudions au cas par cas.',
+            'Saturday is possible depending on availability; Sundays are case-by-case.',
+            'Samstag möglich je nach Verfügbarkeit; Sonntag nach Einzelfall.',
+            'Il sabato è possibile secondo disponibilità; la domenica valutiamo caso per caso.'
+          ),
+        },
+      ],
+    },
+    cta: {
+      title: lamT(
+        'Prêt à planifier votre déménagement ?',
+        'Ready to plan your move?',
+        'Bereit, den Umzug zu planen?',
+        'Pronto a pianificare il trasloco?'
+      ),
+      subtitle: lamT(
+        'Expliquez votre volume, vos dates et vos adresses. Nous envoyons une proposition claire avec planning et options.',
+        'Tell us your volume, dates, and addresses. We send a clear plan with options.',
+        'Nennen Sie Volumen, Termine und Adressen. Wir senden einen klaren Plan mit Optionen.',
+        'Indica volume, date e indirizzi. Ti inviamo una proposta chiara con opzioni.'
+      ),
+      actions: [
+        {
+          variant: 'primary',
+          text: lamT('Demander un devis', 'Request a quote', 'Offerte anfragen', 'Richiedi un preventivo'),
+          href: '/contact#form',
+          icon: 'tabler:mail-forward',
+        },
+        { text: lamT('Voir les tarifs', 'See pricing', 'Preise ansehen', 'Vedi tariffe'), href: '/pricing' },
+      ],
+    },
+  },
+  urgent: {
+    ...baseMove,
+    metadata: {
+      title: 'Déménagement Urgent — Intervention express en Suisse romande',
+      ignoreTitleTemplate: true,
+      description:
+        'Intervention express, confirmation en 15 minutes et équipe prête. Créneaux du jour / lendemain selon disponibilité.',
+    },
+    hero: {
+      tagline: 'Intervention express',
+      title: 'Appel → Confirmation 15 min → Équipe en route',
+      subtitle:
+        'Créneau du jour ou du lendemain selon disponibilité. Protections incluses, accès vérifiés avant départ.',
+      actions: [
+        { variant: 'primary', text: 'Intervention express', href: '/contact#form', icon: 'tabler:bolt' },
+        { variant: 'secondary', text: 'Appeler maintenant', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(185,28,28,0.25), rgba(249,115,22,0.17)), url('${img('men_loading_van_2')}')`,
+      overlayClass: 'urgent-hero-overlay',
+      className: 'brand-urgent',
+      card: {
+        badge: 'Prioritaire',
+        title: 'Départ 60–90 min',
+        description: 'Équipe dédiée, protections prêtes, camion adapté. Communication directe pendant le trajet.',
+        background: `linear-gradient(135deg, rgba(239,68,68,0.35), rgba(249,115,22,0.47)), url('${img('inside_truck_unloading_couch')}')`,
+        overlayClass: 'urgent-hero-card-overlay',
+        className: 'panel-contrast text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi en urgence ?',
+      title: 'Intervention express, accès gérés, équipe prête',
+      subtitle:
+        'Créneau du jour ou du lendemain selon disponibilité. Confirmation en 15 minutes, protections et accès gérés.',
+      variant: 'tiles',
+      classes: {
+        container: 'urgent-grid',
+        items: { panel: 'card rounded-2xl p-6 text-slate-900' },
+        bgClass: 'bg-white',
+      },
+      items: [
+        {
+          title: 'Réponse < 5 min',
+          description: 'Validation des accès, du volume et des contraintes avant de partir.',
+          icon: 'tabler:clock-bolt',
+        },
+        {
+          title: 'Départ 60–90 min',
+          description: 'Équipe dédiée, protections prêtes, camion adapté.',
+          icon: 'tabler:truck-delivery',
+        },
+        {
+          title: 'Hors horaires',
+          description: 'Créneaux soir/week-end possibles avec majoration.',
+          icon: 'tabler:moon-stars',
+        },
+        {
+          title: 'Chef d’équipe urgence',
+          description: 'Coordination terrain et suivi WhatsApp en direct.',
+          icon: 'tabler:headset',
+        },
+        {
+          title: 'Assurance incluse',
+          description: 'RC pro incluse, objets fragiles sous contrôle.',
+          icon: 'tabler:shield-check',
+        },
+        {
+          title: 'Livraison directe',
+          description: 'Pas de stockage : trajet optimisé jusqu’à l’arrivée.',
+          icon: 'tabler:route',
+        },
+      ],
+    },
+    process: {
+      tagline: 'Processus express',
+      title: 'Intervention urgente en 3 étapes',
+      items: [
+        { title: '1. Appel immédiat', description: 'On décroche en < 5 min, validation des accès et du volume.' },
+        { title: '2. Équipe dépêchée', description: 'Départ en 60–90 minutes selon trafic et disponibilité.' },
+        { title: '3. Chargement sécurisé', description: 'Protections, arrimage, livraison directe sans stockage.' },
+      ],
+      content: 'Coordination minute par minute, protections prêtes, communication directe pendant le trajet.',
+      image: {
+        src: img('men_loading_van_4'),
+        overlayClass: 'urgent-process-overlay',
+        badge: 'Urgence',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Accompagnement express',
+      tagline: 'Parcours client',
+      items: [
+        {
+          title: '1. Appel immédiat',
+          description: 'Validation du volume, des accès et du créneau.',
+          icon: 'tabler:phone',
+        },
+        {
+          title: '2. Devis flash',
+          description: 'Confirmation en 15 minutes avec majoration éventuelle (soir/week-end).',
+          icon: 'tabler:file-time',
+        },
+        {
+          title: '3. Intervention',
+          description: 'Départ 60–90 minutes, protections complètes, arrimage renforcé.',
+          icon: 'tabler:truck-delivery',
+        },
+        {
+          title: '4. Livraison directe',
+          description: 'Pas de stockage, communication en direct pendant le trajet.',
+          icon: 'tabler:map',
+        },
+      ],
+      image: {
+        src: img('men_loading_van_3'),
+        overlayClass: 'urgent-steps-overlay',
+        badge: 'Disponibilité immédiate',
+      },
+    },
+    options: {
+      tagline: 'Services express',
+      title: 'Options urgentes',
+      subtitle: 'Selon votre volume et l’horaire',
+      variant: 'tiles',
+      classes: { container: 'urgent-grid', items: { panel: 'card rounded-2xl p-6' } },
+      items: [
+        {
+          title: 'Livraison directe',
+          description: 'Pas de stockage. Trajet optimisé jusqu’à l’arrivée.',
+          icon: 'tabler:route',
+        },
+        {
+          title: 'Monte-meubles si dispo',
+          description: 'Selon disponibilité et accès le jour J.',
+          icon: 'tabler:stairs-up',
+        },
+        {
+          title: 'Emballage rapide',
+          description: 'Protection fragile et matelas même en urgence.',
+          icon: 'tabler:package',
+        },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Urgence',
+      subtitle: 'Réponses rapides pour organiser votre déménagement express.',
+      items: [
+        {
+          title: 'Sous combien de temps intervenez-vous ?',
+          description: 'En général 60–90 minutes selon trafic et disponibilité.',
+        },
+        {
+          title: 'Y a-t-il une majoration ?',
+          description: 'Oui selon le créneau (soir/week-end) et le niveau d’urgence.',
+        },
+        { title: 'Objets lourds ?', description: 'Oui si < 200 kg et accès compatibles. Monte-meubles si disponible.' },
+        { title: 'Zone couverte ?', description: 'Arc lémanique prioritaire, autres trajets CH sur demande rapide.' },
+      ],
+    },
+    cta: {
+      title: 'Besoin d’une équipe tout de suite ?',
+      subtitle: 'Appelez ou remplissez le formulaire. Confirmation en 15 minutes selon disponibilité.',
+      actions: [
+        { variant: 'primary', text: 'Intervention express', href: '/contact#form', icon: 'tabler:bolt' },
+        { text: 'Appeler maintenant', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  debarras: {
+    ...baseMove,
+    metadata: {
+      title: 'Débarras Lausanne — Service complet et rapide',
+      ignoreTitleTemplate: true,
+      description:
+        'Débarras d’appartements, caves et locaux à Lausanne et environs. Tri, manutention et évacuation rapides.',
+    },
+    hero: {
+      tagline: 'Débarras & désencombrement',
+      title: 'Débarras complet, trié et valorisé',
+      subtitle:
+        'Appartements, caves, bureaux, locaux commerciaux. Tri, valorisation, évacuation contrôlée et remise propre.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un débarras', href: '/contact#form', icon: 'tabler:calendar-up' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(15,118,110,0.38), rgba(6,95,70,0.28)), url('${img('men_moving_heavy_couch_block')}')`,
+      overlayClass: 'debarras-hero-overlay',
+      card: {
+        badge: 'Tri & valorisation',
+        title: 'Réemploi avant évacuation',
+        description: 'Don, recyclage, centre de tri. Rapport photo avant/après.',
+        background: `linear-gradient(135deg, rgba(16,185,129,0.28), rgba(6,95,70,0.15)), url('${img('men_loading_van_1')}')`,
+        overlayClass: 'debarras-hero-card-overlay',
+        className: 'panel-surface text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous appeler',
+      title: 'Un débarras cadré et rapide',
+      subtitle: 'Tri, sécurité et remise propre sans que vous ayez à coordonner plusieurs équipes.',
+      variant: 'tiles',
+      items: [
+        { title: 'Tri sur place', description: 'Réemploi, dons, recyclage avant évacuation.', icon: 'tabler:recycle' },
+        {
+          title: 'Manutention sécurisée',
+          description: 'Protection des parties communes, sol/murs.',
+          icon: 'tabler:shield-check',
+        },
+        {
+          title: 'Reporting photo',
+          description: 'Avant/après pour propriétaires ou agences.',
+          icon: 'tabler:photo-check',
+        },
+        {
+          title: 'Calendrier court',
+          description: 'Créneau sous quelques jours selon volume.',
+          icon: 'tabler:calendar',
+        },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: {
+          panel: 'panel-surface rounded-2xl p-6 gap-4 border border-emerald-200/25 bg-emerald-900/10 text-emerald-50',
+        },
+      },
+      bgClass: 'bg-gradient-to-br from-emerald-900/20 via-emerald-800/20 to-slate-900/25',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Débarras en 3 étapes',
+      items: [
+        { title: '1. Évaluation', description: 'Photos ou visite rapide pour estimer le volume.' },
+        { title: '2. Tri & démontage', description: 'Séparation réemploi / recyclage, démontage mobilier si besoin.' },
+        { title: '3. Évacuation & nettoyage', description: 'Centre de tri, remise propre, rapport photo.' },
+      ],
+      content: 'Vous obtenez une remise en état nette, sans gestion de prestataires multiples.',
+      image: {
+        src: img('van_inside_objects_boxes_1'),
+        overlayClass: 'debarras-process-overlay',
+        badge: 'Débarras',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours express',
+      tagline: 'Organisation',
+      items: [
+        { title: 'Visite ou photos', description: 'Repérage des accès et volumes.', icon: 'tabler:camera' },
+        {
+          title: 'Devis clair',
+          description: 'Volume, tri, évacuation, remise propre.',
+          icon: 'tabler:file-description',
+        },
+        {
+          title: 'Débarras',
+          description: 'Intervention planifiée, protections et reporting.',
+          icon: 'tabler:sparkles',
+        },
+        { title: 'Remise', description: 'Local rendu propre, photos et remise des clés.', icon: 'tabler:key' },
+      ],
+      image: {
+        src: 'https://cdn.midjourney.com/af142b95-ae9e-44f8-a1b3-daf94d7be718/0_0.png',
+        overlayClass: 'debarras-steps-overlay',
+        badge: 'Reporting',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Prestations associées',
+      subtitle: 'Pour remettre un bien en conformité',
+      variant: 'tiles',
+      bgClass: 'bg-gradient-to-br from-emerald-900/15 via-emerald-800/15 to-slate-900/20',
+      classes: {
+        container: 'max-w-5xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-emerald-200/25 text-emerald-50' },
+      },
+      items: [
+        { title: 'Nettoyage de sortie', description: 'Remise propre après débarras.', icon: 'tabler:sparkles' },
+        { title: 'Débarras cave/archives', description: 'Évacuation lourde et sécurisée.', icon: 'tabler:archive' },
+        { title: 'Transport pièces lourdes', description: 'Jusqu’à 200 kg, accès validés.', icon: 'tabler:weight' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Débarras',
+      subtitle: 'Ce qu’il faut savoir avant d’intervenir.',
+      items: [
+        {
+          title: 'Traitez-vous électroménager ?',
+          description: 'Oui, nous évacuons frigos, machines et encombrants vers les filières adéquates.',
+        },
+        {
+          title: 'Pouvez-vous donner / recycler ?',
+          description: 'Nous priorisons le réemploi et fournissons un reporting succinct.',
+        },
+        { title: 'Intervention le week-end ?', description: 'Oui selon volume et voisinage. Majorations possibles.' },
+        { title: 'Faites-vous des petites surfaces ?', description: 'Oui, dès un studio ou une cave, devis rapide.' },
+      ],
+    },
+    cta: {
+      title: 'Prêt pour un débarras cadré ?',
+      subtitle: 'Envoyez quelques photos ou organisez une visite express.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un débarras', href: '/contact#form', icon: 'tabler:calendar-up' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  transport: {
+    ...baseMove,
+    metadata: {
+      title: 'Transport de meubles — Suisse romande',
+      ignoreTitleTemplate: true,
+      description: 'Transport sécurisé de meubles, emballage et arrimage renforcé.',
+    },
+    hero: {
+      tagline: 'Transport de meubles',
+      title: 'Transport premium pour vos pièces volumineuses',
+      subtitle:
+        'Conditionnement, arrimage renforcé, créneaux précis. Idéal pour meubles design, électroménager, bureaux.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
+        { text: 'Discuter du volume', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(12,18,32,0.82), rgba(31,42,68,0.75), rgba(242,176,69,0.18)), url('${img('professional_van_2')}')`,
+      overlayClass: 'transport-hero-overlay',
+      className: 'brand-transport',
+      card: {
+        badge: 'Arrimage & protection',
+        title: 'Meubles, électroménager, pièces uniques',
+        description: 'Emballage, sangles, couvertures renforcées. Créneau précis, suivi en direct.',
+        background: `linear-gradient(135deg, rgba(12,18,32,0.82), rgba(31,42,68,0.72), rgba(242,176,69,0.22)), url('${img('professional_van_1')}')`,
+        overlayClass: 'transport-hero-card-overlay',
+        className: 'panel-grid text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous choisir',
+      title: 'Transport précis et sécurisé',
+      subtitle: 'Pensé pour les pièces uniques, le mobilier design ou l’électroménager fragile.',
+      items: [
+        {
+          title: 'Conditionnement',
+          description: 'Housses, couvertures, coins mousse, filmage.',
+          icon: 'tabler:package',
+        },
+        { title: 'Arrimage renforcé', description: 'Sangles, anti-glisse, calage sur mesure.', icon: 'tabler:anchor' },
+        { title: 'Créneau précis', description: 'Passage à l’heure convenue, fenêtre courte.', icon: 'tabler:clock' },
+        { title: 'Suivi direct', description: 'Contact chauffeur + point d’avancement.', icon: 'tabler:headset' },
+      ],
+      classes: { items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-white border border-amber-200/20' } },
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Transport en 3 mouvements',
+      items: [
+        { title: '1. Brief volume', description: 'Dimensions, fragilité, accès départ/arrivée.' },
+        { title: '2. Protection & chargement', description: 'Filmage, housses, calage, arrimage.' },
+        { title: '3. Livraison', description: 'Placement précis, reprise des protections principales.' },
+      ],
+      content: 'Un seul interlocuteur. Suivi temps réel pour vos pièces sensibles.',
+      image: {
+        src: img('van_inside_objects_boxes_3'),
+        overlayClass: 'transport-process-overlay',
+        badge: 'Transport',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours client',
+      tagline: 'Coordination',
+      items: [
+        {
+          title: 'Qualification',
+          description: 'Volume, fragilité, adresses et délais.',
+          icon: 'tabler:clipboard-check',
+        },
+        {
+          title: 'Créneau verrouillé',
+          description: 'Fenêtre horaire serrée, chauffeur dédié.',
+          icon: 'tabler:calendar-event',
+        },
+        { title: 'Protection', description: 'Conditionnement, arrimage, contrôle.', icon: 'tabler:shield-lock' },
+        { title: 'Livraison', description: 'Installation sur place, retour d’état.', icon: 'tabler:map-pin-check' },
+      ],
+      image: {
+        src: img('van_inside_objects_boxes_4'),
+        overlayClass: 'transport-steps-overlay',
+        badge: 'Fenêtre courte',
+      },
+    },
+    options: {
+      tagline: 'Services associés',
+      title: 'Options transport',
+      subtitle: 'Pour sécuriser vos pièces uniques',
+      variant: 'tiles',
+      items: [
+        { title: 'Emballage premium', description: 'Coins mousse, caisse carton renforcée.', icon: 'tabler:hexagon' },
+        {
+          title: 'Livraison étage',
+          description: 'Escaliers/ascenseurs gérés, repérage en amont.',
+          icon: 'tabler:stairs',
+        },
+        { title: 'Transport duo', description: 'Deux équipiers pour charges lourdes.', icon: 'tabler:users' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Transport',
+      subtitle: 'Sécurité et délais',
+      items: [
+        {
+          title: 'Assurance ? ',
+          description: 'RC pro incluse. Pour pièces très haute valeur, assurance spécifique sur demande.',
+        },
+        { title: 'Objets lourds ?', description: 'Oui jusqu’à 200 kg si accès compatibles.' },
+        { title: 'Fenêtre horaire ?', description: 'Nous visons une fenêtre courte avec contact direct chauffeur.' },
+        {
+          title: 'Emballage fourni ?',
+          description: 'Oui, protections standard incluses. Options premium disponibles.',
+        },
+      ],
+    },
+    cta: {
+      title: 'Prêt à réserver un créneau ?',
+      subtitle: 'Décrivez la pièce, les adresses et la date souhaitée.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  videmaison: {
+    ...baseMove,
+    metadata: {
+      title: 'Vide maison — Désencombrement complet',
+      ignoreTitleTemplate: true,
+      description: 'Vidage complet, tri et évacuation rapide, protections incluses.',
+    },
+    hero: {
+      tagline: 'Vide maison',
+      title: 'Vide maison complet et ordonné',
+      subtitle: 'Tri, dons, recyclage et évacuation en une seule équipe. Rapport photo et remise propre.',
+      actions: [
+        { variant: 'primary', text: 'Organiser un vide maison', href: '/contact#form', icon: 'tabler:home-heart' },
+        { text: brand.phone || '+41 76 798 27 93', href: whatsapp, icon: 'tabler:brand-whatsapp' },
+      ],
+      background: `linear-gradient(135deg, rgba(197,143,85,0.12), rgba(160,112,70,0.14)), url('${img('strong_man_packing_1')}')`,
+      overlayClass: 'videmaison-hero-overlay',
+      className: 'brand-videmaison hero-light videmaison-hero',
+      card: {
+        badge: 'Maison vidée',
+        title: 'Tri, dons, recyclage',
+        description: 'Priorité au réemploi, évacuation contrôlée, pièces prêtes pour l’état des lieux.',
+        background: `linear-gradient(135deg, rgba(248, 248, 248, 0.9), rgba(255, 255, 255, 0.65)), url('${img('strong_man_packing_2')}')`,
+        overlayClass: 'videmaison-hero-card-overlay',
+        className: 'panel-surface text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous choisir',
+      title: 'Un seul interlocuteur pour tout vider',
+      subtitle: 'Nous vidons, trions et remettons propre sans mobiliser plusieurs prestataires.',
+      variant: 'tiles',
+      items: [
+        {
+          title: 'Tri & dons',
+          description: 'Orientation vers dons/recyclage avant évacuation.',
+          icon: 'tabler:heart-handshake',
+        },
+        {
+          title: 'Respect des lieux',
+          description: 'Sols et murs protégés, voisins prévenus.',
+          icon: 'tabler:shield-check',
+        },
+        { title: 'Rapport photo', description: 'Avant / après pour bailleurs ou famille.', icon: 'tabler:photo-check' },
+        { title: 'Délais courts', description: 'Planifié sous quelques jours selon volume.', icon: 'tabler:calendar' },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: {
+          panel: 'panel-surface rounded-2xl p-6 gap-4 border border-amber-200/40 bg-amber-50/80 text-amber-950',
+        },
+      },
+      bgClass: 'bg-gradient-to-br from-amber-900/10 via-orange-700/10 to-amber-500/15',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Vide maison en 3 étapes',
+      items: [
+        { title: '1. Évaluation', description: 'Photos ou visite rapide pour estimer le volume et les accès.' },
+        { title: '2. Tri & évacuation', description: 'Dons, recyclage, centres agréés. Meubles démontés si besoin.' },
+        { title: '3. Nettoyage', description: 'Balayage ou option ménage pour remise des clés.' },
+      ],
+      content: 'Vous récupérez une maison nette, prête pour une vente, une location ou un état des lieux.',
+      image: {
+        src: 'https://cdn.midjourney.com/af142b95-ae9e-44f8-a1b3-daf94d7be718/0_1.png',
+        overlayClass: 'videmaison-process-overlay',
+        badge: 'Remise propre',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Organisation',
+      tagline: 'Parcours',
+      items: [
+        { title: 'Visite / photos', description: 'Évaluation rapide et repérage.', icon: 'tabler:camera' },
+        {
+          title: 'Calendrier',
+          description: 'Créneau fixé, notification aux voisins si besoin.',
+          icon: 'tabler:calendar-event',
+        },
+        { title: 'Débarras & tri', description: 'Équipe sur place, protections et évacuation.', icon: 'tabler:box' },
+        {
+          title: 'Remise des clés',
+          description: 'Pièces vidées, nettoyage léger, photos finales.',
+          icon: 'tabler:key',
+        },
+      ],
+      image: {
+        src: 'https://cdn.midjourney.com/af142b95-ae9e-44f8-a1b3-daf94d7be718/0_0.png',
+        overlayClass: 'videmaison-steps-overlay',
+        badge: 'Clés remises',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Services associés',
+      subtitle: 'Pour finaliser la remise',
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-5xl',
+        items: {
+          panel: 'panel-surface rounded-2xl p-6 gap-4 border border-amber-200/40 bg-amber-50/90 text-amber-950',
+        },
+      },
+      bgClass: 'bg-gradient-to-br from-amber-900/10 via-orange-700/12 to-amber-500/12',
+      items: [
+        { title: 'Nettoyage complet', description: 'Ménage approfondi avant état des lieux.', icon: 'tabler:sparkles' },
+        { title: 'Transport pièces gardées', description: 'Livraison des meubles conservés.', icon: 'tabler:truck' },
+        { title: 'Petit entretien', description: 'Retrait chevilles, rebouchage léger.', icon: 'tabler:tools' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Vide maison',
+      subtitle: 'Pour avancer vite et proprement',
+      items: [
+        { title: 'Combien de temps ?', description: 'Un appartement peut être vidé en 1 journée selon volume.' },
+        { title: 'Où vont les objets ?', description: 'Priorité dons, recyclage, puis déchetterie agréée.' },
+        { title: 'Aide administrative ?', description: 'Nous pouvons documenter pour assurances ou bailleurs.' },
+        { title: 'Pouvez-vous nettoyer ?', description: 'Oui, option ménage pour remise des clés.' },
+      ],
+    },
+    cta: {
+      title: 'Besoin de vider une maison ?',
+      subtitle: 'Expliquez le volume et la date souhaitée, on s’occupe du reste.',
+      actions: [
+        { variant: 'primary', text: 'Organiser un vide maison', href: '/contact#form', icon: 'tabler:home-heart' },
+        { text: 'Parler à un conseiller', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  videsuccession: {
+    ...baseMove,
+    metadata: {
+      title: 'Vide succession — Gestion délicate et rapide',
+      ignoreTitleTemplate: true,
+      description: 'Tri, débarras et coordination administrative pour successions.',
+    },
+    hero: {
+      tagline: 'Vide succession',
+      title: 'Gestion discrète des biens successoraux',
+      subtitle: 'Tri, inventaire succinct, évacuation et remise propre. Coordination héritiers et notaires.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un vide succession', href: '/contact#form', icon: 'tabler:scale' },
+        { text: 'Appeler en direct', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(15,17,27,0.30), rgba(217,119,6,0.20)), url('${img('empty_apartment_7')}')`,
+      overlayClass: 'videsuccession-hero-overlay',
+      className: 'brand-videsuccession',
+      card: {
+        badge: 'Discrétion',
+        title: 'Inventaire, tri, évacuation',
+        description: 'Communication claire aux héritiers, respect des lieux et des objets sensibles.',
+        background: `linear-gradient(135deg, rgba(15,17,27,0.9), rgba(217,119,6,0.45)), url('${img('empty_apartment_8')}')`,
+        overlayClass: 'videsuccession-hero-card-overlay',
+        className: 'panel-contrast text-amber-100',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous choisir',
+      title: 'Discrétion et traçabilité',
+      subtitle: 'Pour vider et remettre un bien sans friction entre parties prenantes.',
+      variant: 'tiles',
+      items: [
+        {
+          title: 'Coordination héritiers',
+          description: 'Un contact unique, comptes rendus réguliers.',
+          icon: 'tabler:users',
+        },
+        { title: 'Respect et tri', description: 'Objets sensibles mis de côté sur consignes.', icon: 'tabler:lock' },
+        {
+          title: 'Reporting',
+          description: 'Photos avant/après, liste sommaire des pièces clés.',
+          icon: 'tabler:photo',
+        },
+        {
+          title: 'Délais courts',
+          description: 'Créneau planifié rapidement pour libérer le bien.',
+          icon: 'tabler:clock',
+        },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-contrast rounded-2xl p-6 gap-4 text-amber-100 border border-amber-500/20' },
+      },
+      bgClass: 'bg-gradient-to-br from-amber-800/20 via-slate-900/45 to-black/60',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Vide succession en 3 actes',
+      items: [
+        { title: '1. Cadrage', description: 'Attentes des héritiers/notaire, objets à conserver.' },
+        { title: '2. Tri & évacuation', description: 'Séparation, démontage, évacuation contrôlée.' },
+        { title: '3. Remise propre', description: 'Nettoyage léger ou complet, photos finales.' },
+      ],
+      content: 'Nous restons votre seul interlocuteur et documentons chaque étape utile.',
+      image: {
+        src: img('empty_apartment_6'),
+        overlayClass: 'videsuccession-process-overlay',
+        badge: 'Respect',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours client',
+      tagline: 'Coordination',
+      items: [
+        { title: 'Cadrage', description: 'Consignes des héritiers / notaire.', icon: 'tabler:clipboard' },
+        {
+          title: 'Devis clair',
+          description: 'Volume, tri, options ménage ou transport.',
+          icon: 'tabler:file-description',
+        },
+        { title: 'Intervention', description: 'Équipe dédiée, objets sensibles mis à part.', icon: 'tabler:briefcase' },
+        { title: 'Remise', description: 'Photos, nettoyage et restitution des clés.', icon: 'tabler:key' },
+      ],
+      image: {
+        src: img('empty_apartment_9'),
+        overlayClass: 'videsuccession-steps-overlay',
+        badge: 'Traçabilité',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Services connexes',
+      subtitle: 'Pour sécuriser la remise du bien',
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-5xl',
+        items: { panel: 'panel-contrast rounded-2xl p-6 gap-4 text-amber-100 border border-amber-500/25' },
+      },
+      bgClass: 'bg-gradient-to-br from-amber-800/15 via-slate-900/45 to-black/60',
+      items: [
+        {
+          title: 'Nettoyage complet',
+          description: 'Avant remise des clés ou état des lieux.',
+          icon: 'tabler:sparkles',
+        },
+        { title: 'Transport objets gardés', description: 'Livraison à plusieurs adresses.', icon: 'tabler:truck' },
+        { title: 'Archivage léger', description: 'Triage et conditionnement de documents.', icon: 'tabler:archive' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Vide succession',
+      subtitle: 'Gestion sensible',
+      items: [
+        {
+          title: 'Pouvez-vous lister les objets ?',
+          description: 'Nous réalisons un inventaire succinct accompagné de photos clés.',
+        },
+        {
+          title: 'Coordination avec le notaire ?',
+          description: 'Oui, nous pouvons partager le planning et le reporting.',
+        },
+        { title: 'Intervention rapide ?', description: 'Oui, sous quelques jours selon volume.' },
+        {
+          title: 'Objets de valeur ?',
+          description: 'Nous les mettons de côté selon vos consignes; assurance spécifique possible.',
+        },
+      ],
+    },
+    cta: {
+      title: 'Besoin d’un vide succession cadré ?',
+      subtitle: 'Expliquez le contexte, on vous envoie un plan clair et un calendrier.',
+      actions: [
+        { variant: 'primary', text: 'Planifier un vide succession', href: '/contact#form', icon: 'tabler:scale' },
+        { text: 'Appeler en direct', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  nettoyagesuccession: {
+    ...baseMove,
+    metadata: {
+      title: 'Nettoyage succession — Remise en état complète',
+      ignoreTitleTemplate: true,
+      description: 'Nettoyage complet après succession, remise en état prête à louer/vendre.',
+    },
+    hero: {
+      tagline: 'Nettoyage succession',
+      title: 'Remise en état après débarras ou succession',
+      subtitle: 'Nettoyage complet, vitres, sols et sanitaires. Rapport photo pour bailleurs et agences.',
+      actions: [
+        { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(34,211,238,0.15), rgba(15,118,110,0.15)), url('${img('man_cleaning')}')`,
+      overlayClass: 'nettoyagesuccession-hero-overlay',
+      className: 'brand-nettoyagesuccession hero-light',
+      card: {
+        badge: 'Remise en état',
+        title: 'Ménage complet, rapport photo',
+        description: 'Sols, vitres, sanitaires, odeurs. Option remise peinture légère avec partenaires.',
+        background: `linear-gradient(135deg, rgba(34,211,238,0.05), rgba(15,118,110,0.05)), url('${img('woman_mopping')}')`,
+        overlayClass: 'nettoyagesuccession-hero-card-overlay',
+        className: 'panel-surface text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous choisir',
+      title: 'Propreté documentée',
+      subtitle: 'Idéal après un débarras ou pour préparer un état des lieux.',
+      variant: 'tiles',
+      items: [
+        {
+          title: 'Checklist bailleur',
+          description: 'Zones critiques (cuisine, sdb, vitres) priorisées.',
+          icon: 'tabler:list-check',
+        },
+        { title: 'Matériel pro', description: 'Monobrosse/aspirateurs HEPA selon besoin.', icon: 'tabler:spray' },
+        { title: 'Rapport photo', description: 'Avant/après + remarques si dégâts constatés.', icon: 'tabler:photo' },
+        {
+          title: 'Délais serrés',
+          description: 'Nettoyage rapide après débarras pour rendre le bien.',
+          icon: 'tabler:clock',
+        },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-cyan-200/40 bg-white text-cyan-950' },
+      },
+      bgClass: 'bg-gradient-to-br from-cyan-200/15 via-cyan-400/15 to-slate-900/15',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Remise propre en 3 étapes',
+      items: [
+        { title: '1. Cadrage', description: 'Surface, zones sensibles, délais bailleur.' },
+        { title: '2. Intervention', description: 'Nettoyage complet + vitres, odeurs traitées.' },
+        { title: '3. Contrôle', description: 'Photos, retouches si nécessaire.' },
+      ],
+      content: 'Objectif : remise des clés sans remarques sur la propreté.',
+      image: {
+        src: img('mop_cleaning_closeup'),
+        overlayClass: 'nettoyagesuccession-process-overlay',
+        badge: 'Checklist propre',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours client',
+      tagline: 'Coordination',
+      items: [
+        { title: 'Brief rapide', description: 'Surface et priorités.', icon: 'tabler:clipboard-check' },
+        { title: 'Devis + créneau', description: 'Fenêtre courte pour remise clés.', icon: 'tabler:calendar-event' },
+        { title: 'Nettoyage', description: 'Équipe pro, produits adaptés.', icon: 'tabler:sparkles' },
+        { title: 'Rapport', description: 'Photos après intervention.', icon: 'tabler:photo-check' },
+      ],
+      image: {
+        src: img('shades_of_white_man_mopping_yellow_accent'),
+        overlayClass: 'nettoyagesuccession-steps-overlay',
+        badge: 'Propreté validée',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Compléments utiles',
+      subtitle: 'Pour une remise impeccable',
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-5xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-cyan-200/35 bg-white text-cyan-950' },
+      },
+      bgClass: 'bg-gradient-to-br from-cyan-200/15 via-cyan-400/20 to-slate-900/15',
+      items: [
+        {
+          title: 'Odeur & désinfection',
+          description: 'Traitement ciblé des odeurs persistantes.',
+          icon: 'tabler:wind',
+        },
+        {
+          title: 'Petits réajustements',
+          description: 'Rebouchage léger, joints silicone via partenaires.',
+          icon: 'tabler:paint',
+        },
+        { title: 'Vitres hauteur', description: 'Vitres difficiles avec matériel adapté.', icon: 'tabler:building' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Nettoyage',
+      subtitle: 'Pour une remise sans friction',
+      items: [
+        {
+          title: 'Pouvez-vous passer juste après un débarras ?',
+          description: 'Oui, nous bloquons un créneau serré pour enchaîner.',
+        },
+        { title: 'Produits utilisés ?', description: 'Gamme pro, adaptés aux surfaces, possibilité sans parfum.' },
+        { title: 'Et si dégâts existants ?', description: 'Nous les signalons avec photos pour vos démarches.' },
+        { title: 'Facture pour assurance ?', description: 'Oui, facture détaillée sur demande.' },
+      ],
+    },
+    cta: {
+      title: 'Besoin d’une remise propre ?',
+      subtitle: 'Planifions un nettoyage aligné sur la remise des clés.',
+      actions: [
+        { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  lausannenettoyage: {
+    ...baseMove,
+    metadata: {
+      title: 'Nettoyage Lausanne — Appartements, bureaux, fin de chantier',
+      ignoreTitleTemplate: true,
+      description:
+        'Nettoyage complet et contrôlé à Lausanne : remises en état, bureaux et fins de chantier, avec contrôle qualité.',
+    },
+    hero: {
+      tagline: 'Nettoyage Lausanne',
+      title: 'Propreté maîtrisée, délais rapides',
+      subtitle:
+        'Appartements, bureaux ou fin de chantier : checklist pro, produits adaptés et contrôle qualité systématique.',
+      actions: [
+        { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(14,165,233,0.28), rgba(15,23,42,0.18)), url('${img('shades_of_white_man_vaccum')}')`,
+      overlayClass: 'lausannenettoyage-hero-overlay',
+      className: 'brand-lausannenettoyage hero-light lausannenettoyage-hero-light',
+      card: {
+        badge: 'Contrôle qualité',
+        title: 'Checklist, photos, retouches',
+        description: 'Zones critiques (cuisine, sdb, vitres) priorisées. Rapport photo sur demande.',
+        background: `linear-gradient(135deg, rgba(14,165,233,0.0), rgba(15,23,42,0.05)), url('${img('shades_of_white_man_mopping_yellow_accent')}')`,
+        overlayClass: 'lausannenettoyage-hero-card-overlay',
+        className: 'panel-surface text-white',
+      },
+    },
+    features: {
+      tagline: 'Pourquoi nous choisir',
+      title: 'Nettoyage précis et documenté',
+      subtitle: 'Adapté aux bailleurs, bureaux ou après travaux.',
+      variant: 'tiles',
+      items: [
+        {
+          title: 'Checklist ciblée',
+          description: 'Cuisine, sdb, vitres et sols traités en priorité.',
+          icon: 'tabler:list-check',
+        },
+        { title: 'Matériel pro', description: 'Monobrosse, aspirateurs HEPA, produits adaptés.', icon: 'tabler:spray' },
+        {
+          title: 'Rapport photo',
+          description: 'Avant/après disponible pour bailleurs ou régies.',
+          icon: 'tabler:photo-check',
+        },
+        { title: 'Délais rapides', description: 'Créneau rapide après débarras ou travaux.', icon: 'tabler:clock' },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-sky-200/40 bg-white text-sky-900' },
+      },
+      bgClass: 'bg-gradient-to-br from-sky-200/15 via-sky-300/20 to-slate-900/15',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Remise propre en 3 étapes',
+      items: [
+        { title: '1. Cadrage', description: 'Surface, zones sensibles et délais.' },
+        { title: '2. Intervention', description: 'Nettoyage complet, vitres, sols et sanitaires.' },
+        { title: '3. Contrôle', description: 'Photos, retouches si besoin, validation.' },
+      ],
+      content: 'Objectif : remise des clés ou ouverture de bureau sans remarques sur la propreté.',
+      image: {
+        src: img('man_vaccuming'),
+        overlayClass: 'lausannenettoyage-process-overlay',
+        badge: 'Propreté validée',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours client',
+      tagline: 'Coordination',
+      items: [
+        { title: 'Brief rapide', description: 'Surface, type de bien, priorités.', icon: 'tabler:clipboard-check' },
+        {
+          title: 'Devis + créneau',
+          description: 'Fenêtre courte pour remise ou ouverture.',
+          icon: 'tabler:calendar-event',
+        },
+        { title: 'Nettoyage', description: 'Équipe pro, produits adaptés.', icon: 'tabler:sparkles' },
+        { title: 'Rapport', description: 'Photos et validation.', icon: 'tabler:photo-check' },
+      ],
+      image: {
+        src: img('mop_closeup_luxury_apartment'),
+        overlayClass: 'lausannenettoyage-steps-overlay',
+        badge: 'Contrôle',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Compléments',
+      subtitle: 'Pour une remise impeccable',
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-5xl',
+        items: { panel: 'panel-surface rounded-2xl p-6 gap-4 border border-sky-200/40 bg-white text-sky-900' },
+      },
+      bgClass: 'bg-gradient-to-br from-sky-200/15 via-sky-300/20 to-slate-900/15',
+      items: [
+        { title: 'Vitres hauteur', description: 'Vitres difficiles avec matériel adapté.', icon: 'tabler:building' },
+        {
+          title: 'Odeur & désinfection',
+          description: 'Traitement ciblé des odeurs persistantes.',
+          icon: 'tabler:wind',
+        },
+        { title: 'Petites retouches', description: 'Rebouchage léger via partenaires.', icon: 'tabler:tools' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ Nettoyage Lausanne',
+      subtitle: 'Pour une remise sans friction',
+      items: [
+        { title: 'Pouvez-vous passer après débarras ?', description: 'Oui, créneau serré possible pour enchaîner.' },
+        { title: 'Produits ?', description: 'Gamme pro, adaptés aux surfaces, option sans parfum.' },
+        { title: 'Photos ?', description: 'Oui, avant/après sur demande.' },
+        { title: 'Facture ?', description: 'Facture détaillée possible pour bailleurs/assurances.' },
+      ],
+    },
+    cta: {
+      title: 'Besoin d’un nettoyage rapide ?',
+      subtitle: 'Planifions un créneau et la checklist adaptée à votre bien.',
+      actions: [
+        { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
+        { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+  etatdeslieux: {
+    ...baseMove,
+    metadata: {
+      title: 'État des lieux Lausanne — Constat précis et rapide',
+      ignoreTitleTemplate: true,
+      description: 'États des lieux locatifs, rapports photo et délai court.',
+    },
+    hero: {
+      tagline: 'État des lieux',
+      title: 'Constats précis, rapports photo, délais serrés',
+      subtitle:
+        'Entrée ou sortie : relevés détaillés, photos, check-list bail. Communication avec régie ou propriétaire.',
+      actions: [
+        {
+          variant: 'primary',
+          text: 'Programmer un état des lieux',
+          href: '/contact#form',
+          icon: 'tabler:clipboard-check',
+        },
+        { text: 'Contacter', href: whatsapp, icon: 'tabler:phone' },
+      ],
+      background: `linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(224,242,254,0.45)), url('${img('empty_apartment_11')}')`,
+      overlayClass: 'bg-gradient-to-br from-sky-700/12 via-white/28 to-white/40',
+      className: 'brand-etatdeslieux',
+      card: {
+        badge: 'Rapport photo',
+        title: 'Check-list complète',
+        description: 'Relevés, photos, remarques et actions correctives listées clairement.',
+        background: `linear-gradient(135deg, rgba(255,255,255, 0.05), rgba(255,255,255, 0.05)), url('${img('empty_apartment_10')}')`,
+        overlayClass: 'bg-gradient-to-br from-sky-700/10 via-white/25 to-white/35',
+        className: 'panel-grid text-slate-900',
+      },
+    },
+    features: {
+      tagline: 'Ce que vous obtenez',
+      title: 'État des lieux structuré',
+      subtitle: 'Rapport clair pour éviter les contestations.',
+      variant: 'tiles',
+      columns: 4,
+      items: [
+        {
+          title: 'Check-list bailleur',
+          description: 'Pièces, murs, sols, équipements vérifiés.',
+          icon: 'tabler:checkbox',
+        },
+        { title: 'Photos horodatées', description: 'Série photo et remarques précises.', icon: 'tabler:photo-check' },
+        {
+          title: 'Remarques actionnables',
+          description: 'Liste des points à corriger avec priorités.',
+          icon: 'tabler:list-check',
+        },
+        {
+          title: 'Remise clés coordonnée',
+          description: 'Contact régie/propriétaire, rapport envoyé.',
+          icon: 'tabler:key',
+        },
+      ],
+      classes: {
+        container: 'max-w-6xl',
+        items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-slate-900 border border-sky-200/40 bg-white/85' },
+      },
+      bgClass: 'bg-gradient-to-br from-white via-sky-50/60 to-white',
+    },
+    process: {
+      tagline: 'Processus',
+      title: 'Constat rapide, rapport clair',
+      items: [
+        { title: '1. Planification', description: 'Prise de rendez-vous, infos régie/bailleur.' },
+        { title: '2. Relevés sur place', description: 'Photos, mesures, checklist complète.' },
+        { title: '3. Rapport & envoi', description: 'PDF + galerie photo, partage aux parties.' },
+      ],
+      content: 'Objectif : un document solide et neutre pour sécuriser l’entrée ou la sortie.',
+      image: {
+        src: img('empty_apartment_9'),
+        overlayClass: 'bg-gradient-to-br from-sky-700/10 via-white/22 to-white/32',
+        badge: 'Constat',
+      },
+      classes: {
+        container:
+          'bg-gradient-to-br from-white via-sky-50/80 to-white rounded-3xl shadow-sm px-6 md:px-10 py-10 text-slate-900',
+      },
+      isReversed: true,
+    },
+    steps: {
+      title: 'Parcours client',
+      tagline: 'Coordination',
+      items: [
+        { title: 'Brief', description: 'Type (entrée/sortie), contraintes.', icon: 'tabler:message' },
+        { title: 'Rendez-vous', description: 'Créneau confirmé, accès validés.', icon: 'tabler:calendar' },
+        { title: 'Constat', description: 'Photos, check-list, relevés.', icon: 'tabler:clipboard-check' },
+        { title: 'Rapport', description: 'Envoi aux parties, suivi si questions.', icon: 'tabler:share' },
+      ],
+      image: {
+        src: img('empty_apartment_4'),
+        overlayClass: 'bg-gradient-to-br from-sky-700/10 via-white/25 to-white/35',
+        badge: 'Rapidité',
+      },
+      classes: {
+        container:
+          'bg-gradient-to-br from-white via-sky-50/70 to-white rounded-3xl shadow-sm px-6 md:px-10 py-10 text-slate-900',
+      },
+    },
+    options: {
+      tagline: 'Options',
+      title: 'Modules complémentaires',
+      subtitle: 'Pour compléter le constat',
+      variant: 'tiles',
+      classes: {
+        container: 'max-w-5xl',
+        items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-slate-900 border border-sky-200/40 bg-white/85' },
+      },
+      bgClass: 'bg-gradient-to-br from-white via-sky-50/60 to-white',
+      items: [
+        { title: 'Mesures & plans', description: 'Relevé métrique simple.', icon: 'tabler:ruler' },
+        {
+          title: 'Suivi correctifs',
+          description: 'Liste des actions et validation photo.',
+          icon: 'tabler:checkup-list',
+        },
+        { title: 'Nettoyage / débarras', description: 'Activation de nos équipes partenaires.', icon: 'tabler:users' },
+      ],
+    },
+    faqs: {
+      title: 'FAQ État des lieux',
+      subtitle: 'Process clair',
+      items: [
+        { title: 'Délai de remise du rapport ?', description: 'Sous 24h après constat (souvent le jour même).' },
+        { title: 'Format ?', description: 'PDF + lien galerie photo.' },
+        { title: 'Entrée ou sortie ?', description: 'Nous faisons les deux, avec check-list adaptée.' },
+        { title: 'Coordination régie ?', description: 'Oui, nous pouvons partager le rapport directement.' },
+      ],
+    },
+    cta: {
+      title: 'Programmer un état des lieux',
+      subtitle: 'Choisissez la date et dites-nous si régie/propriétaire doit être en copie.',
+      actions: [
+        { variant: 'primary', text: 'Réserver un créneau', href: '/contact#form', icon: 'tabler:clipboard-check' },
+        { text: 'Parler à un expert', href: whatsapp, icon: 'tabler:phone' },
+      ],
+    },
+  },
+};
+
+const view = views[brandKey] || baseMove;
+const metadata = view.metadata;
+---
+
+{
+  TonComponent ? (
+    <TonComponent />
+  ) : isMaisonLanding ? (
+    <MaisonShell metadata={maisonLandingMetadata} title="Maison Cortes" subtitle="Archive limitée et sélection privée.">
+      <section class="mc-section mc-landing">
+        <p class="mc-landing-body">Edition limitée par ville. Matériaux disclose. Sélection maintenue 24h.</p>
+        <div class="mc-actions">
+          <a class="mc-button" href={`${maisonBasePath}/`}>
+            {maisonLandingCopy.navCatalogue}
+          </a>
+          <a class="mc-button mc-button-ghost" href={`${maisonBasePath}/selection`}>
+            {maisonLandingCopy.navSelection}
+          </a>
+          <a class="mc-button mc-button-ghost" href={`${maisonBasePath}/contact`}>
+            {maisonLandingCopy.navContact}
+          </a>
+        </div>
+      </section>
+    </MaisonShell>
+  ) : (
+    <Layout metadata={metadata}>
+      {isUrgent ? (
+        <>
+          <Hero
+            id="hero"
+            class="brand-urgent urgent-hero"
+            actions={[
+              { variant: 'primary', text: 'Intervention express', href: '/contact#form', icon: 'tabler:bolt' },
+              { variant: 'secondary', text: 'Appeler maintenant', href: whatsapp, icon: 'tabler:phone' },
+            ]}
+          >
+            <Fragment slot="bg">
+              <div
+                class="absolute inset-0"
+                style={`background-image: linear-gradient(135deg, rgba(185,28,28,0.35), rgba(239,68,68,0.25), rgba(249,115,22,0.25)), url('${img('men_loading_van_2')}'); background-size: cover; background-position: center;`}
+              />
+              <div class="absolute inset-0 bg-gradient-to-br from-red-900/30 via-red-800/26 to-orange-600/24 backdrop-blur-[2px]" />
+            </Fragment>
+
+            <Fragment slot="title">Appel → Confirmation 15 min → Équipe en route</Fragment>
+
+            <Fragment slot="subtitle">
+              Créneau du jour ou du lendemain selon disponibilité. Protections incluses, accès vérifiés avant départ.
+            </Fragment>
+
+            <Fragment slot="content">
+              <div class="text-sm uppercase tracking-[0.35em] text-orange-100/80 mb-3">Urgence prioritaire</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left text-white/90 text-sm">
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Réponse <span class="font-semibold">5 min</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Départ <span class="font-semibold">60–90 min</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Zone <span class="font-semibold">Arc lémanique</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Livraison <span class="font-semibold">directe</span>
+                </div>
+              </div>
+            </Fragment>
+
+            <Fragment slot="image">
+              <div
+                class="relative visual-card aspect-[4/3] overflow-hidden rounded-3xl panel-contrast text-white"
+                style={`background-image: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(249,115,22,0.25)), url('${img('inside_truck_unloading_couch')}'); background-size: cover; background-position: center;`}
+              >
+                <div class="absolute inset-0 bg-gradient-to-br from-red-900/70 via-red-700/65 to-orange-500/55" />
+                <div class="relative visual-card-body h-full p-8 flex flex-col justify-end gap-3">
+                  <p class="text-xs uppercase tracking-[0.35em] text-orange-100/80">Départ confirmé</p>
+                  <h4 class="text-3xl font-semibold leading-tight">Équipe prête, protections incluses</h4>
+                  <p class="text-white/85 max-w-xl">
+                    Chef d’équipe urgence, arrimage renforcé, communication en direct jusqu’à la livraison.
+                  </p>
+                </div>
+              </div>
+            </Fragment>
+          </Hero>
+
+          <Features2
+            id="urgent-benefits"
+            title="Intervention express, accès gérés"
+            subtitle="Confirmation en 15 minutes, protections et itinéraire verrouillés."
+            classes={{ container: 'urgent-grid', items: { panel: 'card rounded-2xl p-6' } }}
+            items={[
+              {
+                title: 'Réponse < 5 min',
+                description: 'Validation des accès, du volume et des contraintes avant de partir.',
+                icon: 'tabler:clock-bolt',
+              },
+              {
+                title: 'Départ 60–90 min',
+                description: 'Équipe dédiée, protections prêtes, camion adapté.',
+                icon: 'tabler:truck-delivery',
+              },
+              {
+                title: 'Hors horaires',
+                description: 'Créneaux soir/week-end possibles avec majoration.',
+                icon: 'tabler:moon-stars',
+              },
+              {
+                title: 'Chef d’équipe urgence',
+                description: 'Coordination terrain et suivi WhatsApp en direct.',
+                icon: 'tabler:headset',
+              },
+              {
+                title: 'Assurance incluse',
+                description: 'RC pro incluse, objets fragiles sous contrôle.',
+                icon: 'tabler:shield-check',
+              },
+              {
+                title: 'Livraison directe',
+                description: 'Pas de stockage : trajet optimisé jusqu’à l’arrivée.',
+                icon: 'tabler:route',
+              },
+            ]}
+          />
+
+          <Content
+            id="urgent-process"
+            isReversed
+            title="Intervention urgente en 3 étapes"
+            subtitle="Coordination minute par minute pour éviter toute friction."
+            items={[
+              { title: '1. Appel immédiat', description: 'On décroche en < 5 min, validation des accès et du volume.' },
+              { title: '2. Équipe dépêchée', description: 'Départ en 60–90 minutes selon trafic et disponibilité.' },
+              {
+                title: '3. Chargement sécurisé',
+                description: 'Protections, arrimage, livraison directe sans stockage.',
+              },
+            ]}
+          >
+            <Fragment slot="content">
+              Coordination en direct, protections prêtes, itinéraire optimisé. On ajuste l’équipe et le matériel selon
+              accès et volume.
+            </Fragment>
+            <Fragment slot="image">
+              <div
+                class="relative visual-card aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl"
+                style={`background-image: linear-gradient(135deg, rgba(185,28,28,0.27), rgba(239,68,68,0.15), rgba(249,115,22,0.16)), url('${img('men_loading_van_4')}'); background-size: cover; background-position: center;`}
+              >
+                <div class="absolute inset-0 bg-gradient-to-br from-red-900/65 via-red-800/60 to-orange-500/55" />
+                <div class="relative visual-card-body p-8 text-white">
+                  <p class="text-xs uppercase tracking-[0.35em] text-orange-100/80">Urgence</p>
+                  <p class="mt-4 max-w-lg text-lg text-white/90">
+                    Départ prioritaire, protections complètes, communication directe pendant le trajet.
+                  </p>
+                </div>
+              </div>
+            </Fragment>
+          </Content>
+
+          <Features2
+            id="urgent-support"
+            title="Ce qui est toujours inclus"
+            subtitle="Même en express, on protège et on coordonne."
+            classes={{
+              container: 'urgent-grid',
+              items: { panel: 'card rounded-2xl p-6 text-slate-900' },
+              bgClass: 'bg-white',
+            }}
+            items={[
+              {
+                title: 'Chef d’équipe urgence',
+                description: 'Coordination terrain et suivi en direct.',
+                icon: 'tabler:headset',
+              },
+              {
+                title: 'Protections complètes',
+                description: 'Housses, couvertures, sangles, arrimage renforcé.',
+                icon: 'tabler:box',
+              },
+              {
+                title: 'Créneau confirmé',
+                description: 'Appel + confirmation en 15 minutes.',
+                icon: 'tabler:calendar-time',
+              },
+              {
+                title: 'Facturation claire',
+                description: 'Majoration selon horaire (soir/week-end) expliquée à l’avance.',
+                icon: 'tabler:receipt',
+              },
+            ]}
+          />
+
+          <CallToAction
+            actions={[
+              { variant: 'primary', text: 'Intervention express', href: '/contact#form', icon: 'tabler:bolt' },
+              { text: 'Appeler maintenant', href: whatsapp, icon: 'tabler:phone' },
+            ]}
+          >
+            <Fragment slot="title">Besoin d’une équipe tout de suite ?</Fragment>
+            <Fragment slot="subtitle">
+              Remplissez le formulaire ou appelez-nous. Confirmation en 15 minutes selon disponibilité.
+            </Fragment>
+          </CallToAction>
+        </>
+      ) : isTransport ? (
+        <>
+          <Hero
+            id="hero"
+            class="brand-transport transport-hero"
+            actions={[
+              { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
+              { text: 'Parler logistique', href: whatsapp, icon: 'tabler:phone' },
+            ]}
+          >
+            <Fragment slot="bg">
+              <div
+                class="absolute inset-0"
+                style={`background-image: linear-gradient(120deg, rgba(76,29,149,0.25), rgba(17,24,39,0.15), rgba(245,158,11,0.25)), url('${img('professional_van_2')}'); background-size: cover; background-position: center;`}
+              />
+              <div class="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-slate-900/70 to-amber-500/35 backdrop-blur-[2px]" />
+            </Fragment>
+
+            <Fragment slot="title">Transport premium pour vos pièces volumineuses</Fragment>
+
+            <Fragment slot="subtitle">
+              Conditionnement, arrimage renforcé, créneaux précis. Idéal pour meubles design, électroménager, bureaux.
+            </Fragment>
+
+            <Fragment slot="content">
+              <div class="text-sm uppercase tracking-[0.35em] text-amber-200/85 mb-3">Specs clés</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left text-white/90 text-sm">
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Fenêtre <span class="font-semibold">serrée</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Arrimage <span class="font-semibold">renforcé</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Protection <span class="font-semibold">premium</span>
+                </div>
+                <div class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  Suivi <span class="font-semibold">direct</span>
+                </div>
+              </div>
+            </Fragment>
+
+            <Fragment slot="image">
+              <div
+                class="relative visual-card aspect-[4/3] overflow-hidden rounded-3xl panel-grid text-white border border-amber-200/20"
+                style={`background-image: linear-gradient(135deg, rgba(91,33,182,0.35), rgba(245,158,11,0.25)), url('${img('professional_van_1')}'); background-size: cover; background-position: center;`}
+              >
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-900/65 via-slate-900/60 to-amber-500/40" />
+                <div class="relative visual-card-body h-full p-8 flex flex-col justify-end gap-3">
+                  <p class="text-xs uppercase tracking-[0.3em] text-amber-100/80">Arrimage & protection</p>
+                  <h4 class="text-3xl font-semibold leading-tight">Pièces uniques, livrées à l’heure</h4>
+                  <p class="text-white/80 max-w-xl">
+                    Filmage, calage, sangles et créneau verrouillé. Chauffeur contactable.
+                  </p>
+                </div>
+              </div>
+            </Fragment>
+          </Hero>
+
+          <Features2
+            id="transport-benefits"
+            title="Transport précis et sécurisé"
+            subtitle="Pensé pour les pièces uniques, le mobilier design ou l’électroménager fragile."
+            classes={{
+              container: 'max-w-6xl',
+              items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-white border border-amber-200/20' },
+            }}
+            items={[
+              {
+                title: 'Conditionnement',
+                description: 'Housses, couvertures, coins mousse, filmage.',
+                icon: 'tabler:package',
+              },
+              {
+                title: 'Arrimage renforcé',
+                description: 'Sangles, anti-glisse, calage sur mesure.',
+                icon: 'tabler:anchor',
+              },
+              {
+                title: 'Créneau précis',
+                description: 'Passage à l’heure convenue, fenêtre courte.',
+                icon: 'tabler:clock',
+              },
+              { title: 'Suivi direct', description: 'Contact chauffeur + point d’avancement.', icon: 'tabler:headset' },
+            ]}
+          />
+
+          <Content
+            id="transport-process"
+            isReversed
+            title="Transport en 3 mouvements"
+            subtitle="Spécial pièces sensibles ou volumineuses."
+            items={[
+              { title: '1. Brief volume', description: 'Dimensions, fragilité, accès départ/arrivée.' },
+              { title: '2. Protection & chargement', description: 'Filmage, housses, calage, arrimage.' },
+              { title: '3. Livraison', description: 'Placement précis, reprise des protections principales.' },
+            ]}
+          >
+            <Fragment slot="content">
+              Un seul interlocuteur. Fenêtre horaire serrée, chauffeur joignable, arrimage premium pour éviter toute
+              casse.
+            </Fragment>
+            <Fragment slot="image">
+              <div
+                class="relative visual-card aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl"
+                style={`background-image: linear-gradient(135deg, rgba(76,29,149,0.35), rgba(17,24,39,0.27), rgba(245,158,11,0.24)), url('${img('van_inside_objects_boxes_3')}'); background-size: cover; background-position: center;`}
+              >
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-900/65 via-slate-900/65 to-amber-500/35" />
+                <div class="relative visual-card-body p-8 text-white">
+                  <p class="text-xs uppercase tracking-[0.3em] text-amber-100/80">Transport</p>
+                  <p class="mt-4 max-w-lg text-lg text-white/90">
+                    Calage, arrimage, et timing verrouillé pour vos pièces haut de gamme.
+                  </p>
+                </div>
+              </div>
+            </Fragment>
+          </Content>
+
+          <Features2
+            id="transport-options"
+            title="Options transport"
+            subtitle="Pour sécuriser vos pièces uniques"
+            classes={{
+              container: 'max-w-6xl',
+              items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-white border border-amber-200/20' },
+            }}
+            items={[
+              {
+                title: 'Emballage premium',
+                description: 'Coins mousse, caisse carton renforcée.',
+                icon: 'tabler:hexagon',
+              },
+              {
+                title: 'Livraison étage',
+                description: 'Escaliers/ascenseurs gérés, repérage en amont.',
+                icon: 'tabler:stairs',
+              },
+              { title: 'Transport duo', description: 'Deux équipiers pour charges lourdes.', icon: 'tabler:users' },
+            ]}
+          />
+
+          <CallToAction
+            actions={[
+              { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
+              { text: 'Parler logistique', href: whatsapp, icon: 'tabler:phone' },
+            ]}
+          >
+            <Fragment slot="title">Prêt à réserver un créneau ?</Fragment>
+            <Fragment slot="subtitle">
+              Décrivez la pièce, les adresses et la date souhaitée. On verrouille un créneau précis.
+            </Fragment>
+          </CallToAction>
+        </>
+      ) : (
+        <>
+          <Hero id="hero" class={view.hero.className} actions={view.hero.actions}>
+            <Fragment slot="bg">
+              <div
+                class="absolute inset-0"
+                style={`background-image:${view.hero.background}; background-size: cover; background-position: center;`}
+              />
+              {view.hero.overlayClass ? <div class={`absolute inset-0 ${view.hero.overlayClass}`} /> : null}
+            </Fragment>
+
+            <Fragment slot="title">{view.hero.title}</Fragment>
+
+            <Fragment slot="subtitle">{view.hero.subtitle}</Fragment>
+
+            <Fragment slot="content">
+              <p class="text-base uppercase tracking-[0.35em] text-primary/80">{view.hero.tagline}</p>
+            </Fragment>
+
+            <Fragment slot="image">
+              {view.hero.card ? (
+                <div
+                  class={`relative visual-card aspect-[4/3] overflow-hidden rounded-2xl ${view.hero.card.className ?? ''}`}
+                  style={
+                    view.hero.card.background
+                      ? `background-image:${view.hero.card.background}; background-size: cover; background-position: center;`
+                      : undefined
+                  }
+                >
+                  <div class={`absolute inset-0 ${view.hero.card.overlayClass || ''}`} />
+                  <div class="relative visual-card-body h-full p-8 text-left">
+                    {view.hero.card.badge ? (
+                      <p class="text-xs uppercase tracking-[0.3em] opacity-80">{view.hero.card.badge}</p>
+                    ) : null}
+                    <h4 class="mt-4 text-3xl font-semibold leading-tight">{view.hero.card.title}</h4>
+                    <p class="mt-5 max-w-xl text-lg/7 opacity-90">{view.hero.card.description}</p>
+                  </div>
+                </div>
+              ) : null}
+            </Fragment>
+          </Hero>
+
+          {view.features.variant === 'tiles' ? (
+            <Features2
+              id="features"
+              tagline={view.features.tagline}
+              title={view.features.title}
+              subtitle={view.features.subtitle}
+              columns={view.features.columns || 3}
+              classes={view.features.classes}
+              items={view.features.items}
+            >
+              {view.features.bgClass ? (
+                <Fragment slot="bg">
+                  <div class={`absolute inset-0 ${view.features.bgClass}`} />
+                </Fragment>
+              ) : null}
+            </Features2>
+          ) : (
+            <Features
+              id="features"
+              tagline={view.features.tagline}
+              title={view.features.title}
+              subtitle={view.features.subtitle}
+              classes={view.features.classes}
+              items={view.features.items}
+            />
+          )}
+
+          {isExperience && (
+            <>
+              <Features2
+                id="formats"
+                title={lceT(
+                  'Formats d’expérience',
+                  'Experience formats',
+                  'Erlebnisformate',
+                  'Formati di esperienza',
+                  'صيغ التجارب',
+                  '体验形式'
+                )}
+                subtitle={lceT(
+                  'Formats clairs pour décider vite',
+                  'Clear formats to decide fast',
+                  'Klare Formate für schnelle Entscheidung',
+                  'Formati chiari per decidere subito',
+                  'صيغ واضحة لاتخاذ قرار سريع',
+                  '清晰格式，快速决策'
+                )}
+                columns={4}
+                classes={{
+                  container: 'max-w-6xl',
+                  items: {
+                    panel:
+                      'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/40 bg-white/92 text-slate-900',
+                  },
+                }}
+                items={experienceFormatsData}
+              />
+
+              <Features2
+                id="concierge"
+                title={lceT(
+                  'Conciergerie dédiée — concret',
+                  'Dedicated concierge — concrete',
+                  'Dedizierter Concierge — konkret',
+                  'Concierge dedicato — concreto',
+                  'كونسيرج مخصص — بوضوح',
+                  '专属礼宾 — 具体执行'
+                )}
+                subtitle={lceT(
+                  'Inclus dans chaque expérience',
+                  'Included in every experience',
+                  'Inklusive bei jedem Erlebnis',
+                  'Incluso in ogni esperienza',
+                  'مشمولة في كل تجربة',
+                  '每次体验均包含'
+                )}
+                columns={3}
+                classes={{
+                  container: 'max-w-6xl',
+                  items: {
+                    panel:
+                      'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
+                  },
+                }}
+                items={experienceConciergeData}
+              />
+
+              <Features2
+                id="logistique"
+                title={lceT(
+                  'Logistique & précision',
+                  'Logistics & precision',
+                  'Logistik & Präzision',
+                  'Logistica & precisione',
+                  'لوجستيات ودقة',
+                  '物流与严谨'
+                )}
+                subtitle={lceT(
+                  'Ce que nous verrouillons avant de confirmer',
+                  'What we lock in before confirming',
+                  'Was wir vor Bestätigung fixieren',
+                  'Cosa blocchiamo prima di confermare',
+                  'ما نثبته قبل التأكيد',
+                  '确认前锁定的要素'
+                )}
+                columns={3}
+                classes={{
+                  container: 'max-w-6xl',
+                  items: {
+                    panel:
+                      'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
+                  },
+                }}
+                items={experienceLogisticsData}
+              />
+            </>
+          )}
+
+          <Content
+            id="process"
+            isReversed={view.process.isReversed}
+            tagline={view.process.tagline}
+            title={view.process.title}
+            items={view.process.items}
+          >
+            <Fragment slot="content">{view.process.content}</Fragment>
+
+            {view.process.image ? (
+              <Fragment slot="image">
+                <div
+                  class="relative visual-card aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl"
+                  style={`background-image: url('${view.process.image.src}'); background-size: cover; background-position: center;`}
+                >
+                  <div class={`absolute inset-0 ${view.process.image.overlayClass || ''}`} />
+                  <div class="relative visual-card-body p-8 text-white">
+                    {view.process.image.badge ? (
+                      <p class="text-xs uppercase tracking-[0.3em] text-white/80 process-badge">
+                        {view.process.image.badge}
+                      </p>
+                    ) : null}
+                    <p class="mt-4 max-w-lg text-lg text-white/90">{view.process.content}</p>
+                  </div>
+                </div>
+              </Fragment>
+            ) : null}
+          </Content>
+
+          <Steps id="steps" title={view.steps.title} tagline={view.steps.tagline} items={view.steps.items}>
+            {view.steps.image ? (
+              <Fragment slot="image">
+                <div
+                  class="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-2xl"
+                  style={`background-image: url('${view.steps.image.src}'); background-size: cover; background-position: center;`}
+                >
+                  <div class={`absolute inset-0 ${view.steps.image.overlayClass || ''}`} />
+                  <div class="relative p-8 text-white">
+                    {view.steps.image.badge ? (
+                      <p class="text-xs uppercase tracking-[0.3em] text-white/80 steps-badge">
+                        {view.steps.image.badge}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </Fragment>
+            ) : null}
+          </Steps>
+
+          {isExperience && (
+            <Features2
+              id="engagements"
+              title={lceT(
+                'Nos engagements',
+                'Our guarantees',
+                'Unsere Zusagen',
+                'I nostri impegni',
+                'التزاماتنا',
+                '我们的承诺'
+              )}
+              subtitle={lceT(
+                'Ce que nous garantissons',
+                'What we guarantee',
+                'Was wir garantieren',
+                'Cosa garantiamo',
+                'ما نضمنه',
+                '我们保证的事项'
+              )}
+              columns={4}
+              classes={{
+                container: 'max-w-6xl',
+                items: {
+                  panel: 'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
+                },
+              }}
+              items={experienceCommitmentsData}
+            />
+          )}
+
+          {view.options.variant === 'tiles' ? (
+            <Features2
+              id="options"
+              tagline={view.options.tagline}
+              title={view.options.title}
+              subtitle={view.options.subtitle}
+              items={view.options.items}
+              classes={view.options.classes}
+            >
+              {view.options.bgClass ? (
+                <Fragment slot="bg">
+                  <div class={`absolute inset-0 ${view.options.bgClass}`} />
+                </Fragment>
+              ) : null}
+            </Features2>
+          ) : (
+            <Features
+              id="options"
+              tagline={view.options.tagline}
+              title={view.options.title}
+              subtitle={view.options.subtitle}
+              items={view.options.items}
+              classes={view.options.classes}
+            />
+          )}
+
+          <FAQs
+            id="faq"
+            title={view.faqs.title}
+            subtitle={view.faqs.subtitle}
+            tagline="FAQ"
+            classes={{ container: 'max-w-6xl' }}
+            items={view.faqs.items}
+          />
+
+          <CallToAction actions={view.cta.actions}>
+            <Fragment slot="title">{view.cta.title}</Fragment>
+
+            <Fragment slot="subtitle">{view.cta.subtitle}</Fragment>
+          </CallToAction>
+        </>
+      )}
+    </Layout>
+  )
+}
+
+<style>
+  :global(.hero-light h1),
+  :global(.hero-light h2),
+  :global(.hero-light h3),
+  :global(.hero-light h4),
+  :global(.hero-light h5),
+  :global(.hero-light h6),
+  :global(.hero-light .text-muted),
+  :global(.hero-light .text-secondary) {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+  :global(.hero-light p),
+  :global(.hero-light .tagline) {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  :global(.hero-light .btn-secondary) {
+    color: #1d1306;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.9);
+  }
+  :global(.brand-lausanne .lausanne-hero-light h1),
+  :global(.brand-lausanne .lausanne-hero-light h2) {
+    color: #fff !important;
+  }
+  :global(.brand-lausanne .lausanne-hero-light p),
+  :global(.brand-lausanne .lausanne-hero-light .text-secondary) {
+    color: #e5e7eb !important;
+  }
+  :global(.brand-lausanne .lausanne-hero-light .text-center h1) {
+    text-shadow: 0 8px 26px rgba(2, 6, 23, 0.52);
+  }
+  :global(.brand-lausanne .lausanne-hero-light .text-center p),
+  :global(.brand-lausanne .lausanne-hero-light .text-center .text-muted),
+  :global(.brand-lausanne .lausanne-hero-light .text-center .text-secondary),
+  :global(.brand-lausanne .lausanne-hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.44);
+  }
+  :global(.brand-lausanne .lausanne-hero-light .visual-card h4),
+  :global(.brand-lausanne .lausanne-hero-light .visual-card p),
+  :global(.brand-lausanne .lausanne-hero-light .visual-card .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.55);
+  }
+  :global(.brand-lausanne .lausanne-hero-overlay) {
+    background:
+      radial-gradient(140% 95% at 8% 26%, rgba(2, 6, 23, 0.28) 0%, rgba(2, 6, 23, 0.08) 45%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(140% 95% at 92% 26%, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.08) 46%, rgba(2, 6, 23, 0) 74%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.06) 0%, rgba(2, 6, 23, 0.12) 58%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-pedro .pedro-hero-overlay) {
+    background:
+      radial-gradient(136% 90% at 8% 22%, rgba(2, 6, 23, 0.22) 0%, rgba(2, 6, 23, 0.07) 45%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(136% 90% at 92% 22%, rgba(2, 6, 23, 0.2) 0%, rgba(2, 6, 23, 0.06) 44%, rgba(2, 6, 23, 0) 72%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.06) 0%, rgba(2, 6, 23, 0.14) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-pedro .pedro-hero-card-overlay),
+  :global(.brand-pedro .pedro-process-overlay),
+  :global(.brand-pedro .pedro-steps-overlay) {
+    background:
+      radial-gradient(
+        130% 86% at 50% 12%,
+        rgba(96, 165, 250, 0.12) 0%,
+        rgba(96, 165, 250, 0.03) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.36) 56%, rgba(2, 6, 23, 0.9) 100%);
+  }
+  :global(.brand-pedro .hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.58);
+  }
+  :global(.brand-pedro .hero-light .text-center p),
+  :global(.brand-pedro .hero-light .text-center .text-muted),
+  :global(.brand-pedro .hero-light .text-center .text-secondary),
+  :global(.brand-pedro .hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.46);
+  }
+  :global(.brand-pedro .visual-card-body h4),
+  :global(.brand-pedro .visual-card-body p),
+  :global(.brand-pedro .visual-card-body .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.56);
+  }
+  :global(.brand-urgent .urgent-hero-overlay) {
+    background:
+      radial-gradient(
+        135% 88% at 8% 22%,
+        rgba(127, 29, 29, 0.34) 0%,
+        rgba(127, 29, 29, 0.1) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      radial-gradient(
+        135% 88% at 92% 22%,
+        rgba(194, 65, 12, 0.26) 0%,
+        rgba(194, 65, 12, 0.08) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(127, 29, 29, 0.38) 54%, rgba(2, 6, 23, 0.9) 100%);
+  }
+  :global(.brand-urgent .urgent-hero-card-overlay),
+  :global(.brand-urgent .urgent-process-overlay),
+  :global(.brand-urgent .urgent-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(249, 115, 22, 0.14) 0%,
+        rgba(249, 115, 22, 0.04) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(127, 29, 29, 0.16) 0%, rgba(127, 29, 29, 0.44) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-urgent .hero-light .text-center h1) {
+    text-shadow: 0 9px 30px rgba(2, 6, 23, 0.64);
+  }
+  :global(.brand-urgent .hero-light .text-center p),
+  :global(.brand-urgent .hero-light .text-center .text-muted),
+  :global(.brand-urgent .hero-light .text-center .text-secondary),
+  :global(.brand-urgent .hero-light .text-center .tagline) {
+    text-shadow: 0 5px 19px rgba(2, 6, 23, 0.54);
+  }
+  :global(.brand-urgent .visual-card-body h4),
+  :global(.brand-urgent .visual-card-body p),
+  :global(.brand-urgent .visual-card-body .text-xs) {
+    text-shadow: 0 7px 22px rgba(2, 6, 23, 0.62);
+  }
+  :global(.brand-debarras .debarras-hero-overlay) {
+    background:
+      radial-gradient(132% 88% at 8% 24%, rgba(6, 95, 70, 0.34) 0%, rgba(6, 95, 70, 0.1) 44%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(
+        132% 88% at 92% 24%,
+        rgba(16, 185, 129, 0.24) 0%,
+        rgba(16, 185, 129, 0.08) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(6, 95, 70, 0.34) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-debarras .debarras-hero-card-overlay),
+  :global(.brand-debarras .debarras-process-overlay),
+  :global(.brand-debarras .debarras-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(16, 185, 129, 0.15) 0%,
+        rgba(16, 185, 129, 0.05) 42%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(6, 95, 70, 0.12) 0%, rgba(6, 95, 70, 0.4) 56%, rgba(2, 6, 23, 0.9) 100%);
+  }
+  :global(.brand-debarras .hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-debarras .hero-light .text-center p),
+  :global(.brand-debarras .hero-light .text-center .text-muted),
+  :global(.brand-debarras .hero-light .text-center .text-secondary),
+  :global(.brand-debarras .hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.5);
+  }
+  :global(.brand-debarras .visual-card-body h4),
+  :global(.brand-debarras .visual-card-body p),
+  :global(.brand-debarras .visual-card-body .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.58);
+  }
+  :global(.brand-transport .transport-hero-overlay) {
+    background:
+      radial-gradient(136% 90% at 8% 22%, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.1) 44%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(
+        136% 90% at 92% 22%,
+        rgba(217, 119, 6, 0.2) 0%,
+        rgba(217, 119, 6, 0.06) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(15, 23, 42, 0.34) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-transport .transport-hero-card-overlay),
+  :global(.brand-transport .transport-process-overlay),
+  :global(.brand-transport .transport-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(217, 119, 6, 0.14) 0%,
+        rgba(217, 119, 6, 0.04) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.42) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-transport .hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.58);
+  }
+  :global(.brand-transport .hero-light .text-center p),
+  :global(.brand-transport .hero-light .text-center .text-muted),
+  :global(.brand-transport .hero-light .text-center .text-secondary),
+  :global(.brand-transport .hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.48);
+  }
+  :global(.brand-transport .visual-card-body h4),
+  :global(.brand-transport .visual-card-body p),
+  :global(.brand-transport .visual-card-body .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-videmaison .videmaison-hero-overlay) {
+    background:
+      radial-gradient(134% 90% at 8% 24%, rgba(59, 42, 24, 0.34) 0%, rgba(59, 42, 24, 0.1) 44%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(
+        134% 90% at 92% 24%,
+        rgba(140, 97, 54, 0.22) 0%,
+        rgba(140, 97, 54, 0.08) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(59, 42, 24, 0.34) 56%, rgba(2, 6, 23, 0.9) 100%);
+  }
+  :global(.brand-videmaison .videmaison-hero-card-overlay),
+  :global(.brand-videmaison .videmaison-process-overlay),
+  :global(.brand-videmaison .videmaison-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(197, 143, 85, 0.14) 0%,
+        rgba(197, 143, 85, 0.04) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(59, 42, 24, 0.14) 0%, rgba(59, 42, 24, 0.42) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-videmaison .hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-videmaison .hero-light .text-center p),
+  :global(.brand-videmaison .hero-light .text-center .text-muted),
+  :global(.brand-videmaison .hero-light .text-center .text-secondary),
+  :global(.brand-videmaison .hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.5);
+  }
+  :global(.brand-videmaison .visual-card-body h4),
+  :global(.brand-videmaison .visual-card-body p),
+  :global(.brand-videmaison .visual-card-body .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-videsuccession .videsuccession-hero-overlay) {
+    background:
+      radial-gradient(134% 90% at 8% 24%, rgba(15, 17, 27, 0.42) 0%, rgba(15, 17, 27, 0.14) 44%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(
+        134% 90% at 92% 24%,
+        rgba(180, 83, 9, 0.26) 0%,
+        rgba(180, 83, 9, 0.08) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(15, 17, 27, 0.42) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-videsuccession .videsuccession-hero-card-overlay),
+  :global(.brand-videsuccession .videsuccession-process-overlay),
+  :global(.brand-videsuccession .videsuccession-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(217, 119, 6, 0.15) 0%,
+        rgba(217, 119, 6, 0.05) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(15, 17, 27, 0.16) 0%, rgba(15, 17, 27, 0.44) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-videsuccession .hero-light .text-center h1) {
+    text-shadow: 0 9px 30px rgba(2, 6, 23, 0.66);
+  }
+  :global(.brand-videsuccession .hero-light .text-center p),
+  :global(.brand-videsuccession .hero-light .text-center .text-muted),
+  :global(.brand-videsuccession .hero-light .text-center .text-secondary),
+  :global(.brand-videsuccession .hero-light .text-center .tagline) {
+    text-shadow: 0 5px 19px rgba(2, 6, 23, 0.56);
+  }
+  :global(.brand-videsuccession .visual-card-body h4),
+  :global(.brand-videsuccession .visual-card-body p),
+  :global(.brand-videsuccession .visual-card-body .text-xs) {
+    text-shadow: 0 7px 22px rgba(2, 6, 23, 0.64);
+  }
+  :global(.brand-nettoyagesuccession .nettoyagesuccession-hero-overlay) {
+    background:
+      radial-gradient(
+        136% 90% at 8% 24%,
+        rgba(15, 118, 110, 0.3) 0%,
+        rgba(15, 118, 110, 0.1) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      radial-gradient(
+        136% 90% at 92% 24%,
+        rgba(34, 211, 238, 0.2) 0%,
+        rgba(34, 211, 238, 0.08) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(15, 118, 110, 0.32) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-nettoyagesuccession .nettoyagesuccession-hero-card-overlay),
+  :global(.brand-nettoyagesuccession .nettoyagesuccession-process-overlay),
+  :global(.brand-nettoyagesuccession .nettoyagesuccession-steps-overlay) {
+    background:
+      radial-gradient(
+        126% 84% at 50% 12%,
+        rgba(34, 211, 238, 0.14) 0%,
+        rgba(34, 211, 238, 0.04) 44%,
+        rgba(2, 6, 23, 0) 72%
+      ),
+      linear-gradient(180deg, rgba(15, 118, 110, 0.12) 0%, rgba(15, 23, 42, 0.4) 56%, rgba(2, 6, 23, 0.92) 100%);
+  }
+  :global(.brand-nettoyagesuccession .hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-nettoyagesuccession .hero-light .text-center p),
+  :global(.brand-nettoyagesuccession .hero-light .text-center .text-muted),
+  :global(.brand-nettoyagesuccession .hero-light .text-center .text-secondary),
+  :global(.brand-nettoyagesuccession .hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.52);
+  }
+  :global(.brand-nettoyagesuccession .visual-card-body h4),
+  :global(.brand-nettoyagesuccession .visual-card-body p),
+  :global(.brand-nettoyagesuccession .visual-card-body .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+  }
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-overlay) {
+    background:
+      radial-gradient(140% 95% at 8% 24%, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.08) 44%, rgba(2, 6, 23, 0) 72%),
+      radial-gradient(140% 95% at 92% 24%, rgba(2, 6, 23, 0.2) 0%, rgba(2, 6, 23, 0.07) 44%, rgba(2, 6, 23, 0) 72%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.05) 0%, rgba(2, 6, 23, 0.14) 58%, rgba(2, 6, 23, 0.93) 100%);
+  }
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .text-center h1) {
+    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.58);
+  }
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .text-center p),
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .text-center .text-muted),
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .text-center .text-secondary),
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .text-center .tagline) {
+    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.48);
+  }
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .visual-card h4),
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .visual-card p),
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-light .visual-card .text-xs) {
+    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.58);
+  }
+  :global(.brand-lausannenettoyage .lausannenettoyage-hero-card-overlay),
+  :global(.brand-lausannenettoyage .lausannenettoyage-process-overlay),
+  :global(.brand-lausannenettoyage .lausannenettoyage-steps-overlay) {
+    background:
+      radial-gradient(
+        120% 86% at 50% 12%,
+        rgba(56, 189, 248, 0.12) 0%,
+        rgba(56, 189, 248, 0.03) 46%,
+        rgba(2, 6, 23, 0) 74%
+      ),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(2, 6, 23, 0.4) 56%, rgba(2, 6, 23, 0.9) 100%);
+  }
+  :global(.mc-landing) {
+    display: grid;
+    gap: 16px;
+    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 35%), rgba(0, 0, 0, 0.8);
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  :global(.mc-landing-body) {
+    color: #f4f4f5;
+    letter-spacing: 0.08em;
+    line-height: 1.7;
+  }
+
+  :global(.mc-actions .mc-button-ghost) {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+</style>

@@ -1,0 +1,218 @@
+[
+  {
+    "file": "src/content/config.ts",
+    "fns": [
+      "metadataDefinition"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/catchAsync.js",
+    "fns": [
+      "catchAsync"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/deployment.js",
+    "fns": [
+      "triggerTemplateDeployment"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/email.ts",
+    "fns": [
+      "sendEmailInternal",
+      "sendEmail",
+      "sendAdminNotificationEmail",
+      "sendClientConfirmationEmail",
+      "sendDeploymentReadyEmail",
+      "sendInvoiceOrReceiptEmail",
+      "renderEmailTemplate",
+      "escapeHtml"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/env.ts",
+    "fns": [
+      "requireEnv",
+      "getEnv",
+      "validateEnvVars"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/logger.js",
+    "fns": [
+      "ts",
+      "safeLog"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/metadata.js",
+    "fns": [
+      "serializeMetadata",
+      "toStr"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/orders.ts",
+    "fns": [
+      "insertOrder",
+      "updateOrder",
+      "fetchOrderBySessionId",
+      "updateOrderStatusInSupabase",
+      "updateOrderStatusBySubscriptionId",
+      "extractMetadataFromSession",
+      "logSystemEvent"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/phone.js",
+    "fns": [
+      "normalizePhoneNumber"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/pricing.js",
+    "fns": [
+      "isSubscriptionPlan",
+      "determineStripePriceId"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/slug.js",
+    "fns": [
+      "generateClientSlug"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/stripe.ts",
+    "fns": [
+      "getStripe"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/supabase.ts",
+    "fns": [
+      "getSupabaseAdmin",
+      "getSupabaseAnon"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/templates.js",
+    "fns": [
+      "isAllowedTemplate"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/urls.js",
+    "fns": [
+      "buildSuccessUrl",
+      "buildCancelUrl"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/lib/vercel.ts",
+    "fns": [
+      "deployTemplate",
+      "waitForDeploymentStatus",
+      "attachDomainToDeployment",
+      "generatePreviewUrl",
+      "updateSupabaseWithPreviewUrl"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/mocks/astro-icon.ts",
+    "fns": [
+      "Icon"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/pages/api/backend/dashboard/summary.ts",
+    "fns": [
+      "parseCount"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/backend/context.ts",
+    "fns": [
+      "getAgencyContext"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/backend/repository.ts",
+    "fns": [
+      "getById",
+      "deleteById",
+      "ensureRecord"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/backend/validation.ts",
+    "fns": [
+      "validateId",
+      "validateFields"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/blog.ts",
+    "fns": [
+      "getRelatedPosts"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/images-optimization.ts",
+    "fns": [
+      "getImagesOptimized",
+      "computeHeight",
+      "pixelate",
+      "isUnpicCompatible"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/permalinks.ts",
+    "fns": [
+      "trimSlash",
+      "createPath",
+      "cleanSlug",
+      "applyGetPermalinks"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/supabase/auth.ts",
+    "fns": [
+      "withAuth"
+    ],
+    "stubs": []
+  },
+  {
+    "file": "src/utils/utils.ts",
+    "fns": [
+      "trim",
+      "toUiAmount"
+    ],
+    "stubs": []
+  }
+]

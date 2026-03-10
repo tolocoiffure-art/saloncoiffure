@@ -1,0 +1,13 @@
+---
+import Shell from '~/tenants/atelier-memoire/ui/Shell.astro';
+import PricingPage from '~/tenants/atelier-memoire/pages/PricingPage.astro';
+import { getAtelierCopy } from '~/tenants/atelier-memoire/copy';
+
+const locale = 'fr';
+const copy = getAtelierCopy(locale);
+const metadata = { title: `${copy.meta.title} — Prix`, description: copy.meta.description, ignoreTitleTemplate: true };
+---
+
+<Shell locale={locale} page="pricing" metadata={metadata}>
+  <PricingPage locale={locale} />
+</Shell>

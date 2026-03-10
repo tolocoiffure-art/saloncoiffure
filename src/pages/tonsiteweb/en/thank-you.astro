@@ -1,0 +1,59 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import { headerDataEn, footerDataEn } from '~/navigation';
+
+const metadata = { title: 'Thank you — TonSiteWeb.ch' };
+const sessionId = Astro.url.searchParams.get('session_id') || '';
+---
+
+<Layout metadata={metadata} header={headerDataEn} footer={footerDataEn}>
+  <section class="py-24">
+    <div class="container mx-auto max-w-2xl text-center">
+      <h1 class="text-3xl font-bold">{sessionId ? 'Thank you for your order' : 'Thank you'}</h1>
+      <p class="mt-4 text-muted" id="desc">{sessionId ? 'Confirming your payment…' : 'We will get back to you within one business day.'}</p>
+
+      {sessionId ? (
+        <div id="session" class="mt-8 text-left mx-auto max-w-lg rounded border border-gray-200 dark:border-gray-700 p-4 text-sm bg-white/50 dark:bg-slate-900/50">
+          <div id="loader">Loading payment details…</div>
+          <div id="content" class="hidden">
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Amount:</strong> <span id="amount"></span></p>
+            <p><strong>Status:</strong> <span id="status"></span></p>
+            <p><strong>Template:</strong> <span id="template"></span></p>
+            <p><strong>Plan:</strong> <span id="plan"></span></p>
+          </div>
+          <div id="error" class="hidden text-red-600">Could not load details. Please contact support.</div>
+        </div>
+      ) : null}
+
+      <a href="/en" class="btn btn-primary mt-8">Back to home</a>
+    </div>
+  </section>
+
+  {sessionId ? (
+    <script is:inline>
+      const params = new URLSearchParams(location.search);
+      const id = params.get('session_id');
+      if (id) {
+        fetch(`/api/payment/session?session_id=${encodeURIComponent(id)}`)
+          .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+          .then(data => {
+            const f = new Intl.NumberFormat('en-CH', { style: 'currency', currency: data.currency || 'CHF' });
+            document.getElementById('email').textContent = data.customer_email || '—';
+            document.getElementById('amount').textContent = typeof data.amount_total === 'number' ? f.format((data.amount_total||0)/100) : '—';
+            document.getElementById('status').textContent = data.payment_status || '—';
+            document.getElementById('template').textContent = data.metadata?.template || '—';
+            document.getElementById('plan').textContent = data.metadata?.plan || '—';
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('desc').textContent = 'Your payment is confirmed. You will receive the next steps by email.';
+          })
+          .catch(() => {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+          });
+      }
+    </script>
+  ) : null}
+</Layout>
+

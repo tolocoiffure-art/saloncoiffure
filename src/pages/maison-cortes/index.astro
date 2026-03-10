@@ -1,0 +1,81 @@
+---
+import Shell from '~/tenants/maison-cortes/ui/Shell.astro';
+import { maisonCortesCities, maisonCortesProducts } from '~/tenants/maison-cortes/products';
+import { maisonCortesCopy, resolveMaisonCortesLocale } from '~/tenants/maison-cortes/copy';
+import { getMaisonCortesInventorySnapshot } from '~/tenants/maison-cortes/inventory';
+
+const locale = resolveMaisonCortesLocale(Astro.cookies.get('mc-lang')?.value);
+const copy = maisonCortesCopy.locales[locale];
+const snapshot = await getMaisonCortesInventorySnapshot();
+
+const metadata = {
+  title: `MAISON CORTES — ${copy.catalogueTitle}`,
+  description: copy.catalogueDescription,
+  ignoreTitleTemplate: true,
+};
+
+export const prerender = false;
+---
+
+<Shell metadata={metadata} title={copy.catalogueTitle} subtitle={copy.catalogueDescription}>
+  <section class="mc-section">
+    <ul class="mc-city-list">
+      {maisonCortesCities.map((city) => {
+        const cityProducts = maisonCortesProducts.filter((product) => product.citySlug === city.slug);
+        const statuses = cityProducts.map((product) => snapshot[product.id]?.status ?? product.status);
+        const availableCount = statuses.filter((status) => status === 'available').length;
+        const hasAvailable = availableCount > 0;
+        const hasReserved = !hasAvailable && statuses.some((status) => status === 'reserved');
+        const cityStatusLabel = hasAvailable
+          ? `${availableCount} ${copy.cityAvailabilityLabel}`
+          : hasReserved
+            ? copy.statusLabels.reserved
+            : copy.statusLabels.archived;
+        return (
+          <li class={!hasAvailable ? 'is-disabled' : ''}>
+            <div class="mc-city-row">
+              {hasAvailable ? <a href={`/maison-cortes/${city.slug}`}>{city.name}</a> : <span>{city.name}</span>}
+              <span class="mc-status">{cityStatusLabel}</span>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Shell>
+
+<style>
+  .mc-city-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+    font-size: clamp(20px, 3vw, 28px);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .mc-city-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .mc-status {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--mc-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .mc-city-list .is-disabled {
+    color: var(--mc-muted);
+  }
+
+  .mc-city-list .is-disabled a {
+    pointer-events: none;
+  }
+</style>

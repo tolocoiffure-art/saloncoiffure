@@ -1,0 +1,362 @@
+[
+  {
+    "file": "src/content/config.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/env.d.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/catchAsync.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/deployment.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/email.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": true,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/env.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": true,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/logger.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/metadata.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/orders.ts",
+    "supabase": true,
+    "stripe": true,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/phone.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/pricing.js",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/slug.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/stripe.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/supabase.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/templates.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/lib/urls.js",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/lib/vercel.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/mocks/astro-icon.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/mocks/astrowind-config.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/navigation.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/backend/dashboard/summary.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/backend/documents/[id].ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/contact.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": true,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/demo.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/domains/search.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/health.ts",
+    "supabase": true,
+    "stripe": true,
+    "email": true,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/payment/checkout.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/payment/portal.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/payment/redirect.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/payment/session.ts",
+    "supabase": false,
+    "stripe": true,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/pages/api/stripe-webhook.ts",
+    "supabase": true,
+    "stripe": true,
+    "email": false,
+    "pipeline": true,
+    "auth": false
+  },
+  {
+    "file": "src/types.d.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": true,
+    "auth": true
+  },
+  {
+    "file": "src/utils/backend/context.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/backend/repository.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/backend/validation.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/blog.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/context.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/directories.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/frontmatter.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/images-optimization.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/images.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/permalinks.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/supabase/admin.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/supabase/auth.ts",
+    "supabase": true,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  },
+  {
+    "file": "src/utils/utils.ts",
+    "supabase": false,
+    "stripe": false,
+    "email": false,
+    "pipeline": false,
+    "auth": false
+  }
+]

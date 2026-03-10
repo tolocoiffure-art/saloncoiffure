@@ -1,0 +1,160 @@
+---
+import type { AtelierLocale } from '../copy';
+import { getAtelierCopy } from '../copy';
+
+interface Props {
+  locale: AtelierLocale;
+}
+
+const { locale } = Astro.props as Props;
+const copy = getAtelierCopy(locale);
+
+const labels = {
+  fr: { what: 'Quoi', how: 'Comment', assurance: 'Assurance' },
+  en: { what: 'What', how: 'How', assurance: 'Reassurance' },
+  de: { what: 'Was', how: 'Ablauf', assurance: 'Sicherheit' },
+  it: { what: 'Cosa', how: 'Come', assurance: 'Garanzie' },
+} as const;
+const l = labels[locale];
+
+const base = '/atelier-memoire';
+const localePath = locale === 'fr' ? '' : `/${locale}`;
+const basePath = `${base}${localePath}`;
+const slugs = {
+  pricing: { fr: 'prix', en: 'pricing', de: 'preise', it: 'prezzi' },
+  contact: { fr: 'contact', en: 'contact', de: 'kontakt', it: 'contatto' },
+} as const;
+const contactHref = `${basePath}/${slugs.contact[locale]}`.replace('//', '/');
+const pricingHref = `${basePath}/${slugs.pricing[locale]}`.replace('//', '/');
+const invoiceHref = `${contactHref}?payment=invoice`;
+const questionHref = 'mailto:bonjour@ateliermemoire.ch?subject=Atelier%20Mémoire%20—%20Question';
+
+const samples = [
+  { title: 'Avant / Après 01', city: 'Lausanne' },
+  { title: 'Avant / Après 02', city: 'Genève' },
+  { title: 'Avant / Après 03', city: 'Berne' },
+  { title: 'Avant / Après 04', city: 'Lugano' },
+];
+---
+
+<section class="grid gap-10">
+  <div class="grid gap-4">
+    <p class="text-sm uppercase tracking-[0.28em] text-[color:var(--atelier-muted)]">Atelier Mémoire</p>
+    <h1 class="text-3xl sm:text-4xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>
+      {copy.hero.title}<br />
+      <span class="text-[color:var(--atelier-accent)]">{copy.hero.subtitle}</span>
+    </h1>
+    <p class="text-base text-[color:var(--atelier-muted)] max-w-2xl">{copy.hero.note}</p>
+    <div class="flex flex-wrap gap-3 text-sm">
+      <a class="px-4 py-2 rounded-full bg-[color:var(--atelier-accent)] text-white" href={contactHref}>{copy.actions.primary}</a>
+      <a class="px-4 py-2 rounded-full border border-[color:var(--atelier-line)]" href={invoiceHref}>{copy.actions.secondary}</a>
+      <a class="px-4 py-2 rounded-full border border-[color:var(--atelier-line)]" href={questionHref}>{copy.actions.tertiary}</a>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2" id="services">
+    <div class="p-5 rounded-2xl shadow-sm border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+      <h2 class="text-lg font-semibold mb-3" style={`font-family:var(--atelier-font-heading);`}>{l.what}</h2>
+      <ul class="grid gap-2 text-sm leading-relaxed">
+        {copy.whatWeDo.map((item) => (
+          <li>• {item}</li>
+        ))}
+      </ul>
+    </div>
+    <div class="p-5 rounded-2xl shadow-sm border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+      <h2 class="text-lg font-semibold mb-3" style={`font-family:var(--atelier-font-heading);`}>{l.how}</h2>
+      <ol class="grid gap-2 text-sm leading-relaxed">
+        {copy.how.map((item, idx) => (
+          <li><span class="font-semibold">{idx + 1}.</span> {item}</li>
+        ))}
+      </ol>
+    </div>
+  </div>
+
+  <div class="grid gap-4" id="pricing">
+    <h2 class="text-xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>{copy.pricingTeaser.title}</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      {copy.pricingTeaser.items.map((item) => (
+        <div class="p-5 rounded-2xl shadow-sm border border-[color:var(--atelier-line)] flex flex-col gap-3" style="background:var(--atelier-surface);">
+          <div>
+            <p class="text-sm uppercase tracking-[0.18em] text-[color:var(--atelier-muted)]">{item.title}</p>
+            <p class="text-lg font-semibold" style={`font-family:var(--atelier-font-heading);`}>{item.price}</p>
+          </div>
+          <ul class="grid gap-2 text-sm">
+            {item.bullets.map((b) => (
+              <li>• {b}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+    <p class="text-sm text-[color:var(--atelier-muted)]">{copy.pricingTeaser.footnote}</p>
+  </div>
+
+  <div class="grid gap-4">
+    <h2 class="text-xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>{copy.pipeline.intakeTitle}</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-sm uppercase tracking-[0.16em] text-[color:var(--atelier-muted)]">{copy.pipeline.onlineTitle}</p>
+        <ul class="mt-2 grid gap-2 text-sm leading-relaxed">
+          {copy.pipeline.onlineSteps.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-sm uppercase tracking-[0.16em] text-[color:var(--atelier-muted)]">{copy.pipeline.mailTitle}</p>
+        <ul class="mt-2 grid gap-2 text-sm leading-relaxed">
+          {copy.pipeline.mailSteps.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-sm uppercase tracking-[0.16em] text-[color:var(--atelier-muted)]">{copy.pipeline.paymentTitle}</p>
+        <ul class="mt-2 grid gap-2 text-sm leading-relaxed">
+          {copy.pipeline.paymentItems.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+        <p class="mt-3 text-sm uppercase tracking-[0.16em] text-[color:var(--atelier-muted)]">{copy.pipeline.revisionTitle}</p>
+        <ul class="mt-2 grid gap-2 text-sm leading-relaxed">
+          {copy.pipeline.revisionItems.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-3">
+    <h2 class="text-xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>{l.assurance}</h2>
+    <ul class="grid gap-2 text-sm leading-relaxed">
+      {copy.reassurance.map((item) => (
+        <li>• {item}</li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="grid gap-3" id="works">
+    <h2 class="text-xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>Travaux récents</h2>
+    <div class="overflow-x-auto">
+      <div class="flex gap-4 min-w-full">
+        {samples.map((sample) => (
+          <div class="w-64 flex-none rounded-2xl border border-[color:var(--atelier-line)] shadow-sm p-4 grid gap-3" style="background:var(--atelier-surface);">
+            <div
+              class="h-40 rounded-xl flex items-center justify-center text-sm text-[color:var(--atelier-muted)]"
+              style="background:linear-gradient(135deg, rgba(255,255,255,0.04), var(--atelier-surface), rgba(255,255,255,0.06));"
+            >
+              {sample.title}
+            </div>
+            <div class="text-xs uppercase tracking-[0.16em] text-[color:var(--atelier-muted)]">{sample.city}</div>
+            <div class="text-sm leading-relaxed">
+              Restauration + colorisation, tons naturels, fichiers livrés en haute résolution.
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,31 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#F7F1EA"/>
+      <stop offset="1" stop-color="#E9DFD4"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#C8B38A" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#9B8460" stop-opacity="0.12"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="80" result="blur"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#ivory)"/>
+  <g filter="url(#soft)">
+    <ellipse cx="520" cy="360" rx="420" ry="280" fill="#C7AE8A" fill-opacity="0.35"/>
+    <ellipse cx="1160" cy="520" rx="520" ry="340" fill="#8C7257" fill-opacity="0.28"/>
+  </g>
+  <rect x="560" y="140" width="620" height="760" rx="120" fill="#1E1711" fill-opacity="0.82"/>
+  <rect x="600" y="180" width="540" height="680" rx="110" fill="#2B2018" fill-opacity="0.92"/>
+  <rect x="630" y="210" width="480" height="620" rx="95" fill="url(#gold)" fill-opacity="0.85"/>
+  <path d="M780 260C860 250 910 330 980 360C1040 386 1105 370 1150 330" stroke="#E9DFD4" stroke-width="28" stroke-linecap="round" stroke-opacity="0.45"/>
+  <path d="M750 460C830 430 880 470 960 500C1030 526 1100 506 1160 470" stroke="#E3D6C6" stroke-width="22" stroke-linecap="round" stroke-opacity="0.38"/>
+  <path d="M740 610C840 580 900 630 980 650C1050 668 1110 648 1170 610" stroke="#D8C8B2" stroke-width="18" stroke-linecap="round" stroke-opacity="0.35"/>
+  <rect x="640" y="520" width="160" height="6" rx="3" fill="#EADCC8" fill-opacity="0.62"/>
+  <rect x="1040" y="300" width="90" height="6" rx="3" fill="#EADCC8" fill-opacity="0.48"/>
+  <rect x="900" y="700" width="140" height="8" rx="4" fill="#EADCC8" fill-opacity="0.55"/>
+  <rect x="120" y="120" width="200" height="40" rx="16" fill="#C2A878" fill-opacity="0.35"/>
+  <rect x="1300" y="120" width="140" height="32" rx="12" fill="#C2A878" fill-opacity="0.25"/>
+</svg>

@@ -1,0 +1,488 @@
+---
+import type { AtelierLocale } from '../copy';
+import { getAtelierCopy } from '../copy';
+
+interface Props {
+  locale: AtelierLocale;
+}
+
+const { locale } = Astro.props as Props;
+const copy = getAtelierCopy(locale);
+const labels = {
+  fr: {
+    name: 'Nom',
+    email: 'Email',
+    phone: 'Téléphone',
+    deliveryEmail: 'Adresse email de livraison',
+    notesPlaceholder: 'Préciser: retours attendus, tons souhaités, utilisation prévue, format de livraison...',
+    estimateLabel: 'Estimation',
+    estimateNote: 'Remise progressive appliquée (-10% par photo, minimum CHF 10).',
+    uploadHint: 'JPG / PNG / TIFF / PDF · max 10 fichiers · 20 MB total',
+  },
+  en: {
+    name: 'Name',
+    email: 'Email',
+    phone: 'Phone',
+    deliveryEmail: 'Delivery email',
+    notesPlaceholder: 'Notes: expected look, tones, intended use, delivery format...',
+    estimateLabel: 'Estimate',
+    estimateNote: 'Progressive discount applied (-10% per photo, minimum CHF 10).',
+    uploadHint: 'JPG / PNG / TIFF / PDF · max 10 files · 20 MB total',
+  },
+  de: {
+    name: 'Name',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    deliveryEmail: 'E-Mail für Lieferung',
+    notesPlaceholder: 'Hinweis: gewünschter Look, Töne, Verwendung, Lieferformat...',
+    estimateLabel: 'Schätzung',
+    estimateNote: 'Progressiver Rabatt (-10% pro Foto, mindestens CHF 10).',
+    uploadHint: 'JPG / PNG / TIFF / PDF · max 10 Dateien · 20 MB gesamt',
+  },
+  it: {
+    name: 'Nome',
+    email: 'Email',
+    phone: 'Telefono',
+    deliveryEmail: 'Email di consegna',
+    notesPlaceholder: 'Note: risultato atteso, toni, uso previsto, formato di consegna...',
+    estimateLabel: 'Stima',
+    estimateNote: 'Sconto progressivo (-10% per foto, minimo CHF 10).',
+    uploadHint: 'JPG / PNG / TIFF / PDF · max 10 file · 20 MB totali',
+  },
+} as const;
+const l = labels[locale];
+
+const intakeHints = {
+  fr: {
+    online: 'Joignez vos fichiers ou un lien (WeTransfer, Drive). Nous confirmons réception puis lançons la restauration.',
+    mail: 'Envoyez l’original par courrier suivi (Avenue de la Gare 29, 1003 Lausanne). Nous scannons, restaurons et renvoyons en suivi.',
+    unsure: 'Indiquez ce qui vous arrange, nous vous répondons avec l’option la plus simple.',
+  },
+  en: {
+    online: 'Attach files or share a link (WeTransfer, Drive). We confirm receipt, then start restoring.',
+    mail: 'Mail the original (tracked) to Avenue de la Gare 29, 1003 Lausanne. We scan, restore, and return it tracked.',
+    unsure: 'Tell us what works for you; we’ll reply with the simplest option.',
+  },
+  de: {
+    online: 'Dateien anhängen oder Link senden (WeTransfer, Drive). Wir bestätigen und starten die Restaurierung.',
+    mail: 'Original per Einschreiben an Avenue de la Gare 29, 1003 Lausanne senden. Wir scannen, restaurieren und senden es zurück.',
+    unsure: 'Sagen Sie uns, was passt; wir schlagen die einfachste Option vor.',
+  },
+  it: {
+    online: 'Allega i file o un link (WeTransfer, Drive). Confermiamo la ricezione e iniziamo la lavorazione.',
+    mail: "Spedisci l’originale (tracciato) a Avenue de la Gare 29, 1003 Lausanne. Scansioniamo, restauriamo e lo rimandiamo.",
+    unsure: 'Indica cosa preferisci; ti proponiamo l’opzione più semplice.',
+  },
+} as const;
+
+const paymentHints = {
+  fr: {
+    card: 'Lien de paiement sécurisé envoyé après vérification. Pas de compte requis.',
+    invoice: 'Facture / QR-facture envoyée, payable sous 5 jours.',
+    twint: 'QR TWINT partagé après confirmation de la commande.',
+  },
+  en: {
+    card: 'Secure payment link sent after we confirm your files. No account needed.',
+    invoice: 'Invoice / QR-bill sent, payable within 5 days.',
+    twint: 'TWINT QR shared after we confirm the order.',
+  },
+  de: {
+    card: 'Sicherer Zahlungslink nach Bestätigung. Kein Konto erforderlich.',
+    invoice: 'Rechnung / QR-Rechnung, zahlbar innert 5 Tagen.',
+    twint: 'TWINT-QR nach Bestätigung der Bestellung.',
+  },
+  it: {
+    card: 'Link di pagamento sicuro dopo la conferma. Nessun account necessario.',
+    invoice: 'Fattura / QR-fattura inviata, pagabile entro 5 giorni.',
+    twint: 'QR TWINT condiviso dopo la conferma.',
+  },
+} as const;
+
+const hintLabels = { intakeDefault: { fr: 'Choisissez un mode d’envoi', en: 'Choose a delivery method', de: 'Wählen Sie eine Versandart', it: 'Scegli un metodo di invio' }, paymentDefault: { fr: 'Choisissez un mode de paiement', en: 'Choose a payment method', de: 'Zahlungsart wählen', it: 'Scegli un metodo di pagamento' } } as const;
+---
+
+<section class="grid gap-6" id="contact">
+  <div class="grid gap-2">
+    <h1 class="text-3xl font-semibold" style={`font-family:var(--atelier-font-heading);`}>{copy.contact.title}</h1>
+    <p class="text-sm text-[color:var(--atelier-muted)]">{copy.contact.subtitle}</p>
+  </div>
+
+  <form
+    method="post"
+    action="/api/atelier-memoire/checkout"
+    enctype="multipart/form-data"
+    class="grid gap-5 p-5 rounded-2xl border border-[color:var(--atelier-line)] shadow-sm"
+    style="background:var(--atelier-surface);"
+  >
+    <input type="hidden" name="locale" value={locale} />
+    <div class="grid gap-3 md:grid-cols-2">
+      <label class="grid gap-1 text-sm">
+        <span>{l.name}</span>
+        <input name="name" required class="input" type="text" placeholder={l.name} />
+      </label>
+      <label class="grid gap-1 text-sm">
+        <span>{l.email}</span>
+        <input name="email" required class="input" type="email" placeholder="email@example.ch" />
+      </label>
+      <label class="grid gap-1 text-sm">
+        <span>{l.phone} ({copy.contact.optional})</span>
+        <input name="phone" class="input" type="tel" placeholder="+41 ..." />
+      </label>
+      <label class="grid gap-1 text-sm">
+        <span>{copy.contact.photoCountLabel}</span>
+        <input name="photo_count" class="input" type="number" min="1" max="100" value="1" required />
+      </label>
+    </div>
+    <div class="grid gap-1 text-sm">
+      <span class="text-[color:var(--atelier-muted)]">{l.estimateLabel}</span>
+      <div id="estimate" class="text-lg font-semibold" style={`font-family:var(--atelier-font-heading);`}>CHF 49.00</div>
+      <div id="estimate-note" class="text-xs text-[color:var(--atelier-muted)]">{l.estimateNote}</div>
+    </div>
+
+    <div class="grid gap-2 text-sm">
+      <span>{copy.contact.serviceLabel}</span>
+      <div class="grid gap-2 md:grid-cols-3">
+        {copy.contact.services.map((service) => (
+          <label class="flex items-center gap-2">
+            <input type="radio" name="service" value={service.value} required class="h-4 w-4" />
+            <span>{service.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <div class="grid gap-2 text-sm">
+      <span>{copy.contact.methodLabel}</span>
+      <div class="grid gap-2 md:grid-cols-3">
+        {copy.contact.methods.map((method) => (
+          <label class="flex items-center gap-2">
+            <input type="radio" name="intake" value={method.value} required class="h-4 w-4" />
+            <span>{method.label}</span>
+          </label>
+        ))}
+      </div>
+      <div id="intake-hint" class="text-xs text-[color:var(--atelier-muted)] p-3 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        {hintLabels.intakeDefault[locale]}
+      </div>
+    </div>
+
+    <div class="grid gap-2 text-sm">
+      <span>{copy.contact.paymentLabel}</span>
+      <div class="grid gap-2 md:grid-cols-3">
+        {copy.contact.payments.map((method) => (
+          <label class="flex items-center gap-2">
+            <input type="radio" name="payment" value={method.value} required class="h-4 w-4" />
+            <span>{method.label}</span>
+          </label>
+        ))}
+      </div>
+      <div id="payment-hint" class="text-xs text-[color:var(--atelier-muted)] p-3 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        {hintLabels.paymentDefault[locale]}
+      </div>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-2">
+      <div class="grid gap-2 text-sm">
+        <span>{copy.contact.uploadLabel}</span>
+        <label class="file-drop" for="file-input">
+          <div class="flex items-center gap-2 text-[color:var(--atelier-muted)]">
+            <span class="rounded-full border border-[color:var(--atelier-line)] px-2 py-1 text-xs">Upload</span>
+            <span>{l.uploadHint}</span>
+          </div>
+          <input id="file-input" name="files" class="input sr-only" type="file" accept="image/*,application/pdf" multiple />
+        </label>
+        <div id="file-error" class="text-xs text-amber-400"></div>
+        <div id="file-list" class="flex flex-wrap gap-2 text-xs"></div>
+      </div>
+        <label class="grid gap-1 text-sm">
+          <span>{copy.contact.linkLabel}</span>
+          <input name="transfer_link" class="input" type="url" placeholder="https://wetransfer.com/..." />
+        </label>
+      </div>
+
+    <div class="grid gap-1 text-sm">
+      <span>{copy.contact.metadataTitle}</span>
+      <textarea name="notes" class="input" rows="3" placeholder={l.notesPlaceholder}></textarea>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-2">
+      <label class="grid gap-1 text-sm">
+        <span>{copy.contact.addressLabel}</span>
+        <textarea name="return_address" class="input" rows="3" placeholder="Rue, N°, NPA, Ville, Pays"></textarea>
+      </label>
+      <label class="grid gap-1 text-sm">
+        <span>{l.deliveryEmail}</span>
+        <input name="delivery_email" class="input" type="email" placeholder={l.deliveryEmail} />
+      </label>
+    </div>
+
+    <div id="form-error" class="text-xs text-amber-400"></div>
+
+    <button type="submit" class="px-5 py-3 rounded-full bg-[color:var(--atelier-accent)] text-white text-sm w-fit">
+      {copy.contact.submit}
+    </button>
+  </form>
+
+  <div class="grid gap-3 text-sm leading-relaxed">
+    <p class="font-semibold" style={`font-family:var(--atelier-font-heading);`}>{copy.pipeline.intakeTitle}</p>
+    <div class="grid gap-3 md:grid-cols-3">
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-xs uppercase tracking-[0.14em] text-[color:var(--atelier-muted)]">{copy.pipeline.onlineTitle}</p>
+        <ul class="mt-2 grid gap-2">
+          {copy.pipeline.onlineSteps.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-xs uppercase tracking-[0.14em] text-[color:var(--atelier-muted)]">{copy.pipeline.mailTitle}</p>
+        <ul class="mt-2 grid gap-2">
+          {copy.pipeline.mailSteps.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="p-4 rounded-xl border border-[color:var(--atelier-line)]" style="background:var(--atelier-surface);">
+        <p class="text-xs uppercase tracking-[0.14em] text-[color:var(--atelier-muted)]">{copy.pipeline.paymentTitle}</p>
+        <ul class="mt-2 grid gap-2">
+          {copy.pipeline.paymentItems.map((step) => (
+            <li>• {step}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .input {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--atelier-line);
+    background: var(--atelier-surface);
+    background: color-mix(in srgb, var(--atelier-surface) 92%, #ffffff 8%);
+    color: var(--atelier-text);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .file-drop {
+    border: 1px dashed var(--atelier-line);
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--atelier-surface) 94%, #ffffff 6%);
+    cursor: pointer;
+    display: grid;
+    gap: 6px;
+  }
+
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--atelier-surface) 85%, #ffffff 15%);
+    border: 1px solid var(--atelier-line);
+    color: var(--atelier-text);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @layer inline {
+    script[data-atelier-hints] {
+      display: none;
+    }
+  }
+</style>
+
+<script is:inline data-atelier-hints>
+  if (typeof window !== 'undefined') {
+    const intakeHintsMap = JSON.parse(
+      decodeURIComponent(
+        '%7B%22fr%22%3A%7B%22online%22%3A%22Joignez%20vos%20fichiers%20ou%20un%20lien%20(WeTransfer%2C%20Drive).%20Nous%20confirmons%20r%C3%A9ception%20puis%20lan%C3%A7ons%20la%20restauration.%22%2C%22mail%22%3A%22Envoyez%20l%E2%80%99original%20par%20courrier%20suivi%20(Avenue%20de%20la%20Gare%2029%2C%201003%20Lausanne).%20Nous%20scannons%2C%20restaurons%20et%20renvoyons%20en%20suivi.%22%2C%22unsure%22%3A%22Indiquez%20ce%20qui%20vous%20arrange%2C%20nous%20vous%20r%C3%A9pondons%20avec%20l%E2%80%99option%20la%20plus%20simple.%22%7D%2C%22en%22%3A%7B%22online%22%3A%22Attach%20files%20or%20share%20a%20link%20(WeTransfer%2C%20Drive).%20We%20confirm%20receipt%2C%20then%20start%20restoring.%22%2C%22mail%22%3A%22Mail%20the%20original%20(tracked)%20to%20Avenue%20de%20la%20Gare%2029%2C%201003%20Lausanne.%20We%20scan%2C%20restore%2C%20and%20return%20it%20tracked.%22%2C%22unsure%22%3A%22Tell%20us%20what%20works%20for%20you%3B%20we%E2%80%99ll%20reply%20with%20the%20simplest%20option.%22%7D%2C%22de%22%3A%7B%22online%22%3A%22Dateien%20anh%C3%A4ngen%20oder%20Link%20senden%20(WeTransfer%2C%20Drive).%20Wir%20best%C3%A4tigen%20und%20starten%20die%20Restaurierung.%22%2C%22mail%22%3A%22Original%20per%20Einschreiben%20an%20Avenue%20de%20la%20Gare%2029%2C%201003%20Lausanne%20senden.%20Wir%20scannen%2C%20restaurieren%20und%20senden%20es%20zur%C3%BCck.%22%2C%22unsure%22%3A%22Sagen%20Sie%20uns%2C%20was%20passt%3B%20wir%20schlagen%20die%20einfachste%20Option%20vor.%22%7D%2C%22it%22%3A%7B%22online%22%3A%22Allega%20i%20file%20o%20un%20link%20(WeTransfer%2C%20Drive).%20Confermiamo%20la%20ricezione%20e%20iniziamo%20la%20lavorazione.%22%2C%22mail%22%3A%22Spedisci%20l%E2%80%99originale%20(tracciato)%20a%20Avenue%20de%20la%20Gare%2029%2C%201003%20Lausanne.%20Scansioniamo%2C%20restauriamo%20e%20lo%20rimandiamo.%22%2C%22unsure%22%3A%22Indica%20cosa%20preferisci%3B%20ti%20proponiamo%20l%E2%80%99opzione%20pi%C3%B9%20semplice.%22%7D%7D'
+      )
+    );
+    const paymentHintsMap = JSON.parse(
+      decodeURIComponent(
+        '%7B%22fr%22%3A%7B%22card%22%3A%22Lien%20de%20paiement%20s%C3%A9curis%C3%A9%20envoy%C3%A9%20apr%C3%A8s%20v%C3%A9rification.%20Pas%20de%20compte%20requis.%22%2C%22invoice%22%3A%22Facture%20/%20QR-facture%20envoy%C3%A9e%2C%20payable%20sous%205%20jours.%22%2C%22twint%22%3A%22QR%20TWINT%20partag%C3%A9%20apr%C3%A8s%20confirmation%20de%20la%20commande.%22%7D%2C%22en%22%3A%7B%22card%22%3A%22Secure%20payment%20link%20sent%20after%20we%20confirm%20your%20files.%20No%20account%20needed.%22%2C%22invoice%22%3A%22Invoice%20/%20QR-bill%20sent%2C%20payable%20within%205%20days.%22%2C%22twint%22%3A%22TWINT%20QR%20shared%20after%20we%20confirm%20the%20order.%22%7D%2C%22de%22%3A%7B%22card%22%3A%22Sicherer%20Zahlungslink%20nach%20Best%C3%A4tigung.%20Kein%20Konto%20erforderlich.%22%2C%22invoice%22%3A%22Rechnung%20/%20QR-Rechnung%2C%20zahlbar%20innert%205%20Tagen.%22%2C%22twint%22%3A%22TWINT-QR%20nach%20Best%C3%A4tigung%20der%20Bestellung.%22%7D%2C%22it%22%3A%7B%22card%22%3A%22Link%20di%20pagamento%20sicuro%20dopo%20la%20conferma.%20Nessun%20account%20necessario.%22%2C%22invoice%22%3A%22Fattura%20/%20QR-fattura%20inviata%2C%20pagabile%20entro%205%20giorni.%22%2C%22twint%22%3A%22QR%20TWINT%20condiviso%20dopo%20la%20conferma.%22%7D%7D'
+      )
+    );
+
+    const localeInput = document.querySelector('input[name="locale"]');
+    const locale = localeInput && 'value' in localeInput ? localeInput.value : 'fr';
+    const intakeHintEl = document.getElementById('intake-hint');
+    const paymentHintEl = document.getElementById('payment-hint');
+    const intakeRadios = Array.from(document.querySelectorAll('input[name="intake"]'));
+    const paymentRadios = Array.from(document.querySelectorAll('input[name="payment"]'));
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const fileError = document.getElementById('file-error');
+    const formError = document.getElementById('form-error');
+    const form = document.querySelector('form');
+    const returnAddress = document.querySelector('textarea[name="return_address"]');
+    const transferLink = document.querySelector('input[name="transfer_link"]');
+    const photoCountInput = document.querySelector('input[name="photo_count"]');
+    const estimateEl = document.getElementById('estimate');
+
+    const updateHint = (type) => {
+      if (type === 'intake') {
+        const selected = intakeRadios.find((r) => r.checked);
+        if (selected && intakeHintEl) intakeHintEl.textContent = intakeHintsMap[locale]?.[selected.value] || intakeHintsMap.fr[selected.value];
+      }
+      if (type === 'payment') {
+        const selected = paymentRadios.find((r) => r.checked);
+        if (selected && paymentHintEl) paymentHintEl.textContent = paymentHintsMap[locale]?.[selected.value] || paymentHintsMap.fr[selected.value];
+      }
+    };
+
+    const presetFromQuery = () => {
+      const params = new URLSearchParams(window.location.search);
+      const paymentParam = params.get('payment');
+      const intakeParam = params.get('intake');
+      const countParam = params.get('photos');
+
+      if (paymentParam) {
+        const match = paymentRadios.find((r) => r.value === paymentParam);
+        if (match) match.checked = true;
+      }
+      if (intakeParam) {
+        const match = intakeRadios.find((r) => r.value === intakeParam);
+        if (match) match.checked = true;
+      }
+      if (countParam && photoCountInput instanceof HTMLInputElement) {
+        const value = Math.max(1, Math.min(100, Number(countParam)));
+        if (Number.isFinite(value)) photoCountInput.value = String(value);
+      }
+    };
+
+    const formatBytes = (bytes) => {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+    };
+
+    const handleFiles = () => {
+      if (!(fileInput instanceof HTMLInputElement) || !fileList || !fileError) return;
+      const files = Array.from(fileInput.files || []);
+      const maxFiles = 10;
+      const maxTotal = 20 * 1024 * 1024;
+      let total = 0;
+      let hasError = false;
+      fileList.innerHTML = '';
+      fileError.textContent = '';
+      files.forEach((file, idx) => {
+        total += file.size;
+        const badType = !(file.type.startsWith('image/') || file.type === 'application/pdf');
+        const chip = document.createElement('div');
+        chip.className = 'file-chip';
+        chip.textContent = `${file.name} · ${formatBytes(file.size)}`;
+        if (badType) {
+          chip.style.borderColor = '#fca5a5';
+          chip.style.color = '#fca5a5';
+          hasError = true;
+        }
+        fileList.appendChild(chip);
+        if (idx >= maxFiles) hasError = true;
+      });
+      if (files.length > maxFiles) {
+        fileError.textContent = locale === 'fr' ? `Max ${maxFiles} fichiers.` : `Max ${maxFiles} files.`;
+        hasError = true;
+      }
+      if (total > maxTotal) {
+        fileError.textContent = locale === 'fr' ? 'Taille totale > 20 MB. Utilisez un lien (WeTransfer, Drive).' : 'Total size > 20 MB. Use a transfer link.';
+        hasError = true;
+      }
+      return !hasError;
+    };
+
+    const formatCurrency = (value) => {
+      const localeTag = locale === 'de' ? 'de-CH' : locale === 'it' ? 'it-CH' : locale === 'en' ? 'en-CH' : 'fr-CH';
+      return new Intl.NumberFormat(localeTag, { style: 'currency', currency: 'CHF' }).format(value);
+    };
+
+    const computeEstimate = (count) => {
+      const basePrice = 49;
+      const discountFactor = 0.9;
+      const minPrice = 10;
+      const n = Math.min(Math.max(Math.floor(count), 1), 100);
+      let total = 0;
+      let price = basePrice;
+      for (let i = 0; i < n; i++) {
+        if (i > 0) price = Math.max(minPrice, price * discountFactor);
+        total += price;
+      }
+      return { total, count: n };
+    };
+
+    const renderEstimate = () => {
+      if (!(photoCountInput instanceof HTMLInputElement) || !estimateEl) return;
+      const { total, count } = computeEstimate(Number(photoCountInput.value || '1'));
+      photoCountInput.value = String(count);
+      estimateEl.textContent = formatCurrency(total);
+    };
+
+    const updateIntakeRequirements = () => {
+      const selected = intakeRadios.find((r) => r.checked);
+      if (returnAddress && 'required' in returnAddress) {
+        returnAddress.required = selected?.value === 'mail';
+      }
+    };
+
+    const validateIntake = () => {
+      if (!formError) return true;
+      formError.textContent = '';
+      const selected = intakeRadios.find((r) => r.checked);
+      if (selected?.value === 'mail' && returnAddress && !returnAddress.value.trim()) {
+        formError.textContent = locale === 'fr' ? 'Merci d’indiquer une adresse de retour pour l’envoi postal.' : 'Return address is required for mail delivery.';
+        return false;
+      }
+      if (selected?.value === 'online') {
+        const hasFiles = Boolean(fileInput instanceof HTMLInputElement && fileInput.files && fileInput.files.length > 0);
+        const hasLink = Boolean(transferLink && 'value' in transferLink && transferLink.value.trim());
+        if (!hasFiles && !hasLink) {
+          formError.textContent = locale === 'fr' ? 'Ajoutez des fichiers ou un lien de transfert.' : 'Please add files or a transfer link.';
+          return false;
+        }
+      }
+      return true;
+    };
+
+    intakeRadios.forEach((r) => r.addEventListener('change', () => updateHint('intake')));
+    intakeRadios.forEach((r) => r.addEventListener('change', updateIntakeRequirements));
+    paymentRadios.forEach((r) => r.addEventListener('change', () => updateHint('payment')));
+    fileInput?.addEventListener('change', handleFiles);
+    photoCountInput?.addEventListener('input', renderEstimate);
+    form?.addEventListener('submit', (e) => {
+      const ok = handleFiles();
+      if (ok === false) {
+        e.preventDefault();
+        fileError.textContent ||= locale === 'fr' ? 'Corrigez les fichiers avant d’envoyer.' : 'Fix file selection before sending.';
+        return;
+      }
+      if (!validateIntake()) {
+        e.preventDefault();
+        return;
+      }
+    });
+
+    presetFromQuery();
+    updateHint('intake');
+    updateHint('payment');
+    updateIntakeRequirements();
+    handleFiles();
+    renderEstimate();
+  }
+</script>

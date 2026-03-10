@@ -1,0 +1,623 @@
+---
+import { Icon } from 'astro-icon/components';
+import Logo from '~/components/Logo.astro';
+import ToggleMenu from '~/components/common/ToggleMenu.astro';
+import Button from '~/components/ui/Button.astro';
+import { twMerge } from 'tailwind-merge';
+
+import { getHomePermalink } from '~/utils/permalinks';
+import { trimSlash, getAsset } from '~/utils/permalinks';
+import { resolveLocaleFromRequest } from '~/lib/locale';
+import type { CallToAction } from '~/types';
+
+interface Link {
+  text?: string;
+  href?: string;
+  ariaLabel?: string;
+  icon?: string;
+}
+
+interface MenuLink extends Link {
+  links?: Array<MenuLink>;
+}
+
+export interface Props {
+  id?: string;
+  links?: Array<MenuLink>;
+  actions?: Array<CallToAction>;
+  brandName?: string;
+  brandKey?: string;
+  isSticky?: boolean;
+  isDark?: boolean;
+  isFullWidth?: boolean;
+  showRssFeed?: boolean;
+  position?: string;
+}
+
+const {
+  id = 'header',
+  links = [],
+  actions = [],
+  brandName = undefined,
+  brandKey = 'pedro',
+  isSticky = false,
+  isDark = false,
+  isFullWidth = false,
+  showRssFeed = false,
+  position = 'center',
+} = Astro.props;
+
+const urlObj = new URL(Astro.url);
+const currentPath = `/${trimSlash(urlObj.pathname)}` || '/';
+const filteredLinks = links ?? [];
+const isUrgent = brandKey === 'urgent';
+const isLaclemanExperience = brandKey === 'laclemanexperience';
+const toneClass =
+  brandKey === 'videsuccession' || brandKey === 'pedro' || brandKey === 'lausanne'
+    ? 'header-tone-light'
+    : brandKey === 'lausannenettoyage'
+      ? 'header-tone-light'
+      : 'header-tone-white';
+const brandLangs: Record<string, string[]> = {
+  laclemanexperience: ['fr', 'en', 'de', 'it', 'ar', 'zh'],
+  lausanne: ['fr', 'en', 'de', 'it'],
+  tonsiteweb: ['fr', 'en', 'de', 'it'],
+};
+const supportedLangs = brandLangs[brandKey] ?? ['fr'];
+const brandDefaultLocale = brandKey === 'laclemanexperience' ? 'en' : 'fr';
+const initialResolved = resolveLocaleFromRequest(Astro.request, brandDefaultLocale);
+const initialLang = supportedLangs.includes(initialResolved) ? initialResolved : supportedLangs[0] || 'fr';
+const flagClasses: Record<string, string> = {
+  fr: 'aw-flag-fr',
+  en: 'aw-flag-en',
+  de: 'aw-flag-de',
+  it: 'aw-flag-it',
+  ar: 'aw-flag-ar',
+  zh: 'aw-flag-zh',
+};
+---
+
+<header
+  class:list={[
+    { sticky: isSticky, relative: !isSticky, dark: isDark },
+    'top-0 z-40 flex-none mx-auto w-full border-b border-gray-50/0 transition-[opacity] ease-in-out aw-header',
+    toneClass,
+    isUrgent ? 'bg-gradient-to-r from-red-900 via-red-700 to-orange-500 text-white shadow-lg' : '',
+  ]}
+  {...isSticky ? { 'data-aw-sticky-header': true } : {}}
+  {...id ? { id } : {}}
+>
+  <div class="absolute inset-0"></div>
+  <div
+    class:list={[
+      'relative text-default py-3 px-3 md:px-6 mx-auto w-full',
+      {
+        'md:flex md:justify-between': position !== 'center',
+      },
+      {
+        'md:flex md:items-center md:justify-between': position === 'center',
+      },
+      {
+        'max-w-7xl': !isFullWidth,
+      },
+    ]}
+  >
+    <div
+      class:list={[
+        { 'mr-auto rtl:mr-0 rtl:ml-auto': position === 'right' },
+        'flex justify-between md:flex-shrink-0 md:gap-6 md:mr-12',
+      ]}
+    >
+      <a class="flex items-center flex-shrink-0" href={getHomePermalink()}>
+        <Logo name={brandName} brandKey={brandKey} />
+      </a>
+      <div class="flex items-center gap-2 md:hidden">
+        <ToggleMenu
+          class="flex flex-col h-12 w-12 rounded justify-center items-center cursor-pointer group text-white"
+        />
+        {
+          supportedLangs.length > 1 && (
+            <div class="lang-select-wrap lang-select-wrap-compact">
+              <span class={`aw-flag ${flagClasses[initialLang] || ''}`} data-aw-lang-flag />
+              <select
+                id="lang-select-mobile-inline"
+                data-initial={initialLang}
+                data-aw-lang-select
+                onchange="window.__awSetLang && window.__awSetLang(this.value)"
+                class="aw-lang-select-input aw-lang-select-input-sm"
+              >
+                {supportedLangs.map((code) => (
+                  <option value={code} selected={initialLang === code}>
+                    {code.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )
+        }
+      </div>
+    </div>
+    <nav
+      class="items-center w-full md:flex-1 md:min-w-0 hidden md:flex md:ml-8 md:mr-0 text-default overflow-y-auto overflow-x-hidden md:overflow-y-visible md:overflow-x-auto md:justify-self-center"
+      aria-label="Main navigation"
+    >
+      <ul
+        class:list={[
+          'flex flex-col md:flex-row md:flex-wrap xl:flex-nowrap md:self-center w-full md:w-auto text-xl md:text-[0.9375rem] tracking-[0.01rem] font-medium md:justify-center md:gap-1 md:min-w-0',
+          isLaclemanExperience ? 'font-heading' : '',
+        ]}
+      >
+        {
+          supportedLangs.length > 1 && (
+            <li class="md:hidden px-3 py-3">
+              <div class="lang-select-wrap">
+                <span class={`aw-flag ${flagClasses[initialLang] || ''}`} data-aw-lang-flag />
+                <select
+                  id="lang-select-mobile"
+                  data-initial={initialLang}
+                  data-aw-lang-select
+                  onchange="window.__awSetLang && window.__awSetLang(this.value)"
+                  class="aw-lang-select-input"
+                >
+                  {supportedLangs.map((code) => (
+                    <option value={code} selected={initialLang === code}>
+                      {code.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </li>
+          )
+        }
+        {
+          filteredLinks.map(({ text, href, links }) => (
+            <li class={links?.length ? 'dropdown' : ''}>
+              {links?.length ? (
+                <>
+                  <button
+                    type="button"
+                    class:list={[
+                      'hover:text-link dark:hover:text-white px-3 min-[1100px]:px-4 py-3 flex items-center whitespace-nowrap',
+                      isUrgent ? 'text-white hover:text-orange-100' : '',
+                    ]}
+                  >
+                    {text}{' '}
+                    <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden md:inline" />
+                  </button>
+                  <ul class="dropdown-menu md:backdrop-blur-md dark:md:bg-dark rounded md:absolute pl-4 md:pl-0 md:hidden font-medium md:bg-white/90 md:min-w-[200px] drop-shadow-xl">
+                    {(links || []).map(({ text: text2, href: href2 }) => (
+                      <li>
+                        <a
+                          class:list={[
+                            'first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap',
+                            isUrgent ? 'md:text-slate-900' : '',
+                            { 'aw-link-active': href2 === currentPath },
+                          ]}
+                          href={href2}
+                        >
+                          {text2}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <a
+                  class:list={[
+                    'hover:text-link dark:hover:text-white px-3 min-[1100px]:px-4 py-3 flex items-center whitespace-nowrap',
+                    isUrgent ? 'text-white hover:text-orange-100' : '',
+                    toneClass === 'header-tone-light'
+                      ? 'text-slate-900 hover:text-slate-700'
+                      : 'text-white hover:text-slate-100',
+                    { 'aw-link-active': href === currentPath },
+                  ]}
+                  href={href}
+                >
+                  {text}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div
+      class:list={[
+        { 'ml-auto rtl:ml-0 rtl:mr-auto': position === 'left' },
+        'hidden md:self-center md:flex items-center md:mb-0 fixed w-full md:w-auto md:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 md:p-0 md:justify-self-end md:flex-shrink-0',
+      ]}
+    >
+      <div class="items-center flex justify-between w-full md:w-auto">
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <label for="lang-select" class="sr-only">Langue</label>
+            <div class="lang-select-wrap">
+              <span class={`aw-flag ${flagClasses[initialLang] || ''}`} data-aw-lang-flag></span>
+              <select
+                id="lang-select"
+                data-initial={initialLang}
+                data-aw-lang-select
+                onchange="window.__awSetLang && window.__awSetLang(this.value)"
+                class="aw-lang-select-input"
+              >
+                {
+                  supportedLangs.map((code) => (
+                    <option value={code} selected={initialLang === code}>
+                      {code.toUpperCase()}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+          </div>
+          {
+            showRssFeed && (
+              <a
+                class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center"
+                aria-label="RSS Feed"
+                href={getAsset('/rss.xml')}
+              >
+                <Icon name="tabler:rss" class="w-5 h-5" />
+              </a>
+            )
+          }
+        </div>
+        {
+          actions?.length ? (
+            <span class="ml-4 rtl:ml-0 rtl:mr-4">
+              {actions.map((btnProps) => (
+                <Button
+                  {...btnProps}
+                  variant={isUrgent ? 'primary' : btnProps.variant}
+                  class={twMerge(
+                    'ml-2 py-2.5 px-5.5 md:px-6 font-semibold text-sm w-auto',
+                    isLaclemanExperience ? 'font-heading' : '',
+                    isUrgent
+                      ? 'bg-red-600 hover:bg-orange-500 text-white shadow-red-500/30 border-transparent'
+                      : toneClass === 'header-tone-light'
+                        ? 'bg-white text-slate-900 hover:bg-slate-100 border border-slate-200 shadow-sm'
+                        : 'bg-white text-slate-900 hover:bg-slate-100 border-transparent shadow-sm'
+                  )}
+                />
+              ))}
+            </span>
+          ) : (
+            ''
+          )
+        }
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  (() => {
+    const getSupported = () => {
+      const selects = Array.from(document.querySelectorAll('[data-aw-lang-select]'));
+      const opts = new Set();
+      selects.forEach((sel) => {
+        sel.querySelectorAll('option').forEach((opt) => opts.add(opt.value));
+      });
+      return opts.size ? Array.from(opts) : ['fr'];
+    };
+    const flagMap = {
+      fr: 'aw-flag-fr',
+      en: 'aw-flag-en',
+      de: 'aw-flag-de',
+      it: 'aw-flag-it',
+      ar: 'aw-flag-ar',
+      zh: 'aw-flag-zh',
+    };
+    const updateFlags = (lang) => {
+      document.querySelectorAll('[data-aw-lang-flag]').forEach((el) => {
+        const base = Array.from(el.classList).filter((c) => !c.startsWith('aw-flag-'));
+        const cls = flagMap[lang];
+        el.className = [...base, 'aw-flag', cls || ''].join(' ').trim();
+      });
+    };
+
+    const detectLang = (selects) => {
+      const supported = getSupported();
+      const stored = localStorage.getItem('aw-lang');
+      if (stored && supported.includes(stored)) return stored;
+      const cookie = document.cookie.split('; ').find((c) => c.startsWith('aw_lang='));
+      if (cookie) {
+        const val = cookie.split('=')[1];
+        if (supported.includes(val)) return val;
+      }
+      const initial = selects[0]?.dataset.initial;
+      if (initial && supported.includes(initial)) return initial;
+      const htmlLang = (document.documentElement.lang || '').slice(0, 2).toLowerCase();
+      if (supported.includes(htmlLang)) return htmlLang;
+      const nav = (navigator.language || 'fr').slice(0, 2).toLowerCase();
+      return supported.includes(nav) ? nav : 'fr';
+    };
+
+    const applyLang = (lang, selects) => {
+      const supported = getSupported();
+      document.documentElement.lang = lang;
+      localStorage.setItem('aw-lang', lang);
+      document.cookie = `aw_lang=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+      selects.forEach((sel) => (sel.value = lang));
+      window.dispatchEvent(new CustomEvent('aw:lang-change', { detail: { lang } }));
+      updateFlags(lang);
+    };
+
+    if (!window.__awSetLang) {
+      window.__awSetLang = (lang) => {
+        const supported = getSupported();
+        if (!supported.includes(lang)) return;
+        const selects = Array.from(document.querySelectorAll('[data-aw-lang-select]'));
+        applyLang(lang, selects);
+        window.location.reload();
+      };
+    }
+
+    const bind = () => {
+      const selects = Array.from(document.querySelectorAll('[data-aw-lang-select]'));
+      if (!selects.length) return;
+      const lang = detectLang(selects);
+      applyLang(lang, selects);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind, { once: true });
+    } else {
+      bind();
+    }
+    window.addEventListener('pageshow', bind);
+  })();
+</script>
+
+<style>
+  .lang-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    isolation: isolate;
+    overflow: hidden;
+    gap: 0.48rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.48);
+    background: radial-gradient(
+      140% 180% at 0% -40%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.84) 48%,
+      rgba(241, 245, 249, 0.82) 100%
+    );
+    box-shadow:
+      0 16px 34px -26px rgba(15, 23, 42, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.96),
+      inset 0 -1px 0 rgba(15, 23, 42, 0.07);
+    backdrop-filter: blur(10px);
+    min-height: 2rem;
+    padding: 0.2rem 0.52rem 0.2rem 0.3rem;
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      transform 220ms ease,
+      background 220ms ease;
+  }
+  .lang-select-wrap-compact {
+    min-height: 1.82rem;
+    padding-right: 0.44rem;
+    gap: 0.4rem;
+  }
+  .lang-select-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 44%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .lang-select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0.62rem;
+    top: 50%;
+    width: 0.38rem;
+    height: 0.38rem;
+    border-right: 1.45px solid rgba(15, 23, 42, 0.72);
+    border-bottom: 1.45px solid rgba(15, 23, 42, 0.72);
+    transform: translateY(-63%) rotate(45deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .lang-select-wrap:hover {
+    border-color: rgba(100, 116, 139, 0.62);
+    box-shadow:
+      0 18px 34px -24px rgba(15, 23, 42, 0.56),
+      inset 0 1px 0 rgba(255, 255, 255, 0.98),
+      inset 0 -1px 0 rgba(15, 23, 42, 0.09);
+    transform: translateY(-1px);
+  }
+  .aw-lang-select-input {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: #0f172a;
+    font-size: 0.73rem;
+    line-height: 1.05;
+    font-weight: 620;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 3.08rem;
+    cursor: pointer;
+    padding: 0.38rem 1rem 0.38rem 0.04rem;
+    z-index: 1;
+    position: relative;
+  }
+  .aw-lang-select-input-sm {
+    font-size: 0.68rem;
+    min-width: 2.76rem;
+    padding-right: 0.84rem;
+  }
+  .aw-lang-select-input option {
+    color: #0f172a;
+  }
+  .lang-select-wrap:has(.aw-lang-select-input:focus-visible) {
+    border-color: rgba(71, 85, 105, 0.58);
+    box-shadow:
+      0 0 0 3px rgba(148, 163, 184, 0.25),
+      0 16px 30px -22px rgba(15, 23, 42, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  }
+  .aw-flag {
+    width: 20px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(15, 23, 42, 0.2);
+    box-shadow: 0 3px 8px rgba(2, 6, 23, 0.16);
+    flex-shrink: 0;
+    z-index: 1;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: rgba(15, 23, 42, 0.08);
+  }
+  .aw-flag-fr {
+    background-image: url('../../assets/flags/4x3/fr.svg');
+  }
+  .aw-flag-en {
+    background-image: url('../../assets/flags/4x3/gb.svg');
+  }
+  .aw-flag-de {
+    background-image: url('../../assets/flags/4x3/de.svg');
+  }
+  .aw-flag-it {
+    background-image: url('../../assets/flags/4x3/it.svg');
+  }
+  .aw-flag-ar {
+    background-image: url('../../assets/flags/4x3/arab.svg');
+  }
+  .aw-flag-zh {
+    background-image: url('../../assets/flags/4x3/cn.svg');
+  }
+  :global(.aw-header.header-tone-light) {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.88));
+    color: #0f172a;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(12px);
+  }
+  :global(.aw-header.header-tone-light a) {
+    color: #0f172a;
+  }
+  :global(.aw-header.header-tone-white) {
+    color: #f8fafc;
+    backdrop-filter: blur(10px);
+  }
+  :global(.aw-header.header-tone-white a) {
+    color: #f8fafc;
+  }
+  :global(.aw-header.header-tone-white .lang-select-wrap) {
+    border-color: rgba(226, 232, 240, 0.34);
+    background:
+      radial-gradient(
+        140% 180% at 8% -30%,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.05) 48%,
+        rgba(15, 23, 42, 0.68) 100%
+      ),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.62));
+    box-shadow:
+      0 16px 34px -24px rgba(2, 6, 23, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(2, 6, 23, 0.35);
+  }
+  :global(.aw-header.header-tone-white .lang-select-wrap:hover) {
+    border-color: rgba(248, 250, 252, 0.46);
+    box-shadow:
+      0 20px 38px -24px rgba(2, 6, 23, 0.84),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      inset 0 -1px 0 rgba(2, 6, 23, 0.35);
+  }
+  :global(.aw-header.header-tone-white .lang-select-wrap::after) {
+    border-right-color: rgba(248, 250, 252, 0.82);
+    border-bottom-color: rgba(248, 250, 252, 0.82);
+  }
+  :global(.aw-header.header-tone-white .lang-select-wrap:has(.aw-lang-select-input:focus-visible)) {
+    border-color: rgba(226, 232, 240, 0.58);
+    box-shadow:
+      0 0 0 3px rgba(248, 250, 252, 0.18),
+      0 16px 30px -20px rgba(2, 6, 23, 0.85),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+  :global(.aw-header.header-tone-white .aw-lang-select-input) {
+    color: #f8fafc;
+  }
+  :global(.aw-header.header-tone-white .aw-lang-select-input option) {
+    color: #0f172a;
+  }
+  :global(.aw-header.header-tone-white .aw-flag) {
+    border-color: rgba(226, 232, 240, 0.35);
+    box-shadow: 0 2px 8px rgba(2, 6, 23, 0.35);
+  }
+  :global(.brand-lausanne .aw-header.header-tone-light) {
+    background: #fff;
+    background-image: none;
+    color: #0f172a;
+  }
+  :global(.brand-lausanne .aw-header.header-tone-light a) {
+    color: #0f172a;
+  }
+  /* TonSiteWeb: force white for nav links, keep CTA button styling */
+  :global(.brand-tonsiteweb .aw-header nav a),
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a) {
+    color: #f8fafc !important;
+  }
+  :global(.brand-tonsiteweb .aw-header nav a:hover),
+  :global(.brand-tonsiteweb .aw-header nav a:focus-visible),
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a:hover),
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a:focus-visible) {
+    color: #e2e8f0 !important;
+  }
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu) {
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 14px 38px -18px rgba(0, 0, 0, 0.6);
+  }
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a) {
+    color: #f8fafc !important;
+  }
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a:hover),
+  :global(.brand-tonsiteweb .aw-header .dropdown-menu a:focus-visible) {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0 !important;
+  }
+  :global(.brand-tonsiteweb .aw-header .dropdown > button) {
+    color: #f8fafc !important;
+  }
+  :global(.brand-tonsiteweb .aw-header .dropdown > button:hover) {
+    color: #e2e8f0 !important;
+  }
+  /* Maison Cortes: light header with dark text/links */
+  :global(.brand-maisoncortes .aw-header) {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  }
+  :global(.brand-maisoncortes .aw-header a),
+  :global(.brand-maisoncortes .aw-header .dropdown > button) {
+    color: #0f172a !important;
+  }
+  :global(.brand-maisoncortes .aw-header a:hover),
+  :global(.brand-maisoncortes .aw-header a:focus-visible),
+  :global(.brand-maisoncortes .aw-header .dropdown > button:hover) {
+    color: #111827 !important;
+  }
+  :global(.brand-maisoncortes .aw-header .dropdown-menu) {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 14px 38px -18px rgba(0, 0, 0, 0.1);
+  }
+  :global(.brand-maisoncortes .aw-header .dropdown-menu a) {
+    color: #0f172a !important;
+  }
+  :global(.brand-maisoncortes .aw-header .dropdown-menu a:hover),
+  :global(.brand-maisoncortes .aw-header .dropdown-menu a:focus-visible) {
+    background: rgba(15, 23, 42, 0.04);
+    color: #0b1220 !important;
+  }
+</style>

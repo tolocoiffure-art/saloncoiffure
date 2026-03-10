@@ -1,0 +1,21 @@
+<!-- subject: [TonSiteWeb.ch] Neue Nachricht von {{sender_name}} -->
+<!-- preheader: Einsendung über {{source}} -->
+<p>Es ist eine neue Nachricht über {{source}} eingegangen.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+  <tbody>
+    <tr>
+      <td style="padding:8px 12px; font-weight:600; width:160px;">Name</td>
+      <td style="padding:8px 12px;">{{sender_name}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; font-weight:600;">E-Mail</td>
+      <td style="padding:8px 12px;">{{sender_email}}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; font-weight:600;">Firma</td>
+      <td style="padding:8px 12px;">{{sender_company}}</td>
+    </tr>
+  </tbody>
+</table>
+<p style="margin-top:16px;">Nachricht:</p>
+<p style="margin:8px 0 0 0; white-space:pre-line;">{{sender_message}}</p>

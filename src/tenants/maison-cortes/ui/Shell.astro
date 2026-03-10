@@ -1,0 +1,649 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import type { MetaData } from '~/types';
+import { maisonCortesCopy, resolveMaisonCortesLocale } from '../copy';
+import { maisonCortesTheme } from '../theme';
+import type { MaisonCortesLocale } from '../copy';
+
+export interface Props {
+  metadata?: MetaData;
+  title?: string;
+  subtitle?: string;
+}
+
+const { metadata = {}, title = '', subtitle = '' } = Astro.props;
+const locale = resolveMaisonCortesLocale(Astro.cookies.get('mc-lang')?.value);
+const copy = maisonCortesCopy.locales[locale];
+const languageOptions: MaisonCortesLocale[] = ['fr', 'en', 'de', 'it'];
+
+import { parseSelectionCookie, SELECTION_COOKIE_NAME } from '../inventory';
+
+const selectionEntries = parseSelectionCookie(Astro.cookies.get(SELECTION_COOKIE_NAME)?.value);
+const navLinks = [
+  { text: copy.navCatalogue, href: '/maison-cortes' },
+  ...(selectionEntries.length ? [{ text: copy.navSelection, href: '/maison-cortes/selection' }] : []),
+];
+
+const styleVars: Record<string, string> = {
+  '--mc-bg': maisonCortesTheme.colors.background,
+  '--mc-text': maisonCortesTheme.colors.text,
+  '--mc-muted': maisonCortesTheme.colors.muted,
+  '--mc-border': maisonCortesTheme.colors.border,
+  '--mc-font': maisonCortesTheme.typography.family,
+  '--mc-tracking-city': maisonCortesTheme.typography.cityTracking,
+  '--mc-tracking-brand': maisonCortesTheme.typography.brandTracking,
+};
+---
+
+<Layout metadata={metadata} brandKey={maisonCortesTheme.brandKey} styleVars={styleVars}>
+  <div class="mc-shell">
+    <header class="mc-nav">
+      <a class="mc-wordmark" aria-label="Maison Cortes" href="/">
+        <span class="mc-wordmark-top">{maisonCortesCopy.brandTop}</span>
+        <span class="mc-wordmark-bottom">{maisonCortesCopy.brandBottom}</span>
+      </a>
+      <div class="mc-nav-right">
+        <nav class="mc-nav-links" aria-label="Navigation principale">
+          {navLinks.map((link) => (
+            <a href={link.href}>{link.text}</a>
+          ))}
+          <a href={`mailto:${maisonCortesCopy.contactEmail}`}>{copy.navContact}</a>
+        </nav>
+        <div class="mc-lang-switch" role="group" aria-label={copy.languageTitle}>
+          {languageOptions.map((lang) => (
+            <button
+              class={lang === locale ? 'mc-lang-button active' : 'mc-lang-button'}
+              type="button"
+              data-mc-lang={lang}
+              aria-pressed={lang === locale}
+            >
+              {lang.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+    </header>
+
+    <main class="mc-content">
+      {(title || subtitle) && (
+        <div class="mc-page-head">
+          {title && <h1>{title}</h1>}
+          {subtitle && <p>{subtitle}</p>}
+        </div>
+      )}
+      <slot />
+    </main>
+
+    <footer class="mc-footer">
+      <div class="mc-footer-grid">
+        <div>
+          <a class="mc-wordmark" aria-label="Maison Cortes" href="/">
+            <span class="mc-wordmark-top">{maisonCortesCopy.brandTop}</span>
+            <span class="mc-wordmark-bottom">{maisonCortesCopy.brandBottom}</span>
+          </a>
+        </div>
+        <div>
+          <p class="mc-footer-title">{copy.footerContactTitle}</p>
+          <a href={`mailto:${maisonCortesCopy.contactEmail}`}>{maisonCortesCopy.contactEmail}</a>
+        </div>
+        <div>
+          <p class="mc-footer-title">{copy.footerLegalTitle}</p>
+          <ul class="mc-quiet-list">
+            {copy.legalLines.map((line) => (
+              <li>{line}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p class="mc-footer-title">{copy.materialsTitle}</p>
+          <p class="mc-footer-note">{copy.materialsBody}</p>
+          <p class="mc-footer-note">{copy.labDisclosureShort}</p>
+        </div>
+        <div>
+          <p class="mc-footer-title">{copy.returnsTitle}</p>
+          <p class="mc-footer-note">{copy.returnsBody}</p>
+          <p class="mc-footer-note">{copy.shippingLine}</p>
+        </div>
+        <div>
+          <p class="mc-footer-title">{copy.languageTitle}</p>
+          <div class="mc-lang-switch" role="group" aria-label={copy.languageTitle}>
+            {languageOptions.map((lang) => (
+              <button
+                class={lang === locale ? 'mc-lang-button active' : 'mc-lang-button'}
+                type="button"
+                data-mc-lang={lang}
+                aria-pressed={lang === locale}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <p class="mc-footnote">{copy.currencyNote}</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script is:inline>
+    const currentLang = '{locale}';
+    const langButtons = document.querySelectorAll('[data-mc-lang]');
+    langButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        const lang = button.getAttribute('data-mc-lang');
+        if (!lang || lang === currentLang) return;
+        document.cookie = `mc-lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`;
+        langButtons.forEach((btn) => btn.setAttribute('aria-pressed', btn === button ? 'true' : 'false'));
+        window.location.reload();
+      });
+    });
+
+    // Global lightbox for Maison Cortes figures (persists across pages)
+    (() => {
+      const ensureLightbox = () => {
+        let lightbox = document.querySelector('.mc-lightbox') as HTMLElement | null;
+        if (lightbox) return lightbox;
+        lightbox = document.createElement('div');
+        lightbox.className = 'mc-lightbox';
+        lightbox.innerHTML = `
+          <div class="mc-lightbox-backdrop" data-close></div>
+          <div class="mc-lightbox-content">
+            <button class="mc-lightbox-close" type="button" data-close aria-label="Fermer">×</button>
+            <div class="mc-lightbox-counter">1 / 1</div>
+            <img class="mc-lightbox-img" alt="" />
+            <button class="mc-lightbox-nav" type="button" data-dir="prev" aria-label="Précédent">‹</button>
+            <button class="mc-lightbox-nav" type="button" data-dir="next" aria-label="Suivant">›</button>
+          </div>
+        `;
+        document.body.appendChild(lightbox);
+        return lightbox;
+      };
+
+      const bindFigures = () => {
+        const figures = Array.from(document.querySelectorAll<HTMLElement>('.mc-figure'));
+        if (!figures.length) return;
+
+        const lightbox = ensureLightbox();
+        const img = lightbox.querySelector<HTMLImageElement>('.mc-lightbox-img');
+        const counter = lightbox.querySelector<HTMLElement>('.mc-lightbox-counter');
+        let current = 0;
+        let activeSet: HTMLElement[] = figures;
+
+        const render = (idx: number) => {
+          const target = activeSet[idx];
+          if (!target || !img) return;
+          current = idx;
+          img.src = target.dataset.full || '';
+          img.alt = target.dataset.alt || '';
+          if (counter) counter.textContent = `${idx + 1} / ${activeSet.length}`;
+          lightbox.classList.add('is-open');
+        };
+
+        const closeLightbox = () => lightbox.classList.remove('is-open');
+        const prev = () => render((current - 1 + activeSet.length) % activeSet.length);
+        const next = () => render((current + 1) % activeSet.length);
+
+        lightbox.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', closeLightbox));
+        lightbox.querySelector('[data-dir="prev"]')?.addEventListener('click', prev);
+        lightbox.querySelector('[data-dir="next"]')?.addEventListener('click', next);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeLightbox();
+          if (event.key === 'ArrowLeft') prev();
+          if (event.key === 'ArrowRight') next();
+        });
+
+        figures.forEach((figure, idx) => {
+          if (figure.dataset.mcBound === '1') return;
+          figure.dataset.mcBound = '1';
+          const open = (eventIdx = idx) => {
+            activeSet = figures;
+            render(eventIdx);
+          };
+          figure.addEventListener('click', () => open(idx));
+          figure.querySelector('.mc-zoom-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            open(idx);
+          });
+        });
+      };
+
+      // Initial bind and re-bind on DOM changes
+      const init = () => {
+        bindFigures();
+        const observer = new MutationObserver(() => bindFigures());
+        observer.observe(document.body, { childList: true, subtree: true });
+      };
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        init();
+      } else {
+        document.addEventListener('DOMContentLoaded', init);
+      }
+    })();
+  </script>
+</Layout>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
+
+  :global(body.brand-maisoncortes) {
+    background: var(--mc-bg) !important;
+    color: var(--mc-text) !important;
+    font-family: var(--mc-font), serif !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.7 !important;
+  }
+
+  :global(.brand-maisoncortes *) {
+    font-family: var(--mc-font), serif !important;
+  }
+
+  :global(.brand-maisoncortes a) {
+    color: var(--mc-text);
+    text-decoration: none;
+  }
+
+  :global(.brand-maisoncortes a:hover),
+  :global(.brand-maisoncortes a:focus-visible) {
+    text-decoration: underline;
+    outline: none;
+  }
+
+  .mc-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 42px 18px 72px;
+    background: var(--mc-bg);
+  }
+
+  .mc-nav {
+    width: min({maisonCortesTheme.layout.maxWidth}, 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--mc-border);
+    padding-bottom: 14px;
+    margin-bottom: 32px;
+  }
+
+  .mc-wordmark {
+    display: grid;
+    gap: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .mc-wordmark-top {
+    font-size: clamp(12px, 2.6vw, 14px);
+    letter-spacing: var(--mc-tracking-city);
+  }
+
+  .mc-wordmark-bottom {
+    font-size: clamp(22px, 6vw, 32px);
+    letter-spacing: var(--mc-tracking-brand);
+  }
+
+  .mc-nav-links {
+    display: flex;
+    gap: 16px;
+    font-size: clamp(12px, 2.6vw, 14px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mc-nav-right {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .mc-content {
+    width: min({maisonCortesTheme.layout.maxWidth}, 100%);
+    display: grid;
+    gap: 28px;
+  }
+
+  .mc-page-head {
+    display: grid;
+    gap: 6px;
+    text-transform: uppercase;
+  }
+
+  .mc-page-head h1 {
+    margin: 0;
+    font-size: clamp(24px, 4vw, 34px);
+    letter-spacing: 0.1em;
+  }
+
+  .mc-page-head p {
+    margin: 0;
+    color: var(--mc-muted);
+    letter-spacing: 0.08em;
+  }
+
+  .mc-footer {
+    width: min(1080px, 100%);
+    border-top: 1px solid var(--mc-border);
+    padding-top: 24px;
+    margin-top: 24px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .mc-footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .mc-footer-title {
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    color: var(--mc-text);
+  }
+
+  .mc-footer-note {
+    margin: 0 0 6px;
+    color: var(--mc-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+  }
+
+  :global(.mc-footnote) {
+    margin: 8px 0 0;
+    color: var(--mc-muted);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .mc-lang-switch {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .mc-lang-button {
+    border: none;
+    background: transparent;
+    color: var(--mc-text);
+    padding: 4px 6px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .mc-lang-button.active {
+    border-bottom: 1px solid var(--mc-text);
+  }
+
+  /* Shared lightbox styles */
+  :global(.mc-lightbox) {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+  }
+
+  :global(.mc-lightbox.is-open) {
+    display: flex;
+  }
+
+  :global(.mc-lightbox-backdrop) {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+  }
+
+  :global(.mc-lightbox-content) {
+    position: relative;
+    max-width: min(90vw, 820px);
+    max-height: 90vh;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 22px 80px rgba(15, 23, 42, 0.2);
+    display: grid;
+    gap: 12px;
+    z-index: 1;
+  }
+
+  :global(.mc-lightbox-img) {
+    max-width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+
+  :global(.mc-lightbox-close) {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+  :global(.mc-lightbox-counter) {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    text-align: center;
+  }
+
+  .mc-footer .mc-wordmark {
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .mc-footer .mc-wordmark-bottom {
+    letter-spacing: var(--mc-tracking-brand);
+    line-height: 1.05;
+  }
+
+  :global(.mc-section) {
+    display: grid;
+    gap: 10px;
+    border-top: 1px solid var(--mc-border);
+    padding-top: 18px;
+  }
+
+  :global(.mc-section:first-of-type) {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  :global(.mc-section h2) {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  :global(.mc-section h3) {
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :global(.mc-section p),
+  :global(.mc-section li),
+  :global(.mc-section span) {
+    letter-spacing: 0.04em;
+  }
+
+  :global(.mc-grid) {
+    display: grid;
+    gap: 14px;
+  }
+
+  :global(.mc-columns) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  :global(.mc-quiet-list) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 6px;
+    color: var(--mc-muted);
+  }
+
+  :global(.mc-label) {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid var(--mc-border);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 12px;
+  }
+
+  :global(.mc-classification) {
+    margin: 0;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    font-size: 22px;
+    text-transform: uppercase;
+  }
+
+  :global(.mc-city) {
+    letter-spacing: var(--mc-tracking-city);
+    color: var(--mc-muted);
+    opacity: 0.6;
+  }
+
+  :global(.mc-object) {
+    letter-spacing: 0.08em;
+  }
+
+  :global(.mc-specs) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 4px;
+    color: var(--mc-muted);
+  }
+
+  :global(.mc-meta) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  :global(.mc-price) {
+    letter-spacing: 0.06em;
+  }
+
+  :global(.mc-button) {
+    border: 1px solid var(--mc-text);
+    background: transparent;
+    color: var(--mc-text);
+    padding: 10px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  :global(.mc-button:hover),
+  :global(.mc-button:focus-visible) {
+    text-decoration: underline;
+    outline: none;
+  }
+
+  @media (max-width: 720px) {
+    .mc-nav {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .mc-nav-links {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .mc-nav-right {
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mc-lang-switch {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .mc-shell {
+      padding: 34px 16px 64px;
+    }
+
+    .mc-content {
+      gap: 24px;
+    }
+
+    .mc-footer-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mc-nav-right {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .mc-lang-switch {
+      justify-content: flex-start;
+    }
+
+    .mc-wordmark-bottom {
+      font-size: clamp(20px, 7vw, 26px);
+    }
+  }
+
+  @media (max-width: 420px) {
+    .mc-nav {
+      padding-bottom: 12px;
+    }
+
+    .mc-wordmark-bottom {
+      font-size: 20px;
+      letter-spacing: 0.32em;
+    }
+
+    .mc-nav-links {
+      gap: 8px;
+    }
+
+    .mc-lang-switch {
+      gap: 6px;
+    }
+  }
+</style>

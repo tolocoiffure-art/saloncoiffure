@@ -1,0 +1,91 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import ContactUs from '~/components/widgets/Contact.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+
+import { headerDataIt, footerDataIt } from '~/navigation';
+
+const metadata = {
+  title: 'Contatto',
+};
+---
+
+<Layout metadata={metadata} header={headerDataIt} footer={footerDataIt}>
+  <HeroText tagline="Contatto" title="Parliamo del tuo sito chiavi in mano" subtitle="Un esperto TonSiteWeb.ch risponde entro un giorno lavorativo." />
+
+  <ContactUs
+    id="form"
+    title="Richiedi demo o preventivo"
+    subtitle="Compila il modulo: ti richiameremo o fisseremo una videochiamata per preparare il lancio (timeline tipica: 5 giorni lavorativi)."
+    inputs={[
+      {
+        type: 'text',
+        name: 'name',
+        label: 'Nome e cognome',
+      },
+      {
+        type: 'email',
+        name: 'email',
+        label: 'Email professionale',
+      },
+      {
+        type: 'text',
+        name: 'company',
+        label: 'Azienda',
+      },
+      {
+        type: 'select',
+        name: 'service',
+        label: 'Pacchetto desiderato',
+        options: [
+          { label: 'Essenziale', value: 'essentiel' },
+          { label: 'Automazione', value: 'automation' },
+          { label: 'Piano di cura', value: 'maintenance' },
+          { label: 'Altro / da definire', value: 'custom' },
+        ],
+      },
+    ]}
+    textarea={{
+      label: 'Il tuo progetto',
+      placeholder: 'Descrivi attività, obiettivi e tempi.',
+    }}
+    disclaimer={{
+      label:
+        'Inviando il modulo accetti che TonSiteWeb.ch tratti i tuoi dati per rispondere alla richiesta, secondo la nostra privacy policy.',
+    }}
+    description="Siamo disponibili dal lunedì al venerdì, 9:00–17:00. Parliamo francese, inglese e tedesco."
+  />
+
+  <Features2
+    title="Contatto diretto"
+    subtitle="Scegli il canale più comodo."
+    items={[
+      {
+        title: 'Telefono',
+        description: '+41 76 798 27 93',
+        icon: 'tabler:phone',
+      },
+      {
+        title: 'Email',
+    description: 'support@tonsiteweb.ch',
+        icon: 'tabler:mail',
+      },
+      {
+        title: 'Indirizzo',
+        description: 'Avenue de la Gare 29, 1003 Losanna',
+        icon: 'tabler:map-pin',
+      },
+      {
+        title: 'Disponibilità',
+        description: 'Dal lunedì al venerdì, 9:00 – 17:00',
+        icon: 'tabler:calendar-time',
+      },
+      {
+        title: 'Supporto clienti',
+    description: 'support@tonsiteweb.ch — risposta entro un giorno lavorativo',
+        icon: 'tabler:help',
+      },
+    ]}
+  />
+</Layout>
