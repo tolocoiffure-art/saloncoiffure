@@ -1,4 +1,4 @@
-const calendlyUrl = 'https://calendly.com/43insidethebox/90min';
+const calendlyUrl = 'https://calendly.com/tolocoiffure/60min';
 const whatsappNumberLocal = '0779421225';
 const whatsappNumberIntl = '41779421225';
 const whatsappMessage = encodeURIComponent('Bonjour Tolo Coiffure, je souhaite réserver un rendez-vous.');
@@ -10,7 +10,7 @@ export const toloCoiffureConfig = {
   phone: whatsappNumberLocal,
   phoneIntlDisplay: '+41 77 942 12 25',
   telHref: whatsappUrl,
-  email: 'contact@tolocoiffure.ch',
+  email: 'tolocoiffure@gmail.com',
   address: 'Rue Pré-du-Marché 6, 1004 Lausanne',
   bookingUrl: calendlyUrl || whatsappUrl,
   bookingChannel: calendlyUrl ? 'calendly' : 'whatsapp',

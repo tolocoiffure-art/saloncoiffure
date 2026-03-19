@@ -347,7 +347,7 @@ export const BRANDS: Record<BrandKey, BrandProfile> = {
       shadow: '0 18px 60px -42px rgba(43, 29, 20, 0.18)',
     },
     phone: '0779421225',
-    email: 'contact@tolocoiffure.ch',
+    email: 'tolocoiffure@gmail.com',
     legalOperator: 'Tolo Coiffure',
   },
 };
