@@ -33,12 +33,12 @@ const homePinnedOrder = ['brunette_to_blonde', 'classic_fade', 'distinguished_mi
 const homeExcluded = new Set(['pefect_bob', 'elegant_profile_soft_waves']);
 
 const manualAlt: Record<string, string> = {
-  balayage_soft_lights: 'Réalisation Tolo Coiffure — Balayage signature aux reflets doux',
-  balayage_soft_waves: 'Réalisation Tolo Coiffure — Balayage ondulé, finition lumineuse',
-  balayage_soft_waves2: 'Réalisation Tolo Coiffure — Balayage naturel aux tons beige doré',
-  balayage_soft_waves3: 'Réalisation Tolo Coiffure — Balayage fondu, transitions ultra douces',
-  balayage_soft_waves4: 'Réalisation Tolo Coiffure — Balayage glossy, lumière uniforme',
-  balayage_soft_waves21: 'Réalisation Tolo Coiffure — Balayage premium, effet soleil maîtrisé',
+  balayage_soft_lights: 'Balayage signature aux reflets doux',
+  balayage_soft_waves: 'Balayage ondulé, finition lumineuse',
+  balayage_soft_waves2: 'Balayage naturel aux tons beige doré',
+  balayage_soft_waves3: 'Balayage fondu, transitions ultra douces',
+  balayage_soft_waves4: 'Balayage glossy, lumière uniforme',
+  balayage_soft_waves21: 'Balayage premium, effet soleil maîtrisé',
   elegant_profile_soft_waves: 'Profil élégant avec ondulations naturelles',
   pefect_bob: 'Coupe bob précise avec finition soignée',
   classic_fade: 'Classic fade propre avec contours nets',
@@ -59,7 +59,7 @@ const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-'
 const toAltFromName = (name: string) => {
   if (manualAlt[name]) return manualAlt[name];
   const clean = name.replace(/\d+/g, ' ').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
-  return `Réalisation Tolo Coiffure — ${clean}`;
+  return clean;
 };
 
 async function buildSourceList(): Promise<ToloImageItem[]> {
