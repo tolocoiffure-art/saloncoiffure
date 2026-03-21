@@ -25,44 +25,45 @@ export const toloContent = {
   testimonials: [
     {
       quote:
-        "L'une des meilleures coupes de cheveux à Lausanne. L'équipe est souriante, professionnelle, ponctuelle et très gentille.",
-      author: 'Yaser Shahbazi',
+        "Je suis arrivé avec juste une idée abstraite de ce que je voulais. Ils ont pu lire dans mes pensées et fournir un meilleur travail que ce que j'avais imaginé. merci pour la transformation. je suis fan 😍",
+      author: 'Sara Guerreiro',
       stars: 5,
       when: 'Il y a 1 an',
-      reviewerMeta: '4 avis',
-      link: toloCoiffureConfig.googleReviewsUrl,
-    },
-    {
-      quote: 'Super.',
-      author: 'Mehdi Heidari',
-      stars: 5,
-      when: 'Il y a 1 an',
-      reviewerMeta: '1 avis · 11 photos',
+      reviewerMeta: 'Guide local · 55 avis · 51 photos',
       link: toloCoiffureConfig.googleReviewsUrl,
     },
     {
       quote:
-        "Un salon absolument exceptionnel. L'accueil est chaleureux, l'ambiance très agréable et la qualité de service dépasse les attentes.",
-      author: 'Ghulam Sakhi Mirzaie',
+        "Coiffeur très compétent et à l'écoute. Je suis arrivé avec une idée de nouvelle coupe et il m'a fait ce que je désirais. Je conseille 👍",
+      author: 'Loris Lecci',
       stars: 5,
-      when: 'Il y a 4 mois',
+      when: 'Il y a 11 mois',
+      reviewerMeta: '11 avis · 1 photo',
+      link: toloCoiffureConfig.googleReviewsUrl,
+    },
+    {
+      quote:
+        "Merci beaucoup pour ces superbes coiffures ! A chaque fois que je vais je suis hyper contente du résultat ! On peut aller avec ou sans rendez-vous, et ce n'est pas cher ! Clairement le meilleur de Lausanne pour moi !!! Je recommande !!!",
+      author: 'Sabrina Sbai',
+      stars: 5,
+      when: 'Il y a 10 mois',
       reviewerMeta: '1 avis',
       link: toloCoiffureConfig.googleReviewsUrl,
     },
     {
-      quote: "Super, je suis venue sans rendez-vous et la coupe était incroyable. Je recommande vivement.",
-      author: 'Kimberlyn Holguin',
+      quote:
+        "J'étais chez Ali aujourd'hui. Sympathique et professionnel. Je lui ai demandé de couper 2 cm et il a coupé 2 cm. On peut pas en dire autant de tous les coiffeurs! Et en plus il a repris ma coupe et je suis très contente du résultat. Je le recommande",
+      author: 'Michèle Aristidelle',
       stars: 5,
-      when: 'Il y a 3 mois',
-      reviewerMeta: '7 avis · 2 photos',
+      when: 'Il y a 10 mois',
+      reviewerMeta: '3 avis',
       link: toloCoiffureConfig.googleReviewsUrl,
     },
     {
-      quote:
-        "Très satisfait de ma visite. L'équipe est attentive, le service est excellent et le résultat est au-delà de mes attentes.",
-      author: 'Azim Mohammad',
+      quote: 'Super coiffeur, très professionnel et accueillant 👍 au top',
+      author: 'Benjamin Kurmann',
       stars: 5,
-      when: 'Il y a 4 mois',
+      when: 'Il y a 1 an',
       reviewerMeta: '2 avis',
       link: toloCoiffureConfig.googleReviewsUrl,
     },
