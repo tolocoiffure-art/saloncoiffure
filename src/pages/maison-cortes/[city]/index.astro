@@ -1,0 +1,92 @@
+---
+import Shell from '~/tenants/maison-cortes/ui/Shell.astro';
+import { maisonCortesCities, maisonCortesProducts } from '~/tenants/maison-cortes/products';
+import { maisonCortesCopy, resolveMaisonCortesLocale } from '~/tenants/maison-cortes/copy';
+import { getMaisonCortesInventorySnapshot } from '~/tenants/maison-cortes/inventory';
+
+export const prerender = false;
+
+export function getStaticPaths() {
+  return maisonCortesCities.map((city) => ({ params: { city: city.slug } }));
+}
+
+const { city } = Astro.params;
+const cityEntry = maisonCortesCities.find((item) => item.slug === city);
+if (!cityEntry) {
+  return Astro.redirect('/maison-cortes');
+}
+
+const locale = resolveMaisonCortesLocale(Astro.cookies.get('mc-lang')?.value);
+const copy = maisonCortesCopy.locales[locale];
+const snapshot = await getMaisonCortesInventorySnapshot();
+const products = maisonCortesProducts.filter((product) => product.citySlug === cityEntry.slug);
+
+const metadata = {
+  title: `MAISON CORTES — ${cityEntry.name}`,
+  description: `${cityEntry.name}. ${copy.catalogueDescription}`,
+  ignoreTitleTemplate: true,
+};
+---
+
+<Shell metadata={metadata} title={cityEntry.name} subtitle={copy.objectListTitle}>
+  <section class="mc-section">
+    <ul class="mc-object-list">
+      {products.map((product) => {
+        const state = snapshot[product.id];
+        const status = state?.status ?? product.status;
+        const isAvailable = status === 'available';
+
+        return (
+          <li class={isAvailable ? '' : 'is-disabled'}>
+            <div class="mc-object-row">
+              {isAvailable ? (
+                <a href={`/maison-cortes/${product.citySlug}/${product.objectSlug}`}>
+                  {product.object} {product.index}
+                </a>
+              ) : (
+                <span>{product.object} {product.index}</span>
+              )}
+              <span class="mc-status">{copy.statusLabels[status]}</span>
+            </div>
+            {product.editionSize && <span class="mc-footnote">{copy.editionLabel} {product.editionSize}</span>}
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Shell>
+
+<style>
+  .mc-object-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+    font-size: clamp(18px, 2.6vw, 24px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mc-object-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .mc-status {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--mc-muted);
+    text-transform: uppercase;
+  }
+
+  .mc-object-list .is-disabled {
+    color: var(--mc-muted);
+  }
+
+  .mc-object-list .is-disabled a {
+    pointer-events: none;
+  }
+</style>

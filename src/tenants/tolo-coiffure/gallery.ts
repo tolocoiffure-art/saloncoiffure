@@ -22,36 +22,12 @@ type GalleryData = {
   atelierDetailImage: ToloImageItem | null;
 };
 
-const imageModules = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/tolocoiffure_images/*.{png,jpg,jpeg,webp,avif}'
-);
+const imageModules = import.meta.glob<{ default: ImageMetadata }>('/src/assets/tolocoiffure_images/*.{png,jpg,jpeg,webp,avif}');
 
-const heroPriority = [
-  'balayage_soft_lights',
-  'balayage_soft_waves',
-  'elegant_profile_soft_waves',
-  'brunette_to_blonde',
-  'pefect_bob',
-];
-const locationPriority = [
-  'brunette_to_blonde',
-  'hair_color_correction',
-  'elegant_profile_soft_waves',
-  'curly_woman',
-  'pefect_bob',
-];
-const atelierInteriorPriority = [
-  'curly_woman',
-  'elegant_profile_soft_waves',
-  'pefect_bob',
-  'hair_transformation_keratin',
-];
-const atelierDetailPriority = [
-  'closeup_scissors_men_hair',
-  'ultra_detail_beard',
-  'classic_fade',
-  'grey_blending_specialist',
-];
+const heroPriority = ['balayage_soft_lights', 'balayage_soft_waves', 'elegant_profile_soft_waves', 'brunette_to_blonde', 'pefect_bob'];
+const locationPriority = ['brunette_to_blonde', 'hair_color_correction', 'elegant_profile_soft_waves', 'curly_woman', 'pefect_bob'];
+const atelierInteriorPriority = ['curly_woman', 'elegant_profile_soft_waves', 'pefect_bob', 'hair_transformation_keratin'];
+const atelierDetailPriority = ['closeup_scissors_men_hair', 'ultra_detail_beard', 'classic_fade', 'grey_blending_specialist'];
 const layoutCycle: GalleryLayout[] = ['large', 'tall', 'square', 'wide', 'square', 'tall'];
 const homePinnedOrder = ['brunette_to_blonde', 'classic_fade', 'distinguished_middle_age_man', 'balayage_soft_waves2'];
 const homeExcluded = new Set(['pefect_bob', 'elegant_profile_soft_waves']);
@@ -78,16 +54,8 @@ const manualAlt: Record<string, string> = {
   elegant_male: 'Style homme élégant en lumière studio',
 };
 
-const toBaseName = (filepath: string) =>
-  filepath
-    .split('/')
-    .pop()
-    ?.replace(/\.[^.]+$/, '') ?? 'image';
-const toSlug = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+const toBaseName = (filepath: string) => filepath.split('/').pop()?.replace(/\.[^.]+$/, '') ?? 'image';
+const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const toAltFromName = (name: string) => {
   if (manualAlt[name]) return manualAlt[name];
   const clean = name.replace(/\d+/g, ' ').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -122,8 +90,9 @@ function pickFromPool(pool: ToloImageItem[], priority: string[]): ToloImageItem 
   if (!pool.length) return null;
   const lowerPriority = priority.map((p) => p.toLowerCase());
   const found =
-    lowerPriority.map((needle) => pool.find((item) => item.filename.toLowerCase().includes(needle))).find(Boolean) ??
-    pool[0];
+    lowerPriority
+      .map((needle) => pool.find((item) => item.filename.toLowerCase().includes(needle)))
+      .find(Boolean) ?? pool[0];
 
   const idx = pool.findIndex((item) => item.id === found.id);
   if (idx >= 0) pool.splice(idx, 1);

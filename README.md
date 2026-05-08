@@ -27,15 +27,15 @@ Source pages live in `src/pages/tolo-coiffure/`, while visitors use clean URLs:
 
 ## Key files
 
-| Path                                    | Purpose                                                   |
-| --------------------------------------- | --------------------------------------------------------- |
-| `src/tenants/tolo-coiffure/config.ts`   | Domain, booking links, phone, email, address, Google Maps |
-| `src/tenants/tolo-coiffure/content.ts`  | Homepage copy and testimonials                            |
-| `src/tenants/tolo-coiffure/services.ts` | Service catalog and CHF pricing                           |
-| `src/tenants/tolo-coiffure/gallery.ts`  | Image loading, alt text, ordering, gallery curation       |
-| `src/pages/tolo-coiffure/*.astro`       | Public Tolo Coiffure pages                                |
-| `src/middleware.ts`                     | Canonical routing and Swiss-only access logic             |
-| `astro.config.ts`                       | Astro, Tailwind, Vercel, and allowed host configuration   |
+| Path | Purpose |
+| --- | --- |
+| `src/tenants/tolo-coiffure/config.ts` | Domain, booking links, phone, email, address, Google Maps |
+| `src/tenants/tolo-coiffure/content.ts` | Homepage copy and testimonials |
+| `src/tenants/tolo-coiffure/services.ts` | Service catalog and CHF pricing |
+| `src/tenants/tolo-coiffure/gallery.ts` | Image loading, alt text, ordering, gallery curation |
+| `src/pages/tolo-coiffure/*.astro` | Public Tolo Coiffure pages |
+| `src/middleware.ts` | Canonical routing and Swiss-only access logic |
+| `astro.config.ts` | Astro, Tailwind, Vercel, and allowed host configuration |
 
 ## Stack
 
@@ -62,15 +62,15 @@ Open `http://localhost:4321/`.
 
 ## Commands
 
-| Command           | Action                                 |
-| ----------------- | -------------------------------------- |
-| `npm install`     | Install dependencies                   |
-| `npm run dev`     | Start the local Astro dev server       |
-| `npm run build`   | Build the production site              |
-| `npm run preview` | Preview the production build locally   |
-| `npm run check`   | Run Astro, ESLint, and Prettier checks |
-| `npm run fix`     | Auto-fix linting and formatting issues |
-| `npm run test`    | Run the test suite                     |
+| Command | Action |
+| --- | --- |
+| `npm install` | Install dependencies |
+| `npm run dev` | Start the local Astro dev server |
+| `npm run build` | Build the production site |
+| `npm run preview` | Preview the production build locally |
+| `npm run check` | Run Astro, ESLint, and Prettier checks |
+| `npm run fix` | Auto-fix linting and formatting issues |
+| `npm run test` | Run the test suite |
 
 ## Content updates
 

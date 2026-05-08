@@ -1,0 +1,59 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import { headerDataDe, footerDataDe } from '~/navigation';
+
+const metadata = { title: 'Danke — TonSiteWeb.ch' };
+const sessionId = Astro.url.searchParams.get('session_id') || '';
+---
+
+<Layout metadata={metadata} header={headerDataDe} footer={footerDataDe}>
+  <section class="py-24">
+    <div class="container mx-auto max-w-2xl text-center">
+      <h1 class="text-3xl font-bold">{sessionId ? 'Danke für Ihre Bestellung' : 'Danke'}</h1>
+      <p class="mt-4 text-muted" id="desc">{sessionId ? 'Wir bestätigen Ihre Zahlung…' : 'Wir melden uns innerhalb eines Arbeitstags.'}</p>
+
+      {sessionId ? (
+        <div id="session" class="mt-8 text-left mx-auto max-w-lg rounded border border-gray-200 dark:border-gray-700 p-4 text-sm bg-white/50 dark:bg-slate-900/50">
+          <div id="loader">Zahlungsdetails werden geladen…</div>
+          <div id="content" class="hidden">
+            <p><strong>E‑Mail:</strong> <span id="email"></span></p>
+            <p><strong>Betrag:</strong> <span id="amount"></span></p>
+            <p><strong>Status:</strong> <span id="status"></span></p>
+            <p><strong>Vorlage:</strong> <span id="template"></span></p>
+            <p><strong>Plan:</strong> <span id="plan"></span></p>
+          </div>
+          <div id="error" class="hidden text-red-600">Details konnten nicht geladen werden. Bitte Support kontaktieren.</div>
+        </div>
+      ) : null}
+
+      <a href="/de" class="btn btn-primary mt-8">Zur Startseite</a>
+    </div>
+  </section>
+
+  {sessionId ? (
+    <script is:inline>
+      const params = new URLSearchParams(location.search);
+      const id = params.get('session_id');
+      if (id) {
+        fetch(`/api/payment/session?session_id=${encodeURIComponent(id)}`)
+          .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+          .then(data => {
+            const f = new Intl.NumberFormat('de-CH', { style: 'currency', currency: data.currency || 'CHF' });
+            document.getElementById('email').textContent = data.customer_email || '—';
+            document.getElementById('amount').textContent = typeof data.amount_total === 'number' ? f.format((data.amount_total||0)/100) : '—';
+            document.getElementById('status').textContent = data.payment_status || '—';
+            document.getElementById('template').textContent = data.metadata?.template || '—';
+            document.getElementById('plan').textContent = data.metadata?.plan || '—';
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('desc').textContent = 'Ihre Zahlung ist bestätigt. Sie erhalten die nächsten Schritte per E‑Mail.';
+          })
+          .catch(() => {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+          });
+      }
+    </script>
+  ) : null}
+</Layout>
+

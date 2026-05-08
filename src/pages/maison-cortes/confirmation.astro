@@ -1,0 +1,77 @@
+---
+import Shell from '~/tenants/maison-cortes/ui/Shell.astro';
+import { maisonCortesCopy, resolveMaisonCortesLocale } from '~/tenants/maison-cortes/copy';
+import { maisonCortesProducts } from '~/tenants/maison-cortes/products';
+import { SELECTION_COOKIE_NAME, completeReservation, releaseReservation } from '~/tenants/maison-cortes/inventory';
+
+export const prerender = false;
+
+const url = new URL(Astro.request.url);
+const status = url.searchParams.get('status') || 'unknown';
+const ref = url.searchParams.get('ref');
+const sku = url.searchParams.get('sku');
+const reservationId = url.searchParams.get('res');
+
+const locale = resolveMaisonCortesLocale(Astro.cookies.get('mc-lang')?.value);
+const copy = maisonCortesCopy.locales[locale];
+const product = sku ? maisonCortesProducts.find((item) => item.id === sku) : undefined;
+const isSuccess = status === 'ok';
+const reference = ref ? ref.replace('cs_test_', '').replace('cs_live_', '').slice(-8) : null;
+const shouldClearSelection = status === 'ok' || status === 'cancelled';
+
+if (shouldClearSelection) {
+  Astro.response.headers.set('Set-Cookie', `${SELECTION_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`);
+}
+
+if (isSuccess && sku && reservationId) {
+  await completeReservation(sku, reservationId);
+}
+
+if (status === 'cancelled' && sku && reservationId) {
+  await releaseReservation(sku, reservationId);
+}
+
+const metadata = {
+  title: `MAISON CORTES — ${isSuccess ? copy.confirmationTitle : copy.cancelledTitle}`,
+  description: isSuccess ? copy.confirmationLead : copy.cancelledLead,
+  ignoreTitleTemplate: true,
+};
+---
+
+<Shell metadata={metadata} title={isSuccess ? copy.confirmationTitle : copy.cancelledTitle}>
+  <section class="mc-section">
+    <p class="mc-reference">
+      {isSuccess ? copy.confirmationLead : copy.cancelledLead}
+    </p>
+    {product && (
+      <p class="mc-classification">
+        <span class="mc-city">{product.city}</span>
+        <span aria-hidden="true"> / </span>
+        <span class="mc-object">{product.object} {product.index}</span>
+      </p>
+    )}
+    {reference && <p class="mc-footnote">Ref: {reference}</p>}
+    {isSuccess ? (
+      <ul class="mc-quiet-list">
+        {copy.confirmationNext.map((line) => (
+          <li>{line}</li>
+        ))}
+        <li>{copy.materialsBody}</li>
+        <li>{copy.labDisclosureShort}</li>
+      </ul>
+    ) : (
+      <ul class="mc-quiet-list">
+        <li>{copy.shippingLine}</li>
+        <li>{copy.returnsBody}</li>
+        <li>{maisonCortesCopy.contactEmail}</li>
+      </ul>
+    )}
+  </section>
+</Shell>
+
+<style>
+  .mc-reference {
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+</style>

@@ -1,7 +1,50 @@
 ---
+import defaultFavIcon from '~/assets/favicons/favicon.ico';
+import defaultFavIconSvg from '~/assets/favicons/favicon.svg';
+import defaultAppleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
+import tonsitewebFavicon from '~/assets/tonsiteweb/favicon.png';
+import laclemanExperienceFavicon from '~/assets/laclemanexperience/favicon.png';
+import lausanneFavicon from '~/assets/lausannedemenagement/favicon.png';
+import atelierMemoireFavicon from '~/assets/ateliermemoire/favicon.png';
+import maisonCortesFavicon from '~/assets/maisoncortes_images/favicon.png';
 import toloCoiffureFavicon from '~/assets/tolocoiffure_images/favicon.png';
+
+interface Props {
+  brandKey?: string;
+}
+
+const { brandKey = 'pedro' } = Astro.props as Props;
+
+const brandFavicons: Record<string, string | undefined> = {
+  tonsiteweb: tonsitewebFavicon.src,
+  laclemanexperience: laclemanExperienceFavicon.src,
+  'lac-leman-experience': laclemanExperienceFavicon.src,
+  lausanne: lausanneFavicon.src,
+  lausannedemenagement: lausanneFavicon.src,
+  ateliermemoire: atelierMemoireFavicon.src,
+  'atelier-memoire': atelierMemoireFavicon.src,
+  maisoncortes: maisonCortesFavicon.src,
+  'maison-cortes': maisonCortesFavicon.src,
+  'tolo-coiffure': toloCoiffureFavicon.src,
+  tolocoiffure: toloCoiffureFavicon.src,
+};
+
+const tenantFavicon = brandFavicons[brandKey];
 ---
 
-<link rel="shortcut icon" href={toloCoiffureFavicon.src} />
-<link rel="icon" type="image/png" href={toloCoiffureFavicon.src} />
-<link rel="apple-touch-icon" href={toloCoiffureFavicon.src} />
+{
+  tenantFavicon ? (
+    <>
+      <link rel="shortcut icon" href={tenantFavicon} />
+      <link rel="icon" type="image/png" href={tenantFavicon} />
+      <link rel="apple-touch-icon" href={tenantFavicon} />
+    </>
+  ) : (
+    <>
+      <link rel="shortcut icon" href={defaultFavIcon} />
+      <link rel="icon" type="image/svg+xml" href={defaultFavIconSvg.src} />
+      <link rel="mask-icon" href={defaultFavIconSvg.src} color="#8D46E7" />
+      <link rel="apple-touch-icon" sizes="180x180" href={defaultAppleTouchIcon.src} />
+    </>
+  )
+}

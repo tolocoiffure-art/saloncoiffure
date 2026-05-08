@@ -1,0 +1,325 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import Prices from '~/components/widgets/Pricing.astro';
+import PricingOptions from '~/components/widgets/PricingOptions.astro';
+import Note from '~/components/widgets/Note.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'Tarifs',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- HeroText Widget ******************* -->
+
+  <HeroText
+    tagline="Tarifs"
+    title="Des offres transparentes, facturées en Suisse"
+    subtitle="Chaque pack inclut la conception, la mise en ligne et un accompagnement humain. Maintenance et automatisations sont proposées selon vos besoins."
+  />
+
+  <!-- Pricing Widget ******************* -->
+
+  <Prices
+    title="Nos packs clés-en-main"
+    subtitle="Choisissez l’offre qui correspond à votre besoin. Sans frais cachés."
+    prices={[
+      {
+        title: 'Essentiel',
+        subtitle: 'Site vitrine clé-en-main',
+        price: 999,
+        period: 'dès — paiement unique',
+        items: [
+          {
+            description: 'Site vitrine 5 sections + page contact responsive',
+          },
+          {
+            description: 'Intégration et mise en forme de vos contenus',
+          },
+          
+          {
+            description: 'Guide vidéo et check‑list d’autonomie',
+          },
+        ],
+        callToAction: '<a class="btn btn-primary" href="#modal-essential">Découvrir</a>',
+      },
+      {
+        title: 'Avancé',
+        subtitle: 'Site + fonctionnalités avancées',
+        price: 3000,
+        period: 'dès — paiement unique',
+        items: [
+          { description: 'Inclut tout le pack Essentiel' },
+          { description: 'Back‑end simple + template (jusqu’à 5 000 CHF)' },
+          { description: 'Projets sur‑mesure 10 000 CHF+ — parlons‑en' },
+          { description: 'Tests de bout en bout et documentation simple' },
+        ],
+        callToAction: '<a class="btn btn-primary" href="#modal-advanced">Découvrir</a>',
+      },
+      {
+        title: 'Maintenance sécurité',
+        subtitle: 'Mises à jour et options selon niveau',
+        price: 79,
+        period: 'dès / mois — sans surprise',
+        items: [
+          {
+            description: 'Mises à jour de sécurité et sauvegardes planifiées',
+          },
+          {
+            description: 'Surveillance de disponibilité & correctifs prioritaires',
+          },
+          {
+            description: 'Emails pro & hébergement suisse à partir de 149–249 CHF/mois',
+          },
+          {
+            description: 'Support email et visio sous un jour ouvré',
+          },
+        ],
+        callToAction: '<a class="btn btn-primary" href="#modal-care">Choisir</a>',
+      },
+    ]}
+  />
+
+  <!-- Pricing selectors (modals) -->
+  <div class="sr-only" aria-hidden="true"></div>
+  <div class="mt-0 grid gap-0">
+    <div class="hidden" id="modals"></div>
+  </div>
+
+  <div class="mt-6 grid gap-4 max-w-7xl mx-auto px-4">
+    <div class="flex flex-wrap gap-4">
+      <div id="insert-essential">
+        <PricingOptions
+          id="modal-essential"
+          triggerText=""
+          title="Packs Essentiel"
+          subtitle="Choisissez votre niveau d’automatisation"
+          ctaText="Choisir"
+          tiers={[
+            {
+              label: 'CHF 999',
+              price: 'dès 999',
+              features: ['Site statique', 'Formulaire simple (email)'],
+              href: '/choose-template?plan=essential999',
+              info: ['Hébergement & SSL inclus (3 mois)', '1 aller‑retour de petites retouches (≤ 30 min)', 'Combinable avec Care 79 (hébergement & sécurité)'],
+            },
+            {
+              label: 'CHF 1 249',
+              price: '1 249',
+              features: ['Inclut Essentiel', '1 automatisation (ex: prise de RDV)'],
+              href: '/choose-template?plan=essential1249',
+              primary: true,
+              info: ['Hébergement & SSL inclus (6 mois)', '1 aller‑retour de petites retouches (≤ 30 min)', 'Combinable avec Care 79 (hébergement & sécurité)'],
+            },
+            {
+              label: 'CHF 1 500',
+              price: '1 500',
+              features: ['Inclut Essentiel', '2–3 automatisations'],
+              href: '/choose-template?plan=essential1500',
+              info: ['Hébergement & SSL inclus (9 mois)', '1 aller‑retour de petites retouches (≤ 30 min)', 'Combinable avec Care 79 (hébergement & sécurité)'],
+            },
+          ]}
+          footnote="Hébergement & SSL inclus (3/6/9 mois selon le pack). Assistance technique incluse. Modifications de contenu ou design facturées séparément."
+        />
+      </div>
+      <div id="insert-advanced">
+        <PricingOptions
+          id="modal-advanced"
+          triggerText=""
+          title="Pack Avancé"
+          subtitle="Template + petit back‑end (3–5 k) ou sur‑mesure (10 k+)"
+          ctaText="Choisir"
+          tiers={[
+            {
+              label: 'Jusqu’à 5 000 CHF',
+              price: 'dès 3 000',
+              features: ['Template + back‑end léger (ex : headless shop)', '1–2 automatisations'],
+              href: '/contact?plan=advanced_5k#form',
+            },
+            {
+              label: 'Sur‑mesure',
+              price: '10 000 CHF+',
+              features: ['Projet personnalisé', 'Cahier des charges & devis'],
+              href: '/contact?plan=bespoke_10k_plus#form',
+              primary: true,
+            },
+            {
+              label: 'Conseil',
+              price: 'à définir',
+              features: ['Atelier cadrage', 'Architecture & stratégie'],
+              href: '/contact?plan=consulting#form',
+            },
+          ]}
+          footnote="Les demandes à fort trafic sont facturées à l’usage. Aucun serveur inclus."
+        />
+      </div>
+      <div id="insert-care">
+        <PricingOptions
+          id="modal-care"
+          triggerText=""
+          title="Plans Care (hébergement & sécurité)"
+          subtitle="Hébergement suisse + correctifs de sécurité"
+          ctaText="Choisir"
+          tiers={[
+            {
+              label: 'Care 79',
+              price: 'CHF 79/mois',
+              features: ['Hébergement & SSL', 'Mises à jour sécurité'],
+              href: '/api/payment/redirect?plan=care79',
+            },
+            {
+              label: 'Care 149',
+              price: 'CHF 149/mois',
+              features: ['Inclut Care 79', 'Support prioritaire léger'],
+              href: '/api/payment/redirect?plan=care149',
+              primary: true,
+            },
+            {
+              label: 'Care 249',
+              price: 'CHF 249/mois',
+              features: ['Inclut Care 149', 'Support étendu & évolutions mineures'],
+              href: '/api/payment/redirect?plan=care249',
+            },
+          ]}
+        />
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- Features3 Widget ************** -->
+
+  <Features3
+    title="Ce que peuvent inclure nos offres"
+    subtitle="Selon le pack choisi et vos besoins."
+    columns={2}
+    items={[
+      {
+        title: 'Support humain',
+        description: 'Accompagnement par email et téléphone, réponses sous un jour ouvré.',
+        icon: 'tabler:headset',
+      },
+      
+      {
+        title: 'Processus simple',
+        description: 'Échanges par email et validations par étapes (pas d’espace client à gérer).',
+        icon: 'tabler:layout-dashboard',
+      },
+      {
+        title: 'Facturation claire',
+        description: 'TVA incluse, facture QR ou Twint, mensualisation disponible.',
+        icon: 'tabler:receipt',
+      },
+      {
+        title: 'Performance optimisée',
+        description: 'Architecture Astro et optimisation d’images pour un chargement rapide.',
+        icon: 'tabler:gauge',
+      },
+      {
+        title: 'Sécurité renforcée',
+        description: 'Sauvegardes initiales, pare-feu applicatif et mises à jour régulières.',
+        icon: 'tabler:lock',
+      },
+    ]}
+    classes={{ container: 'max-w-5xl' }}
+  />
+
+  <!-- Steps Widget ****************** -->
+
+    <Steps
+      title="Comment se déroule votre projet"
+      tagline="Parcours"
+      isReversed={true}
+      items={[
+        {
+          title: '1. Signature numérique',
+          description: 'Validez le pack choisi et recevez votre accès onboarding.',
+          icon: 'tabler:edit',
+        },
+        {
+          title: '2. Questionnaire intelligent',
+          description: 'Renseignez vos informations clés, importez vos visuels et sélectionnez vos modules.',
+          icon: 'tabler:clipboard-list',
+        },
+        {
+          title: '3. Production supervisée',
+          description: 'Notre plateforme génère votre site, nos experts ajustent et contrôlent.',
+          icon: 'tabler:robot',
+        },
+        {
+          title: '4. Validation & formation',
+          description: 'Recevez votre site prêt, le guide vidéo et un récapitulatif de vos prochaines étapes.',
+          icon: 'tabler:rocket',
+        },
+      ]}
+    >
+      <Fragment slot="image">
+        <div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-blue-700 via-slate-900 to-slate-800 p-10 text-white shadow-xl">
+          <p class="text-sm uppercase tracking-[0.35em] text-blue-200/80">Process</p>
+          <p class="mt-6 max-w-xs text-base text-blue-100/90">
+            Brief, intégration de vos contenus et validations par email.
+          </p>
+        </div>
+      </Fragment>
+    </Steps>
+
+  <!-- FAQs Widget ******************* -->
+
+  <FAQs
+    title="Questions sur nos tarifs"
+    subtitle="Nous croyons en une transparence totale."
+    items={[
+      {
+        title: 'Les prix incluent-ils la TVA ?',
+        description: 'Oui, tous les montants sont affichés TTC. La facture mentionne la TVA suisse et le numéro IDE.',
+      },
+      {
+        title: 'Quel est le délai moyen pour le pack Essentiel ?',
+        description: 'Comptez environ cinq jours ouvrés après réception de vos contenus. Nous vous donnons un planning précis lors du brief.',
+      },
+      {
+        title: 'Comment facturez-vous les intégrations ?',
+        description: 'Les intégrations simples sont incluses. Les connexions API et scénarios avancés font l’objet d’un devis dédié.',
+      },
+      {
+        title: 'La maintenance est-elle obligatoire ?',
+        description: 'Non. Maintenance dès 79 CHF/mois, résiliable avec un préavis de 30 jours.',
+      },
+      {
+        title: 'Quels moyens de paiement acceptez-vous ?',
+        description: 'Cartes suisses, Twint, virement bancaire et facturation QR. Les abonnements peuvent être payés mensuellement ou annuellement.',
+      },
+    ]}
+  />
+
+  <!-- CallToAction Widget *********** -->
+
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Recevoir une proposition',
+        href: '/contact#form',
+        icon: 'tabler:mail-forward',
+      },
+      {
+        text: 'Comparer les packs',
+        href: '/services',
+      },
+    ]}
+  >
+    <Fragment slot="title">
+      Besoin d’un devis personnalisé ?
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      Nous adaptons chaque offre aux spécificités de votre activité sur l’Arc lémanique.
+    </Fragment>
+  </CallToAction>
+</Layout>

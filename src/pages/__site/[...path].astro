@@ -1,0 +1,116 @@
+---
+import type { APIContext } from 'astro';
+import { getWebsiteByHost } from '~/lib/website-resolver';
+
+export const prerender = false;
+
+const host =
+  Astro.request.headers.get('x-forwarded-host') ??
+  Astro.request.headers.get('host') ??
+  (Astro.url instanceof URL ? Astro.url.host : new URL(Astro.request.url).host);
+
+const resolved = (Astro.locals as APIContext['locals'] & { website?: any })?.website ?? (await getWebsiteByHost(host));
+
+if (!resolved) {
+  return new Response('Site not found', { status: 404 });
+}
+
+const { website, sections, primaryDomain } = resolved;
+const originalPath = Astro.request.headers.get('x-original-path');
+const rewrittenPath = Astro.url.pathname.replace(/^\/__site/, '') || '/';
+const canonicalPath = (originalPath || rewrittenPath) === '/index' ? '/' : originalPath || rewrittenPath;
+
+const metadata = {
+  title: (website.metadata as any)?.seo_title || website.name,
+  description: (website.metadata as any)?.seo_description || '',
+  canonical: primaryDomain ? `https://${primaryDomain}${canonicalPath}` : undefined,
+};
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{metadata.title}</title>
+    {metadata.description && <meta name="description" content={metadata.description} />}
+    {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
+    <style>
+      :root {{
+        font-family: system-ui, -apple-system, "Inter", sans-serif;
+        color: #0f172a;
+        background: #f8fafc;
+      }}
+      body {{
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+      }}
+      .shell {{
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 60px;
+      }}
+      .hero {{
+        padding: 32px 26px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 23, 42, 0.05));
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        border-radius: 18px;
+        box-shadow: 0 20px 60px -45px rgba(15, 23, 42, 0.35);
+      }}
+      h1 {{
+        margin: 0 0 12px;
+        font-size: clamp(28px, 4vw, 40px);
+        letter-spacing: -0.02em;
+      }}
+      .section {{
+        margin-top: 28px;
+        padding: 20px 0;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+      }}
+      h2 {{
+        margin: 0 0 10px;
+        font-size: clamp(20px, 3vw, 26px);
+      }}
+      p {{
+        margin: 0 0 8px;
+        color: #334155;
+      }}
+      .foot {{
+        margin-top: 36px;
+        font-size: 13px;
+        color: #64748b;
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <p style="text-transform:uppercase; letter-spacing:0.18em; font-size:12px; color:#475569; margin:0 0 8px;">
+          {website.plan || 'Site'}
+        </p>
+        <h1>{website.name}</h1>
+        {metadata.description && <p style="max-width: 720px;">{metadata.description}</p>}
+      </header>
+
+      {sections.length
+        ? sections.map((section) => (
+            <section class="section">
+              {section.heading && <h2>{section.heading}</h2>}
+              {section.content?.split('\n').map((line) => (
+                <p>{line}</p>
+              ))}
+            </section>
+          ))
+        : (
+          <section class="section">
+            <p>Le contenu de ce site sera disponible bientôt.</p>
+          </section>
+        )}
+
+      <footer class="foot">
+        {primaryDomain ? `Domaine principal : ${primaryDomain}` : ''}
+      </footer>
+    </div>
+  </body>
+</html>

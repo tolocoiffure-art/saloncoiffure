@@ -1,0 +1,256 @@
+---
+import BackendLayout from '~/layouts/BackendLayout.astro';
+---
+
+<BackendLayout pageTitle="Tâches">
+  <section class="space-y-8">
+    <div class="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-md shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900/40 dark:shadow-lg dark:shadow-slate-950/40">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Créer une tâche</h2>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Assigner des livrables aux projets et responsables avec des échéances.</p>
+      <form id="task-form" class="mt-6 grid gap-4 lg:grid-cols-2">
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="title">Titre</label>
+          <input id="title" name="title" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="project_id">Projet</label>
+          <select id="project_id" name="project_id" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
+            <option value="">Chargement des projets…</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="assignee_id">Responsable</label>
+          <select id="assignee_id" name="assignee_id" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
+            <option value="">Non attribué</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="status">Statut</label>
+          <select id="status" name="status" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
+            <option value="todo">À faire</option>
+            <option value="in_progress">En cours</option>
+            <option value="blocked">Bloquée</option>
+            <option value="done">Terminé</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="priority">Priorité</label>
+          <select id="priority" name="priority" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
+            <option value="low">Faible</option>
+            <option value="medium">Moyenne</option>
+            <option value="high">Élevée</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="due_date">Date d'échéance</label>
+          <input id="due_date" name="due_date" type="date" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white" />
+        </div>
+        <div class="lg:col-span-2">
+          <label class="block text-sm text-slate-600 dark:text-slate-300" for="description">Description</label>
+          <textarea id="description" name="description" rows="3" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white"></textarea>
+        </div>
+        <div class="lg:col-span-2 flex items-center gap-3">
+          <button id="task-submit" type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70">Enregistrer la tâche</button>
+          <p id="task-message" class="text-sm text-slate-500 dark:text-slate-400"></p>
+        </div>
+      </form>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-md shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900/40 dark:shadow-lg dark:shadow-slate-950/40">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Tableau d'exécution</h2>
+        <span class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Vue opérationnelle</span>
+      </div>
+      <div class="mt-6 overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <tr>
+              <th class="px-4 py-3">Tâche</th>
+              <th class="px-4 py-3">Projet</th>
+              <th class="px-4 py-3">Responsable</th>
+              <th class="px-4 py-3">Statut</th>
+              <th class="px-4 py-3">Priorité</th>
+              <th class="px-4 py-3">Échéance</th>
+              <th class="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="task-table" class="divide-y divide-slate-200 text-slate-700 dark:divide-slate-800 dark:text-slate-200">
+            <tr>
+              <td colspan="7" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">Chargement des tâches…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</BackendLayout>
+
+<script type="module">
+  import { authFetch } from '~/utils/backend/api';
+
+  const form = document.getElementById('task-form');
+  const message = document.getElementById('task-message');
+  const submitButton = document.getElementById('task-submit');
+  const tableBody = document.getElementById('task-table');
+  const projectSelect = document.getElementById('project_id');
+  const assigneeSelect = document.getElementById('assignee_id');
+
+  const projectLookup = {};
+  const teamLookup = {};
+
+  const loadProjects = async () => {
+    if (!projectSelect) return;
+      projectSelect.innerHTML = '<option value="">Chargement des projets…</option>';
+    Object.keys(projectLookup).forEach((key) => delete projectLookup[key]);
+    try {
+      const response = await authFetch('/projects');
+      const projects = response.projects ?? [];
+      if (!projects.length) {
+      projectSelect.innerHTML = "<option value=\"\">Ajoutez d'abord un projet</option>";
+        return;
+      }
+      projectSelect.innerHTML = projects
+        .map((project) => {
+          projectLookup[project.id] = project.name;
+          return `<option value="${project.id}">${project.name}</option>`;
+        })
+        .join('');
+    } catch (error) {
+      console.error(error);
+      projectSelect.innerHTML = '<option value="">Impossible de charger les projets</option>';
+    }
+  };
+
+  const loadTeam = async () => {
+    if (!assigneeSelect) return;
+    assigneeSelect.innerHTML = '<option value="">Non attribué</option>';
+    Object.keys(teamLookup).forEach((key) => delete teamLookup[key]);
+    try {
+      const response = await authFetch('/team');
+      const members = response.team ?? [];
+      members.forEach((member) => {
+        teamLookup[member.user_id] = member.full_name ?? member.user_id;
+      });
+      assigneeSelect.innerHTML = '<option value="">Non attribué</option>' +
+        members
+          .map((member) => `<option value="${member.user_id}">${member.full_name ?? member.user_id}</option>`)
+          .join('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const renderTasks = (tasks) => {
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    if (!tasks.length) {
+      tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">Aucune tâche. Planifiez-en une ci-dessus.</td></tr>';
+      return;
+    }
+
+    tasks.forEach((task) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="px-4 py-3">
+          <div class="font-medium text-slate-900 dark:text-white">${task.title}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">${task.description ?? ''}</div>
+        </td>
+        <td class="px-4 py-3 text-sm">${projectLookup[task.project_id] ?? task.project_id ?? ''}</td>
+        <td class="px-4 py-3 text-sm">${teamLookup[task.assignee_id] ?? '—'}</td>
+        <td class="px-4 py-3"><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-200">${task.status}</span></td>
+        <td class="px-4 py-3"><span class="inline-flex rounded-full bg-slate-50 px-2.5 py-1 text-xs capitalize text-slate-700 dark:bg-slate-800/60 dark:text-slate-200">${task.priority}</span></td>
+        <td class="px-4 py-3 text-xs text-slate-500 dark:text-slate-300">${task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}</td>
+        <td class="px-4 py-3 text-right">
+          <button data-delete="${task.id}" class="rounded-lg border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10">Supprimer</button>
+        </td>`;
+      tableBody.appendChild(row);
+    });
+  };
+
+  const loadTasks = async () => {
+    try {
+      const response = await authFetch('/tasks');
+      renderTasks(response.tasks ?? []);
+    } catch (error) {
+      console.error(error);
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-6 text-center text-sm text-red-400">Impossible de charger les tâches.</td></tr>';
+      }
+    }
+  };
+
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (message) {
+        message.classList.remove('text-red-400', 'text-blue-600', 'dark:text-blue-400');
+        message.textContent = '';
+      }
+      if (submitButton) {
+        submitButton.classList.add('animate-pulse');
+        submitButton.disabled = true;
+      }
+
+      const formData = new FormData(form);
+      const payload = {
+        title: String(formData.get('title') ?? '').trim(),
+        project_id: String(formData.get('project_id') ?? ''),
+        assignee_id: String(formData.get('assignee_id') ?? '') || null,
+        status: String(formData.get('status') ?? 'todo'),
+        priority: String(formData.get('priority') ?? 'medium'),
+        due_date: String(formData.get('due_date') ?? '') || null,
+        description: String(formData.get('description') ?? '').trim() || null,
+      };
+
+      try {
+        await authFetch('/tasks', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        if (message) {
+          message.classList.add('text-blue-600', 'dark:text-blue-400');
+          message.textContent = 'Tâche enregistrée.';
+        }
+        form.reset();
+        await loadTasks();
+      } catch (error) {
+        console.error(error);
+        if (message) {
+          message.classList.add('text-red-400');
+      message.textContent = error instanceof Error ? error.message : "Échec de l'enregistrement de la tâche.";
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.classList.remove('animate-pulse');
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (tableBody) {
+    tableBody.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const deleteId = target.getAttribute('data-delete');
+      if (!deleteId) return;
+
+      target.classList.add('animate-pulse');
+      try {
+        await authFetch(`/tasks/${deleteId}`, {
+          method: 'DELETE',
+          parseJson: false,
+        });
+        await loadTasks();
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }
+
+  await loadProjects();
+  await loadTeam();
+  await loadTasks();
+</script>

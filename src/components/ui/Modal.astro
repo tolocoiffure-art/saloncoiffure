@@ -1,0 +1,83 @@
+---
+export interface ModalAction {
+  text: string;
+  href: string;
+  variant?: 'primary' | 'secondary' | 'link';
+}
+
+export interface Props {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  children?: any;
+}
+
+const { id, title = '', subtitle = '' } = Astro.props as Props;
+---
+
+<div id={id} data-modal class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+  <a href="#" data-overlay-close class="absolute inset-0 z-0" aria-label="Close"></a>
+  <div class="relative z-10 w-full max-w-3xl rounded-lg bg-white dark:bg-slate-900 shadow-xl p-6">
+    <a href="#" data-close aria-label="Close" class="btn-close text-muted hover:text-default">✕</a>
+    {title && <h3 class="text-2xl font-semibold">{title}</h3>}
+    {subtitle && <p class="mt-1 text-muted">{subtitle}</p>}
+    <div class="mt-4">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  [data-modal]:target { display: flex; }
+  [data-modal] .btn-close { position: absolute; right: 0.75rem; top: 0.75rem; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-modal] { transition: none; }
+  }
+</style>
+
+<script>
+  // Prevent full page reloads when closing modals; keep current page and just clear the hash
+  (function () {
+    function urlWithoutHash() {
+      try {
+        const u = new URL(window.location.href);
+        u.hash = '';
+        return u.toString();
+      } catch (_) {
+        return window.location.pathname + window.location.search;
+      }
+    }
+
+    function closeModal(ev) {
+      const anchor = ev.target.closest('[data-modal] a[data-close], [data-modal] a[data-overlay-close]');
+      if (!anchor) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const container = anchor.closest('[data-modal]');
+      if (!container) return false;
+      const id = container.id ? `#${container.id}` : '';
+      if (id && window.location.hash === id) {
+        // go back to previous hashless URL without reload
+        history.back();
+      } else {
+        // ensure hash is cleared without navigation
+        history.replaceState(null, '', urlWithoutHash());
+      }
+      return false;
+    }
+
+    function escClose(ev) {
+      if (ev.key !== 'Escape') return;
+      const hash = window.location.hash;
+      if (!hash) return;
+      const modal = document.querySelector(`[data-modal]${hash}`) || document.querySelector(hash);
+      if (modal) {
+        ev.preventDefault();
+        history.back();
+      }
+    }
+
+    document.addEventListener('click', closeModal, true);
+    document.addEventListener('keydown', escClose);
+  })();
+  </script>

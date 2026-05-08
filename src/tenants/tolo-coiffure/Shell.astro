@@ -44,18 +44,14 @@ const styleVars = {
         <span class="tc-logo-bottom">COIFFURE</span>
       </a>
       <nav class="tc-nav" aria-label="Navigation principale">
-        {
-          nav.map((item) => (
-            <a class={item.key === page ? 'is-active' : ''} href={item.href}>
-              {item.label}
-            </a>
-          ))
-        }
+        {nav.map((item) => (
+          <a class={item.key === page ? 'is-active' : ''} href={item.href}>
+            {item.label}
+          </a>
+        ))}
       </nav>
       <div class="tc-contact">
-        <a class="tc-phone" href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer"
-          >{toloCoiffureConfig.phone}</a
-        >
+        <a class="tc-phone" href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer">{toloCoiffureConfig.phone}</a>
         <a
           class="tc-cta"
           href={toloCoiffureConfig.bookingUrl}
@@ -77,14 +73,8 @@ const styleVars = {
           <p class="tc-footer-label">Atelier</p>
           <p class="tc-footer-title">Tolo Coiffure</p>
           <p class="tc-footer-text">{toloCoiffureConfig.address}</p>
-          <p class="tc-footer-text">
-            Téléphone — <a href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer"
-              >{toloCoiffureConfig.phone}</a
-            >
-          </p>
-          <p class="tc-footer-text">
-            Email — <a href={`mailto:${toloCoiffureConfig.email}`}>{toloCoiffureConfig.email}</a>
-          </p>
+          <p class="tc-footer-text">Téléphone — <a href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer">{toloCoiffureConfig.phone}</a></p>
+          <p class="tc-footer-text">Email — <a href={`mailto:${toloCoiffureConfig.email}`}>{toloCoiffureConfig.email}</a></p>
         </div>
         <div class="tc-footer-block">
           <p class="tc-footer-label">Horaires</p>
@@ -100,14 +90,12 @@ const styleVars = {
             title="Tolo Coiffure — Lausanne"
             src={toloCoiffureConfig.mapEmbed}
             loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"></iframe>
+            referrerpolicy="no-referrer-when-downgrade"
+          />
         </div>
       </div>
       <div class="tc-footer-note">
-        {
-          metadata.description ||
-            'Atelier de coiffure haut de gamme à Lausanne. Coloration précise, balayage maîtrisé, soins profonds.'
-        }
+        {metadata.description || 'Atelier de coiffure haut de gamme à Lausanne. Coloration précise, balayage maîtrisé, soins profonds.'}
       </div>
     </footer>
   </div>
@@ -222,9 +210,7 @@ const styleVars = {
       color: var(--tc-text);
       text-decoration: none;
       background: color-mix(in srgb, var(--tc-accent) 8%, transparent);
-      transition:
-        background 160ms ease,
-        border-color 160ms ease;
+      transition: background 160ms ease, border-color 160ms ease;
     }
 
     .tc-cta:hover {

@@ -1,0 +1,42 @@
+---
+import { SITE } from 'astrowind:config';
+import tonLogo from '~/assets/tonsiteweb/logo.png';
+import lemanLogo from '~/assets/laclemanexperience/logo.png';
+import lausanneLogo from '~/assets/lausannedemenagement/logo.png';
+
+interface Props {
+  name?: string;
+  brandKey?: string;
+}
+
+const { name = SITE?.name, brandKey = 'pedro' } = Astro.props as Props;
+
+type LogoConfig = {
+  src: string;
+  className: string;
+};
+
+const logoByBrand: Record<string, LogoConfig | undefined> = {
+  tonsiteweb: { src: tonLogo.src, className: 'h-10 w-auto md:h-11' },
+  laclemanexperience: { src: lemanLogo.src, className: 'h-11 w-auto md:h-12' },
+  'lac-leman-experience': { src: lemanLogo.src, className: 'h-11 w-auto md:h-12' },
+  lausanne: { src: lausanneLogo.src, className: 'h-11 w-auto md:h-12' },
+  lausannedemenagement: { src: lausanneLogo.src, className: 'h-11 w-auto md:h-12' },
+};
+const logo = logoByBrand[brandKey];
+---
+
+{
+  logo ? (
+    <img
+      src={logo.src}
+      alt={name || SITE?.name || brandKey}
+      class:list={[logo.className, 'flex-shrink-0']}
+      loading="lazy"
+    />
+  ) : (
+    <span class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 whitespace-nowrap dark:text-white logo-text">
+      {name || SITE?.name}
+    </span>
+  )
+}

@@ -1,0 +1,92 @@
+---
+import BackendLayout from '~/layouts/BackendLayout.astro';
+
+const pageTitle = 'Leads';
+---
+
+<BackendLayout pageTitle={pageTitle}>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Leads & signaux opérationnels</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        Vue locale des derniers formulaires avec signaux d’accès, planning et contraintes.
+      </p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="border-b border-slate-200 px-5 py-4 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
+        Dernières demandes
+      </div>
+      <div id="lead-list" class="divide-y divide-slate-100 dark:divide-slate-800"></div>
+      <div id="lead-empty" class="px-5 py-8 text-sm text-slate-500 dark:text-slate-400">
+        Aucun signal enregistré localement. Soumettez un formulaire pour alimenter cette vue.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const listEl = document.getElementById('lead-list');
+    const emptyEl = document.getElementById('lead-empty');
+    const key = 'pedrodemenagement:leadSignals';
+    const formatAddress = (payload, scope) => {
+      const block = payload?.[scope] || {};
+      const parts = [
+        [block.street, block.number].filter(Boolean).join(' '),
+        [block.postcode, block.city].filter(Boolean).join(' '),
+      ].filter(Boolean);
+      return parts.join(', ');
+    };
+    const formatWindow = (payload) => {
+      const window = payload?.timeWindow || {};
+      if (window?.flexible === 'yes' && window?.range) {
+        return `${window.range.from || '—'} → ${window.range.to || '—'} (${window.preference || 'flexible'})`;
+      }
+      if (window?.flexible === 'no') {
+        return `${window.date || '—'} (${window.preference || 'flexible'})`;
+      }
+      return window?.preference || '—';
+    };
+
+    const renderLead = (payload) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'px-5 py-5 grid gap-3 md:grid-cols-[1.3fr_1fr]';
+      const title = document.createElement('div');
+      title.innerHTML = `
+        <div class="text-sm uppercase tracking-[0.24em] text-slate-400">Lead</div>
+        <div class="text-lg font-semibold text-slate-900 dark:text-white">${payload?.intent || '—'}</div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">${new Date(payload?.createdAt || '').toLocaleString()}</div>
+      `;
+      const meta = document.createElement('div');
+      meta.className = 'space-y-2 text-sm text-slate-600 dark:text-slate-300';
+      meta.innerHTML = `
+        <div><strong>Urgence:</strong> ${payload?.urgency || '—'}</div>
+        <div><strong>Fenêtre:</strong> ${formatWindow(payload)}</div>
+        <div><strong>Départ:</strong> ${formatAddress(payload, 'origin') || '—'}</div>
+        <div><strong>Arrivée:</strong> ${formatAddress(payload, 'destination') || '—'}</div>
+        <div><strong>Accès:</strong> étage ${payload?.origin?.floor || '—'} → ${payload?.destination?.floor || '—'}, ascenseurs ${
+          payload?.origin?.elevator || '—'
+        } / ${payload?.destination?.elevator || '—'}</div>
+        <div><strong>Contraintes:</strong> ${payload?.notes || '—'}</div>
+        <div><strong>Signal:</strong> ${payload?.signals?.level || '—'} (${payload?.signals?.score || '—'})</div>
+      `;
+      wrapper.appendChild(title);
+      wrapper.appendChild(meta);
+      return wrapper;
+    };
+
+    try {
+      const raw = window.localStorage.getItem(key);
+      const list = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(list) && list.length > 0) {
+        emptyEl?.classList.add('hidden');
+        list.slice(0, 20).forEach((payload) => {
+          listEl?.appendChild(renderLead(payload));
+        });
+      } else {
+        emptyEl?.classList.remove('hidden');
+      }
+    } catch (_) {
+      emptyEl?.classList.remove('hidden');
+    }
+  </script>
+</BackendLayout>

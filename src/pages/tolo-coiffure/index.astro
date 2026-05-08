@@ -23,10 +23,7 @@ const homepageLocationImage = forcedSecondImage?.src || thirdImageBeforeSwap?.sr
 const homepageLocationImageAlt = forcedSecondImage?.alt || thirdImageBeforeSwap?.alt || secondImageBeforeSwapAlt;
 const homepageGallery =
   thirdImageBeforeSwap && secondImageBeforeSwapSrc
-    ? [
-        { ...thirdImageBeforeSwap, src: secondImageBeforeSwapSrc, alt: secondImageBeforeSwapAlt },
-        ...toloGallery.slice(1),
-      ]
+    ? [{ ...thirdImageBeforeSwap, src: secondImageBeforeSwapSrc, alt: secondImageBeforeSwapAlt }, ...toloGallery.slice(1)]
     : toloGallery;
 ---
 
@@ -38,28 +35,24 @@ const homepageGallery =
       <h2 class="tc-hero-title">{toloContent.hero.title}</h2>
       <p class="tc-subtitle">{toloContent.hero.subtitle}</p>
       <div class="tc-actions">
-        <a class="tc-button" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer"
-          >{toloContent.hero.cta}</a
-        >
+        <a class="tc-button" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer">{toloContent.hero.cta}</a>
         <a class="tc-link" href="/services">Voir nos services</a>
       </div>
     </div>
     <figure class="tc-hero-media">
-      {
-        toloHeroImage ? (
-          <Image
-            src={toloHeroImage.src}
-            alt={toloContent.hero.imageAlt}
-            loading="eager"
-            widths={[720, 1080, 1400]}
-            sizes="(max-width: 900px) 100vw, 50vw"
-            format="webp"
-            quality={84}
-          />
-        ) : (
-          <div aria-hidden="true" />
-        )
-      }
+      {toloHeroImage ? (
+        <Image
+          src={toloHeroImage.src}
+          alt={toloContent.hero.imageAlt}
+          loading="eager"
+          widths={[720, 1080, 1400]}
+          sizes="(max-width: 900px) 100vw, 50vw"
+          format="webp"
+          quality={84}
+        />
+      ) : (
+        <div aria-hidden="true"></div>
+      )}
       <div class="tc-hero-overlay"></div>
     </figure>
   </section>
@@ -69,7 +62,9 @@ const homepageGallery =
       <p class="tc-kicker">Méthode</p>
       <h2>{toloContent.signature.title}</h2>
       <div class="tc-signature-copy">
-        {toloContent.signature.paragraphs.map((p) => <p>{p}</p>)}
+        {toloContent.signature.paragraphs.map((p) => (
+          <p>{p}</p>
+        ))}
       </div>
     </div>
   </section>
@@ -80,27 +75,23 @@ const homepageGallery =
       <h2>Services femme & homme</h2>
     </div>
     <div class="tc-service-grid">
-      {
-        [toloServices.femme, toloServices.homme].map((category) => (
-          <div class="tc-service-column">
-            <h3>{category.title}</h3>
-            <ul class="tc-service-list">
-              {category.items.map((item) => (
-                <li>
-                  <div>
-                    <p class="tc-service-title">{item.name}</p>
-                    <p class="tc-service-desc">{item.description}</p>
-                  </div>
-                  {item.price && <span class="tc-price">{item.price}</span>}
-                </li>
-              ))}
-            </ul>
-            <a class="tc-button subtle" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer">
-              {bookingCta}
-            </a>
-          </div>
-        ))
-      }
+      {[toloServices.femme, toloServices.homme].map((category) => (
+        <div class="tc-service-column">
+          <h3>{category.title}</h3>
+          <ul class="tc-service-list">
+            {category.items.map((item) => (
+              <li>
+                <div>
+                  <p class="tc-service-title">{item.name}</p>
+                  <p class="tc-service-desc">{item.description}</p>
+                </div>
+                {item.price && <span class="tc-price">{item.price}</span>}
+              </li>
+            ))}
+          </ul>
+          <a class="tc-button subtle" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer">{bookingCta}</a>
+        </div>
+      ))}
     </div>
   </section>
 
@@ -111,26 +102,20 @@ const homepageGallery =
         <p class="tc-kicker light">Adresse</p>
         <h2>{toloContent.location.heading}</h2>
         <p class="tc-location-sub">{toloContent.location.subheading}</p>
-        <a class="tc-button light" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer"
-          >{toloCoiffureConfig.bookingLabel}</a
-        >
-        <a class="tc-location-map-link" href={toloCoiffureConfig.mapLink} target="_blank" rel="noreferrer"
-          >Voir la carte</a
-        >
+        <a class="tc-button light" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer">{toloCoiffureConfig.bookingLabel}</a>
+        <a class="tc-location-map-link" href={toloCoiffureConfig.mapLink} target="_blank" rel="noreferrer">Voir la carte</a>
       </div>
-      {
-        homepageLocationImage && (
-          <Image
-            src={homepageLocationImage}
-            alt={homepageLocationImageAlt}
-            loading="lazy"
-            widths={[900, 1400, 2000]}
-            sizes="100vw"
-            format="webp"
-            quality={80}
-          />
-        )
-      }
+      {homepageLocationImage && (
+        <Image
+          src={homepageLocationImage}
+          alt={homepageLocationImageAlt}
+          loading="lazy"
+          widths={[900, 1400, 2000]}
+          sizes="100vw"
+          format="webp"
+          quality={80}
+        />
+      )}
     </div>
   </section>
 
@@ -140,21 +125,19 @@ const homepageGallery =
       <h2>Une sélection éditoriale</h2>
     </div>
     <div class="tc-gallery-grid">
-      {
-        homepageGallery.map((item) => (
-          <figure class={`tc-gallery-item ${item.layout}`}>
-            <Image
-              src={item.src}
-              alt={item.alt}
-              loading="lazy"
-              widths={[460, 760, 1100]}
-              sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
-              format="webp"
-              quality={80}
-            />
-          </figure>
-        ))
-      }
+      {homepageGallery.map((item) => (
+        <figure class={`tc-gallery-item ${item.layout}`}>
+          <Image
+            src={item.src}
+            alt={item.alt}
+            loading="lazy"
+            widths={[460, 760, 1100]}
+            sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
+            format="webp"
+            quality={80}
+          />
+        </figure>
+      ))}
     </div>
   </section>
 
@@ -164,29 +147,19 @@ const homepageGallery =
       <h2>Témoignages</h2>
     </div>
     <div class="tc-testimonial-grid">
-      {
-        toloContent.testimonials.map((item) => (
-          <a
-            class="tc-testimonial-link"
-            href={item.link}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Avis Google de ${item.author}`}
-          >
-            <blockquote>
-              <div class="tc-review-meta">
-                <span class="tc-stars" aria-label={`${item.stars} étoiles`}>
-                  {'★'.repeat(item.stars)}
-                </span>
-                <span>{item.when}</span>
-              </div>
-              <p>“{item.quote}”</p>
-              <cite>{item.author}</cite>
-              <p class="tc-review-author-meta">{item.reviewerMeta}</p>
-            </blockquote>
-          </a>
-        ))
-      }
+      {toloContent.testimonials.map((item) => (
+        <a class="tc-testimonial-link" href={item.link} target="_blank" rel="noreferrer" aria-label={`Avis Google de ${item.author}`}>
+          <blockquote>
+            <div class="tc-review-meta">
+              <span class="tc-stars" aria-label={`${item.stars} étoiles`}>{'★'.repeat(item.stars)}</span>
+              <span>{item.when}</span>
+            </div>
+            <p>“{item.quote}”</p>
+            <cite>{item.author}</cite>
+            <p class="tc-review-author-meta">{item.reviewerMeta}</p>
+          </blockquote>
+        </a>
+      ))}
     </div>
   </section>
 </Shell>
@@ -253,10 +226,7 @@ const homepageGallery =
     color: var(--tc-text);
     text-decoration: none;
     background: color-mix(in srgb, var(--tc-accent) 12%, transparent);
-    transition:
-      background 160ms ease,
-      border-color 160ms ease,
-      transform 120ms ease;
+    transition: background 160ms ease, border-color 160ms ease, transform 120ms ease;
   }
   .tc-button:hover {
     background: color-mix(in srgb, var(--tc-accent) 20%, var(--tc-bg) 80%);
@@ -448,26 +418,10 @@ const homepageGallery =
     display: block;
     filter: saturate(0.96) brightness(0.92);
   }
-  .tc-gallery-item.large {
-    grid-column: span 4;
-    grid-row: span 2;
-    min-height: 320px;
-  }
-  .tc-gallery-item.wide {
-    grid-column: span 3;
-    grid-row: span 1;
-    min-height: 200px;
-  }
-  .tc-gallery-item.tall {
-    grid-column: span 2;
-    grid-row: span 2;
-    min-height: 320px;
-  }
-  .tc-gallery-item.square {
-    grid-column: span 2;
-    grid-row: span 1;
-    min-height: 200px;
-  }
+  .tc-gallery-item.large { grid-column: span 4; grid-row: span 2; min-height: 320px; }
+  .tc-gallery-item.wide { grid-column: span 3; grid-row: span 1; min-height: 200px; }
+  .tc-gallery-item.tall { grid-column: span 2; grid-row: span 2; min-height: 320px; }
+  .tc-gallery-item.square { grid-column: span 2; grid-row: span 1; min-height: 200px; }
 
   .tc-testimonial-grid {
     display: grid;
@@ -489,9 +443,7 @@ const homepageGallery =
     display: grid;
     gap: 0.75rem;
     height: 100%;
-    transition:
-      border-color 160ms ease,
-      background 160ms ease;
+    transition: border-color 160ms ease, background 160ms ease;
   }
   .tc-testimonial-link:hover blockquote {
     border-color: color-mix(in srgb, var(--tc-accent) 55%, var(--tc-line));
@@ -527,55 +479,29 @@ const homepageGallery =
   }
 
   @media (max-width: 1100px) {
-    .tc-gallery-item.large {
-      grid-column: span 6;
-    }
-    .tc-gallery-item.tall {
-      grid-column: span 3;
-    }
-    .tc-gallery-item.wide {
-      grid-column: span 4;
-    }
-    .tc-gallery-item.square {
-      grid-column: span 3;
-    }
+    .tc-gallery-item.large { grid-column: span 6; }
+    .tc-gallery-item.tall { grid-column: span 3; }
+    .tc-gallery-item.wide { grid-column: span 4; }
+    .tc-gallery-item.square { grid-column: span 3; }
   }
   @media (max-width: 820px) {
-    .tc-gallery-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    .tc-gallery-item.large {
-      grid-column: span 4;
-    }
-    .tc-gallery-item.wide {
-      grid-column: span 4;
-    }
-    .tc-gallery-item.tall {
-      grid-column: span 2;
-    }
-    .tc-gallery-item.square {
-      grid-column: span 2;
-    }
+    .tc-gallery-grid { grid-template-columns: repeat(4, 1fr); }
+    .tc-gallery-item.large { grid-column: span 4; }
+    .tc-gallery-item.wide { grid-column: span 4; }
+    .tc-gallery-item.tall { grid-column: span 2; }
+    .tc-gallery-item.square { grid-column: span 2; }
     .tc-location-inner {
       width: calc(100vw - 1.5rem);
       min-height: clamp(240px, 62vw, 300px);
     }
   }
   @media (max-width: 640px) {
-    .tc-gallery-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .tc-gallery-grid { grid-template-columns: repeat(2, 1fr); }
     .tc-gallery-item.large,
     .tc-gallery-item.wide,
     .tc-gallery-item.tall,
-    .tc-gallery-item.square {
-      grid-column: span 2;
-    }
-    .tc-service-list li {
-      grid-template-columns: 1fr;
-    }
-    .tc-service-list li .tc-price {
-      justify-self: start;
-    }
+    .tc-gallery-item.square { grid-column: span 2; }
+    .tc-service-list li { grid-template-columns: 1fr; }
+    .tc-service-list li .tc-price { justify-self: start; }
   }
 </style>
