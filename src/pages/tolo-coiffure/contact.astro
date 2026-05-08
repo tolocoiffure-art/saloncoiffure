@@ -14,7 +14,10 @@ const metadata = {
   <section class="tc-section">
     <p class="tc-kicker">Contact</p>
     <h1 class="tc-title">Réserver un rendez-vous</h1>
-    <p class="tc-lead">Choisissez votre créneau en ligne via Calendly, ou contactez-nous directement sur WhatsApp pour une réponse rapide.</p>
+    <p class="tc-lead">
+      Choisissez votre créneau en ligne via Calendly, ou contactez-nous directement sur WhatsApp pour une réponse
+      rapide.
+    </p>
   </section>
 
   <section class="tc-section tc-contact-grid">
@@ -23,7 +26,11 @@ const metadata = {
       <h2>Tolo Coiffure</h2>
       <ul class="tc-list">
         <li><span>Adresse</span><span>{toloCoiffureConfig.address}</span></li>
-        <li><span>Téléphone</span><a href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer">{toloCoiffureConfig.phone}</a></li>
+        <li>
+          <span>Téléphone</span><a href={toloCoiffureConfig.telHref} target="_blank" rel="noreferrer"
+            >{toloCoiffureConfig.phone}</a
+          >
+        </li>
         <li><span>Email</span><a href={`mailto:${toloCoiffureConfig.email}`}>{toloCoiffureConfig.email}</a></li>
       </ul>
       <div class="tc-button-row">
@@ -49,15 +56,17 @@ const metadata = {
     </div>
   </section>
 
-  {toloCoiffureConfig.calendlyUrl && (
-    <section class="tc-section">
-      <div class="tc-calendly-card">
-        <p class="tc-kicker small">Réservation en ligne</p>
-        <h2>Calendly</h2>
-        <div class="calendly-inline-widget tc-calendly-widget" data-url={toloCoiffureConfig.calendlyUrl}></div>
-      </div>
-    </section>
-  )}
+  {
+    toloCoiffureConfig.calendlyUrl && (
+      <section class="tc-section">
+        <div class="tc-calendly-card">
+          <p class="tc-kicker small">Réservation en ligne</p>
+          <h2>Calendly</h2>
+          <div class="calendly-inline-widget tc-calendly-widget" data-url={toloCoiffureConfig.calendlyUrl} />
+        </div>
+      </section>
+    )
+  }
 
   <section class="tc-section">
     <div class="tc-map">
@@ -65,24 +74,30 @@ const metadata = {
         title="Plan Tolo Coiffure"
         src={toloCoiffureConfig.mapEmbed}
         loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-      />
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
   </section>
-  {toloCoiffureConfig.calendlyUrl && (
-    <script is:inline src="https://assets.calendly.com/assets/external/widget.js" async></script>
-  )}
+  {
+    toloCoiffureConfig.calendlyUrl && (
+      <script is:inline src="https://assets.calendly.com/assets/external/widget.js" async />
+    )
+  }
 </Shell>
 
 <style>
-  .tc-section { margin-bottom: 110px; }
+  .tc-section {
+    margin-bottom: 110px;
+  }
   .tc-kicker {
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-size: 0.8rem;
     color: var(--tc-muted);
   }
-  .tc-kicker.small { font-size: 0.72rem; letter-spacing: 0.12em; }
+  .tc-kicker.small {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+  }
   .tc-title {
     font-family: var(--tc-font-heading);
     font-size: clamp(2rem, 3.8vw, 2.5rem);
@@ -128,7 +143,11 @@ const metadata = {
     gap: 0.5rem;
     color: var(--tc-muted);
   }
-  .tc-list a { color: var(--tc-text); text-decoration: none; font-weight: 600; }
+  .tc-list a {
+    color: var(--tc-text);
+    text-decoration: none;
+    font-weight: 600;
+  }
   .tc-hours {
     list-style: none;
     padding: 0;
@@ -153,7 +172,9 @@ const metadata = {
     color: var(--tc-text);
     text-decoration: none;
     background: color-mix(in srgb, var(--tc-accent) 10%, transparent);
-    transition: background 160ms ease, border-color 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
     width: fit-content;
   }
   .tc-button:hover {
@@ -212,12 +233,18 @@ const metadata = {
     line-height: 1.45;
   }
   @media (max-width: 640px) {
-    .tc-section { margin-bottom: 90px; }
-    .tc-list li { grid-template-columns: 1fr; }
+    .tc-section {
+      margin-bottom: 90px;
+    }
+    .tc-list li {
+      grid-template-columns: 1fr;
+    }
     .tc-calendly-widget {
       min-width: 100%;
       height: 680px;
     }
-    .tc-map iframe { height: 260px; }
+    .tc-map iframe {
+      height: 260px;
+    }
   }
 </style>

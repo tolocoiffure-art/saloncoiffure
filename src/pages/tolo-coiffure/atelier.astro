@@ -11,8 +11,11 @@ const metadata = {
   ignoreTitleTemplate: true,
 };
 
-const { heroImage: toloHeroImage, atelierInteriorImage: toloAtelierInteriorImage, atelierDetailImage: toloAtelierDetailImage } =
-  await getToloGalleryData();
+const {
+  heroImage: toloHeroImage,
+  atelierInteriorImage: toloAtelierInteriorImage,
+  atelierDetailImage: toloAtelierDetailImage,
+} = await getToloGalleryData();
 ---
 
 <Shell page="atelier" metadata={metadata}>
@@ -20,34 +23,38 @@ const { heroImage: toloHeroImage, atelierInteriorImage: toloAtelierInteriorImage
     <p class="tc-kicker">L’Atelier</p>
     <h1 class="tc-title">La couleur comme langage.</h1>
     <p class="tc-lead">
-      Chaque rendez-vous commence par un dialogue précis : lumière naturelle, carnation, rythme de repousse, habitudes de coiffage.
-      Nous construisons une couleur qui reste belle au quotidien, avec des reflets contrôlés et une matière protégée.
+      Chaque rendez-vous commence par un dialogue précis : lumière naturelle, carnation, rythme de repousse, habitudes
+      de coiffage. Nous construisons une couleur qui reste belle au quotidien, avec des reflets contrôlés et une matière
+      protégée.
     </p>
   </section>
 
   <section class="tc-section tc-duo">
     <figure class="tc-image">
-      {(toloAtelierInteriorImage || toloHeroImage) && (
-        <Image
-          src={(toloAtelierInteriorImage || toloHeroImage)!.src}
-          alt="Intérieur Tolo Coiffure"
-          loading="lazy"
-          widths={[700, 1000, 1400]}
-          sizes="(max-width: 780px) 100vw, 50vw"
-          format="webp"
-          quality={82}
-        />
-      )}
+      {
+        (toloAtelierInteriorImage || toloHeroImage) && (
+          <Image
+            src={(toloAtelierInteriorImage || toloHeroImage)!.src}
+            alt="Intérieur Tolo Coiffure"
+            loading="lazy"
+            widths={[700, 1000, 1400]}
+            sizes="(max-width: 780px) 100vw, 50vw"
+            format="webp"
+            quality={82}
+          />
+        )
+      }
     </figure>
     <div class="tc-copy tc-copy-highlight">
       <h2>Un espace calme au centre de Lausanne</h2>
       <p>
-        Fauteuils en cuir, lumière adoucie, matériaux sobres. La cabine couleur est pensée pour le confort pendant les temps de pose, avec
-        une attention particulière à la température et à la lumière pour garantir un résultat fidèle.
+        Fauteuils en cuir, lumière adoucie, matériaux sobres. La cabine couleur est pensée pour le confort pendant les
+        temps de pose, avec une attention particulière à la température et à la lumière pour garantir un résultat
+        fidèle.
       </p>
       <p>
-        Rue Pré-du-Marché 6, 1004 Lausanne — à deux pas du Flon, accessible en transport et parking à proximité. Les horaires sont adaptés
-        aux agendas chargés : {toloCoiffureConfig.phone} pour une arrivée discrète et ponctuelle.
+        Rue Pré-du-Marché 6, 1004 Lausanne — à deux pas du Flon, accessible en transport et parking à proximité. Les
+        horaires sont adaptés aux agendas chargés : {toloCoiffureConfig.phone} pour une arrivée discrète et ponctuelle.
       </p>
     </div>
   </section>
@@ -56,26 +63,28 @@ const { heroImage: toloHeroImage, atelierInteriorImage: toloAtelierInteriorImage
     <div class="tc-copy">
       <h2>Fondatrice</h2>
       <p>
-        Coiffeuse-coloriste formée aux techniques éditoriales, passionnée par les placements naturels et le soin de la fibre. Chaque geste
-        est mesuré : diagnostics précis, produits dosés, protocoles protecteurs systématiques.
+        Coiffeuse-coloriste formée aux techniques éditoriales, passionnée par les placements naturels et le soin de la
+        fibre. Chaque geste est mesuré : diagnostics précis, produits dosés, protocoles protecteurs systématiques.
       </p>
       <p>
-        L’objectif : un résultat sobre, lumineux, qui reste élégant sans effort. Les rendez-vous sont limités pour garder le temps nécessaire
-        à chaque étape.
+        L’objectif : un résultat sobre, lumineux, qui reste élégant sans effort. Les rendez-vous sont limités pour
+        garder le temps nécessaire à chaque étape.
       </p>
     </div>
     <figure class="tc-image">
-      {(toloAtelierDetailImage || toloHeroImage) && (
-        <Image
-          src={(toloAtelierDetailImage || toloHeroImage)!.src}
-          alt="Détail de coiffure et finition couleur"
-          loading="lazy"
-          widths={[700, 1000, 1200]}
-          sizes="(max-width: 780px) 100vw, 50vw"
-          format="webp"
-          quality={82}
-        />
-      )}
+      {
+        (toloAtelierDetailImage || toloHeroImage) && (
+          <Image
+            src={(toloAtelierDetailImage || toloHeroImage)!.src}
+            alt="Détail de coiffure et finition couleur"
+            loading="lazy"
+            widths={[700, 1000, 1200]}
+            sizes="(max-width: 780px) 100vw, 50vw"
+            format="webp"
+            quality={82}
+          />
+        )
+      }
     </figure>
   </section>
 </Shell>
@@ -108,8 +117,12 @@ const { heroImage: toloHeroImage, atelierInteriorImage: toloAtelierInteriorImage
     gap: 1.6rem;
     align-items: center;
   }
-  .tc-duo.reverse { direction: rtl; }
-  .tc-duo.reverse > * { direction: ltr; }
+  .tc-duo.reverse {
+    direction: rtl;
+  }
+  .tc-duo.reverse > * {
+    direction: ltr;
+  }
   .tc-copy {
     display: grid;
     gap: 0.8rem;
@@ -143,6 +156,8 @@ const { heroImage: toloHeroImage, atelierInteriorImage: toloAtelierInteriorImage
     filter: saturate(0.95) brightness(0.9);
   }
   @media (max-width: 640px) {
-    .tc-section { margin-bottom: 90px; }
+    .tc-section {
+      margin-bottom: 90px;
+    }
   }
 </style>
