@@ -1,2676 +1,500 @@
 ---
-import CallToAction from '~/components/widgets/CallToAction.astro';
-import Content from '~/components/widgets/Content.astro';
-import Features2 from '~/components/widgets/Features2.astro';
-import Hero from '~/components/widgets/Hero.astro';
-import Layout from '~/layouts/PageLayout.astro';
-import { getBrandFromHost } from '~/lib/brand';
-import { BRANDS } from '~/lib/brands.config';
-import { getImage, getImageAlt } from '~/data/imageInventory';
-import { EXPERIENCES } from '~/data/experiences';
-import { resolveLocaleFromRequest } from '~/lib/locale';
-import { resolveTenantFromRequest } from '~/lib/tenants';
-import { resolveTonSiteWebComponent } from '~/tenants/tonsiteweb/router';
+import Shell from '~/tenants/tolo-coiffure/Shell.astro';
+import { toloServicePanels, bookingCta } from '~/tenants/tolo-coiffure/services';
+import { toloCoiffureConfig } from '~/tenants/tolo-coiffure/config';
 
-const tenant = resolveTenantFromRequest(Astro.request);
-
-const TonComponent =
-  tenant.slug === 'tonsiteweb'
-    ? resolveTonSiteWebComponent(
-        'services',
-        Astro.url instanceof URL ? Astro.url : new URL(Astro.request.url),
-        Astro.request
-      )
-    : null;
-
-const hostCandidates = [
-  Astro.request.headers.get('x-forwarded-host'),
-  Astro.request.headers.get('host'),
-  new URL(Astro.request.url).host,
-]
-  .flatMap((value) => (value || '').split(','))
-  .map((value) => value.toLowerCase().trim().split(':')[0])
-  .filter(Boolean);
-const isToloHost = hostCandidates.some((host) => host.includes('tolocoiffure.ch'));
-if (tenant.slug === 'tolo-coiffure' || isToloHost) {
-  return Astro.rewrite('/tolo-coiffure/services');
-}
-
-if (tenant.slug === 'ateliermemoire' && !(Astro.url?.pathname || '').startsWith('/atelier-memoire')) {
-  const target = new URL('/atelier-memoire', Astro.url instanceof URL ? Astro.url : new URL(Astro.request.url));
-  return Astro.redirect(target.toString(), 308);
-}
-
-const host = Astro.request.headers.get('host');
-const brandKey = getBrandFromHost(host);
-if (!TonComponent && brandKey === 'maisoncortes') {
-  return Astro.redirect('/maison-cortes');
-}
-
-const isUrgent = brandKey === 'urgent';
-const isTransport = brandKey === 'transport';
-const isExperience = brandKey === 'laclemanexperience';
-const isLausanne = brandKey === 'lausanne';
-const brandType = isUrgent
-  ? 'urgent'
-  : isTransport
-    ? 'transport'
-    : brandKey === 'debarras'
-      ? 'debarras'
-      : brandKey === 'videmaison'
-        ? 'videmaison'
-        : brandKey === 'videsuccession'
-          ? 'videsuccession'
-          : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-            ? 'clean'
-            : brandKey === 'etatdeslieux'
-              ? 'etatdeslieux'
-              : brandKey === 'laclemanexperience'
-                ? 'experience'
-                : 'move';
-const brand = BRANDS[brandKey] || BRANDS.pedro;
-const whatsapp = brand?.whatsapp || 'https://wa.me/41767982793';
-
-const experienceFormats = [
-  { title: 'Demi-journée', description: '2–4h · 2–6 pers. · Couples, VIP visiteurs', icon: 'tabler:clock-hour-4' },
-  { title: 'Journée', description: '5–8h · 2–8 pers. · Découverte complète', icon: 'tabler:calendar-time' },
-  { title: 'Soirée signature', description: '3–4h · 2–10 pers. · Dîner, célébration', icon: 'tabler:moon-stars' },
-  { title: 'Immersion', description: '2–3 jours · 2–6 pers. · UHNW, corporate', icon: 'tabler:route' },
-];
-
-const experienceConcierge = [
-  {
-    title: 'Interlocuteur unique',
-    description: 'WhatsApp + téléphone, réponse rapide J-7 → J+1',
-    icon: 'tabler:headset',
-  },
-  {
-    title: 'Brief écrit',
-    description: 'Partagé aux bateliers, vignerons, chefs locaux. Pas d’improvisation.',
-    icon: 'tabler:clipboard-list',
-  },
-  {
-    title: 'Plan B météo',
-    description: 'Validé à l’avance, expérience maintenue sans perte de qualité.',
-    icon: 'tabler:cloud-check',
-  },
-];
-
-const experienceLogistics = [
-  {
-    title: 'Créneaux verrouillés',
-    description: 'Sunset, transferts porte-à-porte, tampons horaires intégrés.',
-    icon: 'tabler:clock-check',
-  },
-  {
-    title: 'Transferts privés',
-    description: 'Mercedes V/E, bateau-taxi si pertinent, chauffeurs brieffés.',
-    icon: 'tabler:car',
-  },
-  {
-    title: 'Autorisations & privatisations',
-    description: 'Caves, bateaux, tables d’hôtes réellement privatisés.',
-    icon: 'tabler:lock-square-rounded',
-  },
-];
-
-const experienceCommitments = [
-  { title: 'Privatisation réelle', description: 'Jamais de mélange de groupes.', icon: 'tabler:shield-lock' },
-  { title: 'Horaires respectés', description: 'Ou compensation si décalage.', icon: 'tabler:clock-bolt' },
-  {
-    title: 'Partenaires directs',
-    description: 'Réseau local (bateliers, vignerons, chefs) sans intermédiaire.',
-    icon: 'tabler:users',
-  },
-  { title: 'Plan B météo', description: 'Alternatives prêtes et validées.', icon: 'tabler:umbrella' },
-];
-
-const categoryIcons: Record<string, string> = {
-  lac: 'tabler:sailboat',
-  gastronomy: 'tabler:chef-hat',
-  wine: 'tabler:glass-full',
-  mountain: 'tabler:mountain',
-  city: 'tabler:building-community',
-  wellness: 'tabler:leaf',
-  winter: 'tabler:snowflake',
-  corporate: 'tabler:briefcase-2',
-  meta: 'tabler:map',
+const metadata = {
+  title: 'Services — Tolo Coiffure Lausanne',
+  description: 'Prestations femme et homme — grille complète et tarifs exacts en CHF.',
+  ignoreTitleTemplate: true,
 };
-const heroImageId = isUrgent
-  ? 'e_cat_truck_mountains_lake_00'
-  : isTransport
-    ? 'professional_van_1'
-    : brandKey === 'debarras'
-      ? 'van_inside_objects_boxes_1'
-      : brandKey === 'videmaison'
-        ? 'strong_man_packing_1'
-        : brandKey === 'videsuccession'
-          ? 'empty_apartment_3'
-          : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-            ? 'professional_cleanerd_floor'
-            : brandKey === 'etatdeslieux'
-              ? 'empty_apartment_2'
-              : brandKey === 'laclemanexperience'
-                ? 'silent_boat_still_lake'
-                : 'hero_happy_boxes_plants';
-const heroImage = getImage(heroImageId);
-const heroAlt = getImageAlt(heroImageId);
-const defaultLocale = brandKey === 'laclemanexperience' ? 'en' : 'fr';
-const locale = resolveLocaleFromRequest(Astro.request, defaultLocale);
-const lang = isExperience
-  ? ['fr', 'en', 'de', 'it', 'ar', 'zh'].includes(locale)
-    ? locale
-    : defaultLocale
-  : isLausanne
-    ? ['fr', 'en', 'de', 'it', 'ar', 'zh'].includes(locale)
-      ? locale
-      : 'fr'
-    : 'fr';
-const isEn = lang === 'en';
-const isDe = lang === 'de';
-const isIt = lang === 'it';
-const isAr = lang === 'ar';
-const isZh = lang === 'zh';
-const lceT = <T,>(fr: T, en: T, de: T, it: T, ar?: T, zh?: T): T => {
-  if (!isExperience) return fr;
-  if (isEn) return en;
-  if (isDe) return de;
-  if (isIt) return it;
-  if (isAr && ar !== undefined) return ar;
-  if (isZh && zh !== undefined) return zh;
-  return fr;
-};
-const lamT = <T,>(fr: T, en: T, de: T, it: T): T => {
-  if (!isLausanne) return fr;
-  if (isEn) return en;
-  if (isDe) return de;
-  if (isIt) return it;
-  return fr;
-};
-const experienceCards = isExperience
-  ? EXPERIENCES.map((exp) => {
-      const title = isAr && exp.titleAr ? exp.titleAr : isZh && exp.titleZh ? exp.titleZh : exp.title;
-      const description =
-        isAr && exp.descriptionAr ? exp.descriptionAr : isZh && exp.descriptionZh ? exp.descriptionZh : exp.description;
-      const price =
-        isAr && exp.priceBandAr ? exp.priceBandAr : isZh && exp.priceBandZh ? exp.priceBandZh : exp.priceBand;
 
-      return {
-        title,
-        description: `${description} · ${exp.duration} · ${price}`,
-        icon: categoryIcons[exp.category] || 'tabler:sparkles',
-        category: exp.category,
-        season: exp.season,
-      };
-    })
-  : [];
-
-const signatureExperiences = experienceCards
-  .filter((exp) => ['lac', 'gastronomy', 'wine', 'mountain'].includes(exp.category))
-  .slice(0, 6);
-const slowExperiences = experienceCards.filter((exp) => ['wellness', 'city', 'lac'].includes(exp.category)).slice(0, 6);
-const winterExperiences = experienceCards.filter((exp) => exp.season === 'winter').slice(0, 5);
-const corporateExperiences = experienceCards.filter((exp) => ['corporate', 'meta'].includes(exp.category)).slice(0, 4);
-
-const experienceFormatsData = lceT(
-  experienceFormats,
-  [
-    { title: 'Half-day', description: '2–4h · 2–6 ppl · Couples, VIP visitors', icon: 'tabler:clock-hour-4' },
-    { title: 'Full day', description: '5–8h · 2–8 ppl · Complete discovery', icon: 'tabler:calendar-time' },
-    { title: 'Signature evening', description: '3–4h · 2–10 ppl · Dinner, celebration', icon: 'tabler:moon-stars' },
-    { title: 'Immersion', description: '2–3 days · 2–6 ppl · UHNW, corporate', icon: 'tabler:route' },
-  ],
-  [
-    { title: 'Halbtags', description: '2–4h · 2–6 Pers. · Paare, VIP-Besucher', icon: 'tabler:clock-hour-4' },
-    { title: 'Ganzer Tag', description: '5–8h · 2–8 Pers. · Komplette Entdeckung', icon: 'tabler:calendar-time' },
-    { title: 'Signature-Abend', description: '3–4h · 2–10 Pers. · Dinner, Celebration', icon: 'tabler:moon-stars' },
-    { title: 'Immersion', description: '2–3 Tage · 2–6 Pers. · UHNW, Corporate', icon: 'tabler:route' },
-  ],
-  [
-    { title: 'Mezza giornata', description: '2–4h · 2–6 pers. · Coppie, visitatori VIP', icon: 'tabler:clock-hour-4' },
-    { title: 'Giornata intera', description: '5–8h · 2–8 pers. · Scoperta completa', icon: 'tabler:calendar-time' },
-    { title: 'Serata signature', description: '3–4h · 2–10 pers. · Cena, celebrazione', icon: 'tabler:moon-stars' },
-    { title: 'Immersione', description: '2–3 giorni · 2–6 pers. · UHNW, corporate', icon: 'tabler:route' },
-  ],
-  [
-    { title: 'نصف يوم', description: '2–4س · 2–6 أشخاص · ثنائيات وزوار VIP', icon: 'tabler:clock-hour-4' },
-    { title: 'يوم كامل', description: '5–8س · 2–8 أشخاص · اكتشاف كامل', icon: 'tabler:calendar-time' },
-    { title: 'أمسية مميزة', description: '3–4س · 2–10 أشخاص · عشاء/احتفال', icon: 'tabler:moon-stars' },
-    { title: 'إقامة غامرة', description: '2–3 أيام · 2–6 أشخاص · عملاء مميزون/شركات', icon: 'tabler:route' },
-  ],
-  [
-    { title: '半天', description: '2–4小时 · 2–6人 · 情侣/贵宾访客', icon: 'tabler:clock-hour-4' },
-    { title: '整天', description: '5–8小时 · 2–8人 · 全面体验', icon: 'tabler:calendar-time' },
-    { title: '招牌夜晚', description: '3–4小时 · 2–10人 · 晚宴/庆祝', icon: 'tabler:moon-stars' },
-    { title: '沉浸式', description: '2–3天 · 2–6人 · 高端/企业', icon: 'tabler:route' },
-  ]
-);
-const experienceConciergeData = lceT(
-  experienceConcierge,
-  [
-    { title: 'Single concierge', description: 'WhatsApp + phone, responsive from D-7 to D+1.', icon: 'tabler:headset' },
-    {
-      title: 'Written brief',
-      description: 'Shared with skippers, winemakers, chefs. No improvisation.',
-      icon: 'tabler:clipboard-list',
-    },
-    {
-      title: 'Weather plan B',
-      description: 'Validated upfront, experience quality preserved.',
-      icon: 'tabler:cloud-check',
-    },
-  ],
-  [
-    { title: 'Ein Concierge', description: 'WhatsApp + Telefon, reaktionsschnell J-7 → J+1.', icon: 'tabler:headset' },
-    {
-      title: 'Schriftliches Briefing',
-      description: 'Mit Skippern, Winzern, Köchen geteilt. Keine Improvisation.',
-      icon: 'tabler:clipboard-list',
-    },
-    { title: 'Wetter-Plan B', description: 'Vorab validiert, Qualität bleibt.', icon: 'tabler:cloud-check' },
-  ],
-  [
-    { title: 'Concierge unico', description: 'WhatsApp + telefono, reattivo da D-7 a D+1.', icon: 'tabler:headset' },
-    {
-      title: 'Brief scritto',
-      description: 'Condiviso con skipper, vignaioli, chef. Nessuna improvvisazione.',
-      icon: 'tabler:clipboard-list',
-    },
-    { title: 'Piano B meteo', description: 'Validato in anticipo, esperienza preservata.', icon: 'tabler:cloud-check' },
-  ],
-  [
-    { title: 'كونسيرج واحد', description: 'واتساب + هاتف، استجابة من J-7 إلى J+1.', icon: 'tabler:headset' },
-    {
-      title: 'موجز مكتوب',
-      description: 'يُشارك مع الملاحين، صناع النبيذ والطهاة. بلا ارتجال.',
-      icon: 'tabler:clipboard-list',
-    },
-    { title: 'خطة طقس بديلة', description: 'معتمدة مسبقاً للحفاظ على جودة التجربة.', icon: 'tabler:cloud-check' },
-  ],
-  [
-    { title: '单一礼宾', description: 'WhatsApp+电话，J-7 至 J+1 及时响应。', icon: 'tabler:headset' },
-    { title: '书面简报', description: '分享给船长、酒农、主厨，零即兴。', icon: 'tabler:clipboard-list' },
-    { title: '天气B案', description: '提前确认，体验质量不打折。', icon: 'tabler:cloud-check' },
-  ]
-);
-const experienceLogisticsData = lceT(
-  experienceLogistics,
-  [
-    {
-      title: 'Locked slots',
-      description: 'Sunset timings, door-to-door transfers, buffer times.',
-      icon: 'tabler:clock-check',
-    },
-    {
-      title: 'Private transfers',
-      description: 'Mercedes V/E, boat taxi if relevant, briefed drivers.',
-      icon: 'tabler:car',
-    },
-    {
-      title: 'Permits & privatisations',
-      description: 'Cellars, boats, hosted tables truly privatised.',
-      icon: 'tabler:lock-square-rounded',
-    },
-  ],
-  [
-    {
-      title: 'Fixe Slots',
-      description: 'Sunset-Zeiten, Tür-zu-Tür-Transfers, Pufferzeiten.',
-      icon: 'tabler:clock-check',
-    },
-    {
-      title: 'Private Transfers',
-      description: 'Mercedes V/E, Bootstaxi falls sinnvoll, gebriefte Fahrer.',
-      icon: 'tabler:car',
-    },
-    {
-      title: 'Bewilligungen & Privatisierungen',
-      description: 'Keller, Boote, Gastgebertafeln wirklich privat.',
-      icon: 'tabler:lock-square-rounded',
-    },
-  ],
-  [
-    {
-      title: 'Slot bloccati',
-      description: 'Orari sunset, transfer door-to-door, tempi cuscinetto.',
-      icon: 'tabler:clock-check',
-    },
-    {
-      title: 'Transfer privati',
-      description: 'Mercedes V/E, taxi boat se serve, autisti briefati.',
-      icon: 'tabler:car',
-    },
-    {
-      title: 'Permessi & privatizzazioni',
-      description: 'Cantine, barche, tavole davvero privatizzate.',
-      icon: 'tabler:lock-square-rounded',
-    },
-  ],
-  [
-    {
-      title: 'مواعيد مقفلة',
-      description: 'أوقات الغروب، نقل باب لباب، هوامش زمنية مدمجة.',
-      icon: 'tabler:clock-check',
-    },
-    { title: 'تنقلات خاصة', description: 'مرسيدس V/E أو تاكسي بحري، سائقون مbriefés.', icon: 'tabler:car' },
-    {
-      title: 'تصاريح وخصخصة',
-      description: 'سراديب، قوارب، موائد مضيفة مخصخصة فعلياً.',
-      icon: 'tabler:lock-square-rounded',
-    },
-  ],
-  [
-    { title: '锁定档期', description: '日落时间段，门到门接送，预留缓冲。', icon: 'tabler:clock-check' },
-    { title: '专属接送', description: '奔驰V/E或水上接驳，司机已对齐。', icon: 'tabler:car' },
-    { title: '许可与私享', description: '酒窖/游船/私宴真正私享。', icon: 'tabler:lock-square-rounded' },
-  ]
-);
-const experienceCommitmentsData = lceT(
-  experienceCommitments,
-  [
-    { title: 'Real privatisation', description: 'Never mixing groups.', icon: 'tabler:shield-lock' },
-    { title: 'Timing respected', description: 'Or compensated.', icon: 'tabler:clock-bolt' },
-    { title: 'Direct partners', description: 'Local skippers, winemakers, chefs.', icon: 'tabler:users' },
-    { title: 'Weather plan B', description: 'Alternatives ready and validated.', icon: 'tabler:umbrella' },
-  ],
-  [
-    { title: 'Echte Privatisierung', description: 'Keine Gruppendurchmischung.', icon: 'tabler:shield-lock' },
-    { title: 'Timing eingehalten', description: 'Oder kompensiert.', icon: 'tabler:clock-bolt' },
-    { title: 'Direkte Partner', description: 'Lokale Skipper, Winzer, Köche.', icon: 'tabler:users' },
-    { title: 'Wetter-Plan B', description: 'Alternativen bereit und validiert.', icon: 'tabler:umbrella' },
-  ],
-  [
-    { title: 'Vera privatizzazione', description: 'Mai gruppi mescolati.', icon: 'tabler:shield-lock' },
-    { title: 'Timing rispettato', description: 'O compensato.', icon: 'tabler:clock-bolt' },
-    { title: 'Partner diretti', description: 'Skipper, vignaioli, chef locali.', icon: 'tabler:users' },
-    { title: 'Piano B meteo', description: 'Alternative pronte e validate.', icon: 'tabler:umbrella' },
-  ],
-  [
-    { title: 'خصخصة حقيقية', description: 'لا مزج بين المجموعات.', icon: 'tabler:shield-lock' },
-    { title: 'مواعيد محترمة', description: 'أو تعويض عند التأخير.', icon: 'tabler:clock-bolt' },
-    { title: 'شركاء مباشرين', description: 'ملاحون، صناع نبيذ، طهاة محليون.', icon: 'tabler:users' },
-    { title: 'خطة طقس بديلة', description: 'بدائل جاهزة ومعتمدة.', icon: 'tabler:umbrella' },
-  ],
-  [
-    { title: '真实私享', description: '绝不混团。', icon: 'tabler:shield-lock' },
-    { title: '严格守时', description: '如有延误则补偿。', icon: 'tabler:clock-bolt' },
-    { title: '直连伙伴', description: '本地船长、酒农、主厨。', icon: 'tabler:users' },
-    { title: '天气B案', description: '备用方案随时启用。', icon: 'tabler:umbrella' },
-  ]
-);
-const overlayRegionTitle =
-  brandType === 'experience'
-    ? lceT(
-        'Arc lémanique & Suisse',
-        'Lake Geneva & Switzerland',
-        'Genfersee & Schweiz',
-        'Lago Lemano & Svizzera',
-        'بحيرة ليمان وسويسرا',
-        '莱蒙湖及瑞士'
-      )
-    : lamT('Arc lémanique & Suisse', 'Lake Geneva & Switzerland', 'Genfersee & Schweiz', 'Lago Lemano & Svizzera');
-const overlayOptionsTitle =
-  brandType === 'experience'
-    ? lceT(
-        'Options flexibles',
-        'Flexible options',
-        'Flexible Optionen',
-        'Opzioni flessibili',
-        'خيارات مرنة',
-        '灵活选项'
-      )
-    : lamT('Options flexibles', 'Flexible options', 'Flexible Optionen', 'Opzioni flessibili');
-const overlayOptionsSubtitle =
-  brandType === 'experience'
-    ? lceT(
-        'Nous adaptons l’équipe, le matériel et les créneaux horaires à vos contraintes de bail, d’ascenseur ou de route.',
-        'We adapt crew, gear and slots to lease, lift or route constraints.',
-        'Wir passen Team, Material und Slots an Miet-, Lift- oder Routen-Constraints an.',
-        'Adattiamo squadra, materiale e slot alle tue constraints di contratto/ascensore/strada.',
-        'نكيّف الفريق والمعدات والمواعيد وفق قيود العقد أو المصعد أو الطريق.',
-        '根据租约、电梯或线路限制调整团队、物料与时间段。'
-      )
-    : lamT(
-        'Nous adaptons l’équipe, le matériel et les créneaux horaires à vos contraintes de bail, d’ascenseur ou de route.',
-        'We adapt crew, gear and slots to lease, lift or route constraints.',
-        'Wir passen Team, Material und Slots an Miet-, Lift- oder Routen-Constraints an.',
-        'Adattiamo squadra, materiale e slot alle tue constraints di contratto/ascensore/strada.'
-      );
-
-const heroOverlay = isUrgent
-  ? 'urgent-services-hero-overlay'
-  : isTransport
-    ? 'transport-services-hero-overlay'
-    : brandKey === 'debarras'
-      ? 'debarras-services-hero-overlay'
-      : brandKey === 'videmaison'
-        ? 'videmaison-services-hero-overlay'
-        : brandKey === 'videsuccession'
-          ? 'videsuccession-services-hero-overlay'
-          : brandKey === 'lausannenettoyage'
-            ? 'lausannenettoyage-services-hero-overlay'
-            : brandKey === 'nettoyagesuccession'
-              ? 'nettoyagesuccession-services-hero-overlay'
-              : brandKey === 'etatdeslieux'
-                ? 'etatdeslieux-services-hero-overlay'
-                : brandKey === 'laclemanexperience'
-                  ? 'experience-services-hero-overlay'
-                  : brandKey === 'lausanne'
-                    ? 'lausanne-services-hero-overlay'
-                    : brandKey === 'pedro'
-                      ? 'pedro-services-hero-overlay'
-                      : 'bg-white/15';
-const heroCardImage = getImage(
-  isUrgent
-    ? 'e_cat_truck_mountains_lake_01'
-    : brandKey === 'transport'
-      ? 'professional_van_2'
-      : brandKey === 'debarras'
-        ? 'men_loading_van_1'
-        : brandKey === 'videmaison'
-          ? 'strong_man_packing_2'
-          : brandKey === 'videsuccession'
-            ? 'empty_apartment_4'
-            : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-              ? 'man_cleaning'
-              : brandKey === 'etatdeslieux'
-                ? 'empty_apartment_5'
-                : brandKey === 'laclemanexperience'
-                  ? 'quiet_luxury_lake_lifestyle'
-                  : 'men_loading_e_cat_truck'
-);
-const processImage = getImage(
-  isUrgent
-    ? 'men_moving_furniture_montreux_stairs'
-    : brandKey === 'transport'
-      ? 'van_inside_objects_boxes_3'
-      : brandKey === 'debarras'
-        ? 'van_inside_objects_boxes_2'
-        : brandKey === 'videmaison'
-          ? 'strong_man_packing_1'
-          : brandKey === 'videsuccession'
-            ? 'empty_apartment_6'
-            : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-              ? 'mop_cleaning_closeup'
-              : brandKey === 'etatdeslieux'
-                ? 'empty_apartment_9'
-                : brandKey === 'laclemanexperience'
-                  ? 'silent_boat_still_lake'
-                  : 'high_luxury_swiss_balcony_leman'
-);
-const optionsImage = getImage(
-  isUrgent
-    ? 'van_moving_swiss_town_raining_motion_blur'
-    : brandKey === 'transport'
-      ? 'professional_van_4'
-      : brandKey === 'debarras'
-        ? 'van_inside_objects_boxes_4'
-        : brandKey === 'videmaison'
-          ? 'strong_man_packing_2'
-          : brandKey === 'videsuccession'
-            ? 'empty_apartment_8'
-            : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-              ? 'mop_closeup_luxury_apartment'
-              : brandKey === 'etatdeslieux'
-                ? 'empty_apartment_11'
-                : brandKey === 'laclemanexperience'
-                  ? 'quiet_luxury_lake_lifestyle'
-                  : 'high_end_luxury_apartment_lakeside'
-);
-
-const metadata = isUrgent
-  ? {
-      title: 'Déménagement Urgent — Services express',
-      description:
-        'Intervention 60–90 min, protections incluses, livraisons directes. Arc lémanique et CH sur demande.',
-      ignoreTitleTemplate: true,
-    }
-  : brandKey === 'transport'
-    ? {
-        title: 'Services de transport de meubles',
-        description: 'Protection premium, arrimage renforcé et créneaux précis.',
-      }
-    : brandKey === 'debarras'
-      ? { title: 'Services de débarras', description: 'Tri, dons/recyclage, évacuation contrôlée et remise propre.' }
-      : brandKey === 'videmaison'
-        ? { title: 'Services de vide maison', description: 'Vidage complet, tri, évacuation et remise en ordre.' }
-        : brandKey === 'videsuccession'
-          ? {
-              title: 'Services de vide succession',
-              description: 'Gestion sensible, tri, évacuation et propreté finale.',
-            }
-          : brandKey === 'nettoyagesuccession' || brandKey === 'lausannenettoyage'
-            ? { title: 'Services de nettoyage', description: 'Nettoyages complets, vitres, sols et contrôle qualité.' }
-            : brandKey === 'etatdeslieux'
-              ? { title: 'Services état des lieux', description: 'Constats détaillés, photos, rapports rapides.' }
-              : brandKey === 'laclemanexperience'
-                ? {
-                    title: 'Expériences Lac Léman',
-                    description: 'Croisières privées, vignobles UNESCO, tables d’hôtes et échappées alpines.',
-                  }
-                : { title: 'Services de déménagement' };
-
-export const prerender = false;
-
-let view = (() => {
-  switch (brandType) {
-    case 'transport':
-      return {
-        tagline: 'Transport spécialisé',
-        title: 'Transport premium, créneaux verrouillés',
-        subtitle: 'Protection, arrimage renforcé, contact chauffeur et fenêtres horaires serrées.',
-        actions: [
-          { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
-          { text: 'Parler logistique', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        featureTitle: 'Prestations transport',
-        featureSubtitle: 'Pensées pour vos pièces sensibles ou volumineuses.',
-        featureItems: [
-          { title: 'Conditionnement', description: 'Filmage, housses, calage sur mesure.', icon: 'tabler:package' },
-          { title: 'Arrimage renforcé', description: 'Sangles, anti-glisse, calage dédié.', icon: 'tabler:anchor' },
-          { title: 'Fenêtre serrée', description: 'Passage à l’heure convenue.', icon: 'tabler:clock' },
-        ],
-        content1Title: 'Transport haut de gamme',
-        content1Subtitle: 'Coordination et protection premium pour éviter toute casse.',
-        content1Items: [
-          { title: 'Brief volume', description: 'Dimensions, fragilité, accès départ/arrivée.', icon: 'tabler:ruler' },
-          {
-            title: 'Protection renforcée',
-            description: 'Coins mousse, couvertures, filmage.',
-            icon: 'tabler:shield-lock',
-          },
-          {
-            title: 'Livraison précise',
-            description: 'Placement, reprise des protections.',
-            icon: 'tabler:map-pin-check',
-          },
-        ],
-        content2Title: 'Options transport',
-        content2Subtitle: 'Sélectionnez les modules adaptés.',
-        content2Items: [
-          { title: 'Emballage premium', description: 'Caisse carton renforcée, coins mousse.', icon: 'tabler:hexagon' },
-          { title: 'Livraison étage', description: 'Escaliers/ascenseurs gérés.', icon: 'tabler:stairs' },
-          { title: 'Transport duo', description: 'Équipe renforcée pour charges lourdes.', icon: 'tabler:users' },
-        ],
-        supportTitle: 'Inclus',
-        supportSubtitle: 'Ce qui ne change jamais.',
-        supportItems: [
-          { title: 'Chef de bord', description: 'Un contact pour piloter le trajet.', icon: 'tabler:headset' },
-          { title: 'Suivi direct', description: 'Contact chauffeur + mises à jour.', icon: 'tabler:message' },
-          { title: 'Assurance', description: 'RC pro incluse, précision sur la valeur.', icon: 'tabler:shield-check' },
-        ],
-        ctaTitle: 'Prêt à réserver un créneau ?',
-        ctaSubtitle: 'Décrivez la pièce, les adresses et la date souhaitée.',
-        ctaActions: [
-          { variant: 'primary', text: 'Planifier un transport', href: '/contact#form', icon: 'tabler:truck' },
-          { text: 'Parler logistique', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    case 'debarras':
-      return {
-        tagline: 'Débarras & désencombrement',
-        title: 'Débarras complet, trié et valorisé',
-        subtitle: 'Tri, dons/recyclage, évacuation contrôlée et remise propre, sans coordonner plusieurs équipes.',
-        actions: [
-          { variant: 'primary', text: 'Planifier un débarras', href: '/contact#form', icon: 'tabler:calendar-up' },
-          { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        featureTitle: 'Pourquoi nous appeler',
-        featureSubtitle: 'Un débarras cadré, rapide et documenté.',
-        featureItems: [
-          { title: 'Tri & dons', description: 'Réemploi, dons, recyclage avant évacuation.', icon: 'tabler:recycle' },
-          { title: 'Protection', description: 'Sols et parties communes préservés.', icon: 'tabler:shield-check' },
-          { title: 'Reporting', description: 'Avant/après pour bailleurs ou agences.', icon: 'tabler:photo-check' },
-        ],
-        content1Title: 'Débarras cadré',
-        content1Subtitle: 'Objectif : remettre propre sans friction.',
-        content1Items: [
-          { title: 'Évaluation', description: 'Photos ou visite rapide.', icon: 'tabler:camera' },
-          { title: 'Tri & démontage', description: 'Séparation réemploi / recyclage.', icon: 'tabler:tools' },
-          { title: 'Évacuation', description: 'Centres agréés, remise propre.', icon: 'tabler:route' },
-        ],
-        content2Title: 'Options associées',
-        content2Subtitle: 'Selon le bien et les délais.',
-        content2Items: [
-          { title: 'Nettoyage de sortie', description: 'Remise propre après débarras.', icon: 'tabler:sparkles' },
-          { title: 'Transport pièces gardées', description: 'Livraison des meubles conservés.', icon: 'tabler:truck' },
-          { title: 'Petit entretien', description: 'Retrait chevilles, rebouchage léger.', icon: 'tabler:tools' },
-        ],
-        supportTitle: 'Ce qui est inclus',
-        supportSubtitle: 'Base de chaque intervention.',
-        supportItems: [
-          { title: 'Protection', description: 'Commun et accès sécurisés.', icon: 'tabler:shield-check' },
-          { title: 'Chef d’équipe', description: 'Un seul interlocuteur.', icon: 'tabler:headset' },
-          { title: 'Planning clair', description: 'Créneau et périmètre verrouillés.', icon: 'tabler:calendar' },
-        ],
-        ctaTitle: 'Prêt pour un débarras cadré ?',
-        ctaSubtitle: 'Envoyez quelques photos ou organisez une visite express.',
-        ctaActions: [
-          { variant: 'primary', text: 'Planifier un débarras', href: '/contact#form', icon: 'tabler:calendar-up' },
-          { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    case 'experience':
-      return {
-        tagline: lceT(
-          'Expériences Léman',
-          'Lake Geneva experiences',
-          'Genfersee-Erlebnisse',
-          'Esperienze Lago Lemano',
-          'تجارب ليمان',
-          '莱蒙湖体验'
-        ),
-        title: lceT(
-          'Croisières privées, vignobles UNESCO, tables d’hôtes',
-          'Private cruises, UNESCO vineyards, hosted tables',
-          'Private Kreuzfahrten, UNESCO-Weinberge, Gastgebertafeln',
-          'Crociere private, vigneti UNESCO, tavole d’hôtes',
-          'رحلات خاصة، كروم اليونسكو، موائد مضيفة',
-          '私享游船、联合国教科文组织葡萄园、私宴'
-        ),
-        subtitle: lceT(
-          'Conciergerie dédiée, partenaires locaux, logistique verrouillée entre lac, montagne et ville.',
-          'Dedicated concierge, local partners, locked logistics across lake, mountain, and city.',
-          'Dedizierter Concierge, lokale Partner, fixierte Logistik zwischen See, Bergen und Stadt.',
-          'Concierge dedicato, partner locali, logistica bloccata tra lago, montagna e città.',
-          'كونسيرج مخصص، شركاء محليون، لوجستيات محكمة بين البحيرة والجبال والمدينة.',
-          '专属礼宾 + 本地伙伴，湖/山/城的严谨物流。'
-        ),
-        actions: [
-          {
-            variant: 'primary',
-            text: lceT(
-              'Réserver une expérience',
-              'Book an experience',
-              'Erlebnis buchen',
-              'Prenotare un’esperienza',
-              'احجز تجربة',
-              '预订体验'
-            ),
-            href: '/contact#form',
-            icon: 'tabler:mail-forward',
-          },
-          {
-            text: lceT(
-              'Parler à un concierge',
-              'Talk to a concierge',
-              'Mit dem Concierge sprechen',
-              'Parlare con un concierge',
-              'تحدث إلى الكونسيرج',
-              '联系礼宾'
-            ),
-            href: whatsapp,
-            icon: 'tabler:phone',
-          },
-        ],
-        cardTitle: lceT(
-          'Saisonnalité orchestrée',
-          'Seasonality orchestrated',
-          'Saisonale Orchestrierung',
-          'Stagionalità orchestrata',
-          'موسمية منسقة',
-          '季节策划'
-        ),
-        cardSubtitle: lceT(
-          'Lac au printemps, vignobles en été, tables d’hôtes en automne, bains alpins en hiver.',
-          'Lake in spring, vineyards in summer, hosted tables in autumn, alpine baths in winter.',
-          'See im Frühling, Weinberge im Sommer, Gastgebertafeln im Herbst, alpine Bäder im Winter.',
-          'Lago in primavera, vigneti in estate, tavole d’hôtes in autunno, bagni alpini in inverno.',
-          'بحيرة في الربيع، كروم في الصيف، موائد مضيفة في الخريف، حمامات جبلية في الشتاء.',
-          '春天湖面，夏季葡萄园，秋季私宴，冬季山间温泉。'
-        ),
-        featureTitle: lceT(
-          'Pourquoi nous choisir',
-          'Why choose us',
-          'Warum uns wählen',
-          'Perché scegliere noi',
-          'لماذا تختارنا',
-          '选择我们的理由'
-        ),
-        featureSubtitle: lceT(
-          'Conciergerie dédiée + partenaires locaux premium.',
-          'Dedicated concierge + premium local partners.',
-          'Dedizierter Concierge + lokale Premiumpartner.',
-          'Concierge dedicato + partner locali premium.',
-          'كونسيرج مخصص + شركاء محليون مميزون.',
-          '专属礼宾 + 本地优质伙伴。'
-        ),
-        featureItems: [
-          {
-            title: lceT(
-              'Concierge unique',
-              'Dedicated concierge',
-              'Dedizierter Concierge',
-              'Concierge dedicato',
-              'كونسيرج واحد',
-              '一位礼宾'
-            ),
-            description: lceT(
-              'Un interlocuteur pour tout cadrer.',
-              'One contact to frame everything.',
-              'Eine Ansprechperson für alles.',
-              'Un referente unico per tutto.',
-              'جهة اتصال واحدة لكل التفاصيل.',
-              '一人对接全程。'
-            ),
-            icon: 'tabler:headset',
-          },
-          {
-            title: lceT(
-              'Partenaires triés',
-              'Vetted partners',
-              'Geprüfte Partner',
-              'Partner selezionati',
-              'شركاء مختارون',
-              '甄选伙伴'
-            ),
-            description: lceT(
-              'Bateliers privés, vignerons UNESCO, chefs.',
-              'Private boats, UNESCO winemakers, chefs.',
-              'Private Boote, UNESCO-Winzer, Köche.',
-              'Barche private, vignaioli UNESCO, chef.',
-              'قوارب خاصة، صناع نبيذ اليونسكو، طهاة.',
-              '私家船、联合国教科文组织酒农、主厨。'
-            ),
-            icon: 'tabler:medal',
-          },
-          {
-            title: lceT(
-              'Timing verrouillé',
-              'Locked timing',
-              'Fixiertes Timing',
-              'Timing bloccato',
-              'توقيت مقفل',
-              '锁定时间'
-            ),
-            description: lceT(
-              'Horaires précis, transferts coordonnés.',
-              'Precise schedules, coordinated transfers.',
-              'Genaue Zeiten, koordinierte Transfers.',
-              'Orari precisi, transfer coordinati.',
-              'جداول دقيقة، تنقلات منسقة.',
-              '精准日程，接送协同。'
-            ),
-            icon: 'tabler:clock',
-          },
-        ],
-        content1Title: lceT(
-          'Moments signature',
-          'Signature moments',
-          'Signature-Momente',
-          'Momenti signature',
-          'لحظات مميزة',
-          '标志性时刻'
-        ),
-        content1Subtitle: lceT(
-          'Croisière sunset, cave voûtée UNESCO, table d’hôtes, bains alpins.',
-          'Sunset cruise, UNESCO vaulted cellar, hosted table, alpine baths.',
-          'Sunset-Cruise, UNESCO-Gewölbekeller, Table d’hôtes, alpine Bäder.',
-          'Crociera al tramonto, cantina a volta UNESCO, tavola d’hôtes, bagni alpini.',
-          'رحلة غروب، قبو مقبب لليونسكو، مائدة مضيفة، حمامات جبلية.',
-          '日落游船、联合国教科文组织拱顶酒窖、私宴、山间温泉。'
-        ),
-        content1Items: [
-          {
-            title: lceT(
-              'Croisière privée',
-              'Private cruise',
-              'Private Cruise',
-              'Crociera privata',
-              'رحلة خاصة',
-              '私享游船'
-            ),
-            description: lceT(
-              'Bateau privatisé, sommelière, plateau fromages.',
-              'Private boat, sommelier, cheese board.',
-              'Privates Boot, Sommelière, Käseplatte.',
-              'Barca privata, sommelier, tagliere di formaggi.',
-              'قارب خاص، خبيرة نبيذ، أجبان.',
-              '私家游船，侍酒师与奶酪。'
-            ),
-            icon: 'tabler:sailboat',
-          },
-          {
-            title: lceT(
-              'Vignobles UNESCO',
-              'UNESCO vineyards',
-              'UNESCO-Weinberge',
-              'Vigneti UNESCO',
-              'كروم اليونسكو',
-              '联合国教科文组织葡萄园'
-            ),
-            description: lceT(
-              'Caves voûtées, accords vins-fromages.',
-              'Vaulted cellars, wine-cheese pairings.',
-              'Gewölbekeller, Wein-Käse-Pairings.',
-              'Cantine a volta, abbinamenti vino-formaggi.',
-              'سراديب مقببة، تناغم نبيذ وجبن.',
-              '拱顶酒窖，酒酪搭配。'
-            ),
-            icon: 'tabler:glass-full',
-          },
-          {
-            title: lceT('Table d’hôtes', 'Hosted table', 'Table d’hôtes', 'Table d’hôtes', 'مائدة مضيفة', '私宴'),
-            description: lceT(
-              'Chef local, produits lac + alpages.',
-              'Local chef, lake + alpine produce.',
-              'Lokaler Chef, Produkte vom See & aus den Alpen.',
-              'Chef locale, prodotti del lago e delle alpi.',
-              'طاهٍ محلي، منتجات البحيرة والألب.',
-              '本地主厨，湖与阿尔卑斯食材。'
-            ),
-            icon: 'tabler:snowflake',
-          },
-        ],
-        content2Title: lceT(
-          'Logistique premium',
-          'Premium logistics',
-          'Premium-Logistik',
-          'Logistica premium',
-          'لوجستيات مميزة',
-          '高端物流'
-        ),
-        content2Subtitle: lceT(
-          'Transferts, brief partenaires, plan B météo inclus.',
-          'Transfers, partner briefs, weather plan B included.',
-          'Transfers, Partner-Briefings, Wetter-Plan B inklusive.',
-          'Transfer, brief partner, piano B meteo inclusi.',
-          'تنقلات، إحاطات شركاء، خطة طقس بديلة.',
-          '接送、伙伴对接、天气B案皆含。'
-        ),
-        content2Items: [
-          {
-            title: lceT(
-              'Transferts privés',
-              'Private transfers',
-              'Private Transfers',
-              'Transfer privati',
-              'تنقلات خاصة',
-              '专属接送'
-            ),
-            description: lceT(
-              'Chauffeur ou bateau-taxi selon parcours.',
-              'Driver or boat taxi depending on route.',
-              'Fahrer oder Bootstaxi je nach Strecke.',
-              'Autista o taxi boat a seconda del percorso.',
-              'سائق أو تاكسي بحري حسب المسار.',
-              '按线路安排专车/水上接驳。'
-            ),
-            icon: 'tabler:car',
-          },
-          {
-            title: lceT(
-              'Brief discret',
-              'Discreet briefing',
-              'Diskretes Briefing',
-              'Brief discreto',
-              'إحاطة هادئة',
-              '低调对接'
-            ),
-            description: lceT(
-              'Hôtes et équipes alignés à l’avance.',
-              'Hosts and teams aligned in advance.',
-              'Gastgeber und Teams vorab ausgerichtet.',
-              'Host e team allineati in anticipo.',
-              'تنسيق مسبق مع المضيفين والفرق.',
-              '提前与主人团队对齐。'
-            ),
-            icon: 'tabler:clipboard-check',
-          },
-          {
-            title: lceT('Plan B météo', 'Weather plan B', 'Wetter-Plan B', 'Piano B meteo', 'خطة طقس بديلة', '天气B案'),
-            description: lceT(
-              'Alternatives prévues sans friction.',
-              'Alternatives ready without friction.',
-              'Alternativen reibungslos bereit.',
-              'Alternative pronte senza attrito.',
-              'بدائل جاهزة بلا تعقيد.',
-              '备用方案顺滑切换。'
-            ),
-            icon: 'tabler:umbrella',
-          },
-        ],
-        supportTitle: lceT('Inclus', 'Included', 'Inklusive', 'Incluso', 'مشمول', '包含'),
-        supportSubtitle: lceT(
-          'Base de chaque expérience.',
-          'Standard with every experience.',
-          'Standard bei jedem Erlebnis.',
-          'Base di ogni esperienza.',
-          'أساس كل تجربة.',
-          '每次体验的标准配置。'
-        ),
-        supportItems: [
-          {
-            title: lceT('Concierge', 'Concierge', 'Concierge', 'Concierge', 'كونسيرج', '礼宾'),
-            description: lceT(
-              'Un contact dédié.',
-              'Dedicated contact.',
-              'Eine dedizierte Ansprechperson.',
-              'Un contatto dedicato.',
-              'جهة اتصال مخصصة.',
-              '专属对接人。'
-            ),
-            icon: 'tabler:user-star',
-          },
-          {
-            title: lceT(
-              'Horaires verrouillés',
-              'Locked timings',
-              'Fixe Zeiten',
-              'Orari bloccati',
-              'أوقات مقفلة',
-              '锁定时间'
-            ),
-            description: lceT(
-              'Timing précis, confirmations.',
-              'Precise timing, confirmations.',
-              'Präzises Timing, Bestätigungen.',
-              'Timing preciso, conferme.',
-              'توقيت دقيق، تأكيدات.',
-              '精准时间与确认。'
-            ),
-            icon: 'tabler:clock',
-          },
-          {
-            title: lceT(
-              'Partenaires premium',
-              'Premium partners',
-              'Premium-Partner',
-              'Partner premium',
-              'شركاء مميزون',
-              '精选伙伴'
-            ),
-            description: lceT(
-              'Réseau local sélectionné.',
-              'Selected local network.',
-              'Ausgewähltes lokales Netzwerk.',
-              'Rete locale selezionata.',
-              'شبكة محلية مختارة.',
-              '精选本地网络。'
-            ),
-            icon: 'tabler:check',
-          },
-        ],
-        ctaTitle: lceT(
-          'Prêt pour une expérience Léman ?',
-          'Ready for a Lake Geneva experience?',
-          'Bereit für ein Genfersee-Erlebnis?',
-          'Pronti per un’esperienza Léman?',
-          'جاهزون لتجربة ليمان؟',
-          '准备好莱蒙体验了吗？'
-        ),
-        ctaSubtitle: lceT(
-          'Dites-nous vos dates et vos envies. On orchestre le reste.',
-          'Share your dates and wishes. We orchestrate the rest.',
-          'Teilen Sie Termine und Wünsche. Wir orchestrieren den Rest.',
-          'Dateci le date e i vostri desideri. Al resto pensiamo noi.',
-          'أخبرونا بالتواريخ والرغبات. نحن نتولى الباقي.',
-          '告诉我们日期与偏好，其余交给我们。'
-        ),
-        ctaActions: [
-          {
-            variant: 'primary',
-            text: lceT('Réserver', 'Book', 'Buchen', 'Prenotare', 'احجز', '预订'),
-            href: '/contact#form',
-            icon: 'tabler:mail-forward',
-          },
-          {
-            text: lceT(
-              'Parler à un concierge',
-              'Talk to a concierge',
-              'Mit dem Concierge sprechen',
-              'Parlare con un concierge',
-              'تحدث إلى الكونسيرج',
-              '联系礼宾'
-            ),
-            href: whatsapp,
-            icon: 'tabler:phone',
-          },
-        ],
-      };
-    case 'videmaison':
-      return {
-        tagline: 'Vide maison',
-        title: 'Vide maison complet et ordonné',
-        subtitle: 'Tri, dons, recyclage et évacuation en une seule équipe. Rapport photo et remise propre.',
-        actions: [
-          { variant: 'primary', text: 'Organiser un vide maison', href: '/contact#form', icon: 'tabler:home-heart' },
-          { text: 'Parler à un conseiller', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        featureTitle: 'Pourquoi nous choisir',
-        featureSubtitle: 'Un interlocuteur unique pour tout vider.',
-        featureItems: [
-          {
-            title: 'Tri & dons',
-            description: 'Orientation vers dons/recyclage avant évacuation.',
-            icon: 'tabler:heart-handshake',
-          },
-          {
-            title: 'Respect des lieux',
-            description: 'Sols/murs protégés, voisins prévenus.',
-            icon: 'tabler:shield-check',
-          },
-          {
-            title: 'Rapport photo',
-            description: 'Avant / après pour bailleurs ou famille.',
-            icon: 'tabler:photo-check',
-          },
-        ],
-        content1Title: 'Vide maison maîtrisé',
-        content1Subtitle: 'Visite/Photos → Tri → Évacuation → Remise propre.',
-        content1Items: [
-          { title: 'Visite / photos', description: 'Évaluation rapide et repérage.', icon: 'tabler:camera' },
-          { title: 'Débarras & tri', description: 'Dons, recyclage, centres agréés.', icon: 'tabler:recycle' },
-          { title: 'Remise des clés', description: 'Nettoyage léger, photos finales.', icon: 'tabler:key' },
-        ],
-        content2Title: 'Services associés',
-        content2Subtitle: 'Pour finaliser la remise.',
-        content2Items: [
-          { title: 'Nettoyage complet', description: 'Avant état des lieux.', icon: 'tabler:sparkles' },
-          { title: 'Transport pièces gardées', description: 'Livraison des meubles conservés.', icon: 'tabler:truck' },
-          { title: 'Petit entretien', description: 'Retrait chevilles, rebouchage léger.', icon: 'tabler:tools' },
-        ],
-        supportTitle: 'Inclus',
-        supportSubtitle: 'Base de chaque vide maison.',
-        supportItems: [
-          { title: 'Protection', description: 'Commun et accès sécurisés.', icon: 'tabler:shield-check' },
-          { title: 'Chef d’équipe', description: 'Un seul interlocuteur.', icon: 'tabler:headset' },
-          { title: 'Créneau clair', description: 'Calendrier verrouillé.', icon: 'tabler:calendar' },
-        ],
-        ctaTitle: 'Besoin de vider une maison ?',
-        ctaSubtitle: 'Expliquez le volume et la date souhaitée, on s’occupe du reste.',
-        ctaActions: [
-          { variant: 'primary', text: 'Organiser un vide maison', href: '/contact#form', icon: 'tabler:home-heart' },
-          { text: 'Parler à un conseiller', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    case 'videsuccession':
-      return {
-        tagline: 'Vide succession',
-        title: 'Gestion discrète des biens successoraux',
-        subtitle: 'Tri, inventaire succinct, évacuation et remise propre. Coordination héritiers et notaires.',
-        actions: [
-          { variant: 'primary', text: 'Planifier un vide succession', href: '/contact#form', icon: 'tabler:scale' },
-          { text: 'Appeler en direct', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        featureTitle: 'Discrétion et traçabilité',
-        featureSubtitle: 'Pour vider et remettre un bien sans friction.',
-        featureItems: [
-          {
-            title: 'Coordination héritiers',
-            description: 'Un contact unique, comptes rendus réguliers.',
-            icon: 'tabler:users',
-          },
-          { title: 'Respect & tri', description: 'Objets sensibles mis de côté sur consignes.', icon: 'tabler:lock' },
-          { title: 'Reporting', description: 'Photos avant/après, liste sommaire.', icon: 'tabler:photo' },
-        ],
-        content1Title: 'Vide succession cadré',
-        content1Subtitle: 'Cadrage → Tri → Évacuation → Remise propre.',
-        content1Items: [
-          { title: 'Cadrage', description: 'Consignes héritiers/notaire.', icon: 'tabler:clipboard' },
-          { title: 'Tri & évacuation', description: 'Séparation, démontage, centres agréés.', icon: 'tabler:route' },
-          {
-            title: 'Remise propre',
-            description: 'Nettoyage léger ou complet, photos finales.',
-            icon: 'tabler:sparkles',
-          },
-        ],
-        content2Title: 'Services connexes',
-        content2Subtitle: 'Pour sécuriser la remise du bien.',
-        content2Items: [
-          {
-            title: 'Nettoyage complet',
-            description: 'Avant remise des clés ou état des lieux.',
-            icon: 'tabler:sparkles',
-          },
-          { title: 'Transport objets gardés', description: 'Livraison à plusieurs adresses.', icon: 'tabler:truck' },
-          { title: 'Archivage léger', description: 'Triage et conditionnement de documents.', icon: 'tabler:archive' },
-        ],
-        supportTitle: 'Inclus',
-        supportSubtitle: 'Base de chaque intervention.',
-        supportItems: [
-          { title: 'Chef d’équipe', description: 'Un seul interlocuteur.', icon: 'tabler:headset' },
-          { title: 'Protection', description: 'Accès sécurisés, respect des lieux.', icon: 'tabler:shield-check' },
-          { title: 'Planning clair', description: 'Créneau et périmètre verrouillés.', icon: 'tabler:calendar' },
-        ],
-        ctaTitle: 'Besoin d’un vide succession cadré ?',
-        ctaSubtitle: 'Expliquez le contexte, on vous envoie un plan clair et un calendrier.',
-        ctaActions: [
-          { variant: 'primary', text: 'Planifier un vide succession', href: '/contact#form', icon: 'tabler:scale' },
-          { text: 'Appeler en direct', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    case 'clean':
-      return {
-        tagline: 'Nettoyage',
-        title:
-          brandKey === 'lausannenettoyage'
-            ? 'Propreté maîtrisée, délais rapides'
-            : 'Remise en état après débarras ou succession',
-        subtitle:
-          brandKey === 'lausannenettoyage'
-            ? 'Appartements, bureaux ou fin de chantier : checklist pro, produits adaptés et contrôle qualité.'
-            : 'Nettoyage complet, vitres, sols et sanitaires. Rapport photo pour bailleurs et agences.',
-        actions: [
-          { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
-          { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        featureTitle: 'Propreté documentée',
-        featureSubtitle: 'Idéal après un débarras ou pour préparer un état des lieux.',
-        featureItems: [
-          { title: 'Checklist critique', description: 'Cuisine, sdb, vitres priorisées.', icon: 'tabler:list-check' },
-          { title: 'Matériel pro', description: 'Monobrosse / aspirateurs HEPA.', icon: 'tabler:spray' },
-          { title: 'Rapport photo', description: 'Avant/après disponible.', icon: 'tabler:photo-check' },
-        ],
-        content1Title: 'Remise propre en 3 étapes',
-        content1Subtitle: 'Cadrage → Intervention → Contrôle.',
-        content1Items: [
-          { title: 'Cadrage', description: 'Surface, zones sensibles, délais.', icon: 'tabler:clipboard-check' },
-          {
-            title: 'Intervention',
-            description: 'Nettoyage complet + vitres, odeurs traitées.',
-            icon: 'tabler:sparkles',
-          },
-          { title: 'Contrôle', description: 'Photos, retouches si nécessaire.', icon: 'tabler:photo-check' },
-        ],
-        content2Title: 'Compléments utiles',
-        content2Subtitle: 'Pour une remise impeccable.',
-        content2Items: [
-          { title: 'Odeur & désinfection', description: 'Traitement ciblé des odeurs.', icon: 'tabler:wind' },
-          { title: 'Petites retouches', description: 'Rebouchage léger via partenaires.', icon: 'tabler:tools' },
-          { title: 'Vitres hauteur', description: 'Vitres difficiles avec matériel adapté.', icon: 'tabler:building' },
-        ],
-        supportTitle: 'Inclus',
-        supportSubtitle: 'Base de chaque nettoyage.',
-        supportItems: [
-          { title: 'Chef d’équipe', description: 'Un seul interlocuteur.', icon: 'tabler:headset' },
-          { title: 'Checklist', description: 'Priorités validées avant passage.', icon: 'tabler:list' },
-          { title: 'Contrôle qualité', description: 'Reprises si besoin.', icon: 'tabler:check' },
-        ],
-        ctaTitle: 'Besoin d’une remise propre ?',
-        ctaSubtitle: 'Planifions un créneau et la checklist adaptée.',
-        ctaActions: [
-          { variant: 'primary', text: 'Programmer un nettoyage', href: '/contact#form', icon: 'tabler:sparkles' },
-          { text: 'Appeler', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    case 'etatdeslieux':
-      return {
-        tagline: 'État des lieux',
-        title: 'Constats précis, rapports photo, délais serrés',
-        subtitle:
-          'Entrée ou sortie : relevés détaillés, photos, check-list bail. Communication avec régie ou propriétaire.',
-        actions: [
-          {
-            variant: 'primary',
-            text: 'Programmer un état des lieux',
-            href: '/contact#form',
-            icon: 'tabler:clipboard-check',
-          },
-          { text: 'Contacter', href: whatsapp, icon: 'tabler:phone' },
-        ],
-        cardTitle: 'Rapport livré en 24h',
-        cardSubtitle: 'PDF + galerie photo, remarques actionnables et copie régie/propriétaire.',
-        featureTitle: 'État des lieux structuré',
-        featureSubtitle: 'Rapport clair pour éviter les contestations.',
-        featureItems: [
-          {
-            title: 'Check-list bailleur',
-            description: 'Pièces, murs, sols, équipements vérifiés.',
-            icon: 'tabler:checkbox',
-          },
-          { title: 'Photos horodatées', description: 'Série photo et remarques précises.', icon: 'tabler:photo-check' },
-          { title: 'Remarques actionnables', description: 'Liste des points à corriger.', icon: 'tabler:list-check' },
-        ],
-        content1Title: 'Constat rapide, rapport clair',
-        content1Subtitle: 'Planification → Relevés → Rapport.',
-        content1Items: [
-          { title: 'Planification', description: 'Infos régie/bailleur, type entrée/sortie.', icon: 'tabler:calendar' },
-          {
-            title: 'Relevés sur place',
-            description: 'Photos, mesures, checklist complète.',
-            icon: 'tabler:clipboard-check',
-          },
-          { title: 'Rapport & envoi', description: 'PDF + galerie photo, partage aux parties.', icon: 'tabler:share' },
-        ],
-        content2Title: 'Modules complémentaires',
-        content2Subtitle: 'Pour compléter le constat.',
-        content2Items: [
-          { title: 'Mesures & plans', description: 'Relevé métrique simple.', icon: 'tabler:ruler' },
-          {
-            title: 'Suivi correctifs',
-            description: 'Liste des actions et validation photo.',
-            icon: 'tabler:checkup-list',
-          },
-          {
-            title: 'Nettoyage / débarras',
-            description: 'Activation de nos équipes partenaires.',
-            icon: 'tabler:users',
-          },
-        ],
-        supportTitle: 'Inclus',
-        supportSubtitle: 'Base de chaque constat.',
-        supportItems: [
-          { title: 'Check-list', description: 'Bailleur/locataire adaptée.', icon: 'tabler:list' },
-          { title: 'Photos', description: 'Horodatées, archivées.', icon: 'tabler:photo' },
-          { title: 'Rapport', description: 'Envoi sous 24h', icon: 'tabler:clock' },
-        ],
-        ctaTitle: 'Programmer un état des lieux',
-        ctaSubtitle: 'Choisissez la date et dites-nous si régie/propriétaire doit être en copie.',
-        ctaActions: [
-          { variant: 'primary', text: 'Réserver un créneau', href: '/contact#form', icon: 'tabler:clipboard-check' },
-          { text: 'Parler à un expert', href: whatsapp, icon: 'tabler:phone' },
-        ],
-      };
-    default:
-      return {
-        tagline: 'Nos services',
-        title: 'Déménagements soignés partout en Suisse romande',
-        subtitle:
-          '<span class="move-subtitle-highlight">Appartement, maison, bureau ou longue distance : nous préparons, protégeons et transportons vos biens avec une équipe locale.</span>',
-        actions: [{ variant: 'primary', text: 'Obtenir un devis', href: '/contact#form' }],
-        featureTitle: 'Prestations principales',
-        featureSubtitle: 'Choisissez le format adapté à votre déménagement.',
-        featureItems: [
-          {
-            title: 'Appartement',
-            description: 'Studios et 2-4.5 pièces avec gestion ascenseurs/parkings.',
-            icon: 'tabler:building',
-          },
-          {
-            title: 'Maisons & villas',
-            description: 'Volumes importants, démontage/remontage inclus.',
-            icon: 'tabler:home',
-          },
-          {
-            title: 'Emballage & déballage',
-            description: 'Cartons, penderies, protections vaisselle et emballage complet.',
-            icon: 'tabler:package',
-          },
-        ],
-        content1Title: 'Déménagement résidentiel',
-        content1Subtitle: 'Du studio à la maison familiale, matériel adapté et équipe dimensionnée.',
-        content1Items: [
-          {
-            title: 'Repérage des accès',
-            description: 'Ascenseur, parkings, autorisations municipales.',
-            icon: 'tabler:map-pin',
-          },
-          {
-            title: 'Protection systématique',
-            description: 'Sols, murs, portes, meubles protégés.',
-            icon: 'tabler:shield-check',
-          },
-          { title: 'Remontage soigné', description: 'Remise en place dans les bonnes pièces.', icon: 'tabler:tools' },
-        ],
-        cardTitle: 'Camion réservé, protections prêtes',
-        cardSubtitle: 'Créneau confirmé, repérage des accès et protections sols/murs incluses.',
-        content2Title: 'Services complémentaires',
-        content2Subtitle: 'Sélectionnez uniquement ce dont vous avez besoin.',
-        content2Items: [
-          {
-            title: 'Emballage & déballage',
-            description: 'Protection fragile, penderies, vaisselle.',
-            icon: 'tabler:package',
-          },
-          {
-            title: 'Démontage/remontage',
-            description: 'Meubles, dressing, literie et luminaires.',
-            icon: 'tabler:tools',
-          },
-          {
-            title: 'Nettoyage de sortie',
-            description: 'Option ménage pour rendre le logement en ordre.',
-            icon: 'tabler:sparkles',
-          },
-        ],
-        supportTitle: 'Ce qui est inclus',
-        supportSubtitle: 'Bases solides pour chaque déménagement.',
-        supportItems: [
-          { title: 'Chef d’équipe dédié', description: 'Coordonne horaires et accès.', icon: 'tabler:headset' },
-          {
-            title: 'Protections complètes',
-            description: 'Housses, couvertures, sangles, chariots.',
-            icon: 'tabler:box',
-          },
-          {
-            title: 'Créneaux fiables',
-            description: 'Arrivée confirmée, créneau matin/après-midi.',
-            icon: 'tabler:calendar-time',
-          },
-        ],
-        ctaTitle: 'Discutons de votre déménagement',
-        ctaSubtitle: 'Expliquez votre volume, vos adresses et la date souhaitée : nous revenons avec un plan clair.',
-        ctaActions: [
-          {
-            variant: 'primary',
-            text: 'Planifier mon déménagement',
-            href: '/contact#form',
-            icon: 'tabler:mail-forward',
-          },
-          { text: 'Voir les tarifs', href: '/pricing' },
-        ],
-      };
-  }
-})();
-
-if (isLausanne && brandType === 'move') {
-  view = {
-    ...view,
-    tagline: lamT('Nos services', 'Our services', 'Unsere Services', 'I nostri servizi'),
-    title: lamT(
-      'Déménagements soignés partout en Suisse romande',
-      'Careful moves across Suisse romande',
-      'Sorgfältige Umzüge in der Romandie',
-      'Traslochi curati in Svizzera romanda'
-    ),
-    subtitle: lamT(
-      'Appartement, maison, bureau ou longue distance : nous préparons, protégeons et transportons vos biens avec une équipe locale.',
-      'Apartment, house, office or long distance: local team to prep, protect and transport your belongings.',
-      'Wohnung, Haus, Büro oder Langstrecke: Lokales Team zum Vorbereiten, Schützen und Transportieren.',
-      'Appartamento, casa, ufficio o lunga distanza: team locale per preparare, proteggere e trasportare i tuoi beni.'
-    ),
-    actions: [
-      {
-        variant: 'primary',
-        text: lamT('Obtenir un devis', 'Get a quote', 'Offerte anfordern', 'Richiedi un preventivo'),
-        href: '/contact#form',
-        icon: 'tabler:arrow-right',
-      },
-    ],
-    featureTitle: lamT('Prestations principales', 'Core services', 'Hauptleistungen', 'Servizi principali'),
-    featureSubtitle: lamT(
-      'Choisissez le format adapté à votre déménagement.',
-      'Choose the format for your move.',
-      'Wählen Sie das passende Format für Ihren Umzug.',
-      'Scegli il formato adatto al tuo trasloco.'
-    ),
-    featureItems: [
-      {
-        title: lamT('Appartement', 'Apartment', 'Wohnung', 'Appartamento'),
-        description: lamT(
-          'Studios et 2-4.5 pièces avec gestion ascenseurs/parkings.',
-          'Studios and 2–4.5 rooms with lifts/parking handled.',
-          'Studios und 2–4.5 Zimmer mit Lift/Parkplatz-Handling.',
-          'Monolocali e 2–4,5 locali con gestione ascensori/parcheggi.'
-        ),
-        icon: 'tabler:building',
-      },
-      {
-        title: lamT('Maisons & villas', 'Houses & villas', 'Häuser & Villen', 'Case & ville'),
-        description: lamT(
-          'Volumes importants, démontage/remontage inclus.',
-          'Larger volumes, disassembly/reassembly included.',
-          'Größere Volumen, Ab-/Aufbau inklusive.',
-          'Volumi importanti, smontaggio/rimontaggio incluso.'
-        ),
-        icon: 'tabler:home',
-      },
-      {
-        title: lamT('Emballage & déballage', 'Packing & unpacking', 'Packen & Auspacken', 'Imballaggio & disimballo'),
-        description: lamT(
-          'Cartons, penderies, protections vaisselle et emballage complet.',
-          'Boxes, wardrobes, dish protection and full packing.',
-          'Kartons, Kleiderboxen, Geschirrschutz und Komplettpacken.',
-          'Scatole, appendiabiti, protezioni stoviglie e imballo completo.'
-        ),
-        icon: 'tabler:package',
-      },
-    ],
-    content1Title: lamT('Déménagement résidentiel', 'Residential moving', 'Privatumzug', 'Trasloco residenziale'),
-    content1Subtitle: lamT(
-      'Du studio à la maison familiale, matériel adapté et équipe dimensionnée.',
-      'From studio to family home, right gear and sized crew.',
-      'Vom Studio bis zum Familienhaus, passendes Material und Teamgröße.',
-      'Dallo studio alla casa familiare, attrezzatura e squadra adeguate.'
-    ),
-    content1Items: [
-      {
-        title: lamT('Repérage des accès', 'Access scouting', 'Zugangsscouting', 'Sopralluogo accessi'),
-        description: lamT(
-          'Ascenseur, parkings, autorisations municipales.',
-          'Lifts, parking, city permits.',
-          'Lift, Parkplätze, Bewilligungen.',
-          'Ascensori, parcheggi, permessi comunali.'
-        ),
-        icon: 'tabler:map-pin',
-      },
-      {
-        title: lamT(
-          'Protection systématique',
-          'Systematic protection',
-          'Systematischer Schutz',
-          'Protezione sistematica'
-        ),
-        description: lamT(
-          'Sols, murs, portes, meubles protégés.',
-          'Floors, walls, doors, furniture protected.',
-          'Böden, Wände, Türen, Möbel geschützt.',
-          'Pavimenti, pareti, porte, mobili protetti.'
-        ),
-        icon: 'tabler:shield-check',
-      },
-      {
-        title: lamT('Remontage soigné', 'Careful reassembly', 'Sorgfältiger Wiederaufbau', 'Rimontaggio accurato'),
-        description: lamT(
-          'Remise en place dans les bonnes pièces.',
-          'Placed back in the right rooms.',
-          'Wieder am richtigen Ort platziert.',
-          'Riposti nelle stanze giuste.'
-        ),
-        icon: 'tabler:tools',
-      },
-    ],
-    cardTitle: lamT(
-      'Camion réservé, protections prêtes',
-      'Truck reserved, protections ready',
-      'LKW reserviert, Schutz bereit',
-      'Camion riservato, protezioni pronte'
-    ),
-    cardSubtitle: lamT(
-      'Créneau confirmé, repérage des accès et protections sols/murs incluses.',
-      'Slot confirmed, access scouting and floor/wall protection included.',
-      'Slot bestätigt, Zugangsscouting und Boden-/Wandschutz inklusive.',
-      'Fascia oraria confermata, sopralluogo accessi e protezioni pavimenti/pareti inclusi.'
-    ),
-    content2Title: lamT(
-      'Services complémentaires',
-      'Complementary services',
-      'Zusatzservices',
-      'Servizi complementari'
-    ),
-    content2Subtitle: lamT(
-      'Sélectionnez uniquement ce dont vous avez besoin.',
-      'Select only what you need.',
-      'Wählen Sie nur, was Sie brauchen.',
-      'Seleziona solo ciò di cui hai bisogno.'
-    ),
-    content2Items: [
-      {
-        title: lamT('Emballage & déballage', 'Packing & unpacking', 'Packen & Auspacken', 'Imballaggio & disimballo'),
-        description: lamT(
-          'Protection fragile, penderies, vaisselle.',
-          'Fragile care, wardrobes, dishes.',
-          'Fragileschutz, Kleiderboxen, Geschirr.',
-          'Protezione fragili, appendiabiti, stoviglie.'
-        ),
-        icon: 'tabler:package',
-      },
-      {
-        title: lamT('Démontage/remontage', 'Disassembly/reassembly', 'Ab-/Aufbau', 'Smontaggio/rimontaggio'),
-        description: lamT(
-          'Meubles, dressing, literie et luminaires.',
-          'Furniture, wardrobes, bedding, lighting.',
-          'Möbel, Schrank, Bett, Beleuchtung.',
-          'Mobili, armadi, letti e illuminazione.'
-        ),
-        icon: 'tabler:tools',
-      },
-      {
-        title: lamT('Nettoyage de sortie', 'Move-out cleaning', 'Auszugsreinigung', 'Pulizia di fine locazione'),
-        description: lamT(
-          'Option ménage pour rendre le logement en ordre.',
-          'Cleaning option to hand back clean.',
-          'Reinigungsoption für ordentliche Übergabe.',
-          'Opzione pulizia per consegna in ordine.'
-        ),
-        icon: 'tabler:sparkles',
-      },
-    ],
-    supportTitle: lamT('Ce qui est inclus', 'What’s included', 'Was inkludiert ist', 'Cosa è incluso'),
-    supportSubtitle: lamT(
-      'Bases solides pour chaque déménagement.',
-      'Solid basics for every move.',
-      'Solide Basis für jeden Umzug.',
-      'Basi solide per ogni trasloco.'
-    ),
-    supportItems: [
-      {
-        title: lamT('Chef d’équipe dédié', 'Dedicated crew lead', 'Dedizierter Teamleiter', 'Caposquadra dedicato'),
-        description: lamT(
-          'Coordonne horaires et accès.',
-          'Coordinates timing and access.',
-          'Koordiniert Zeiten und Zugang.',
-          'Coordina orari e accessi.'
-        ),
-        icon: 'tabler:headset',
-      },
-      {
-        title: lamT('Protections complètes', 'Full protections', 'Vollschutz', 'Protezioni complete'),
-        description: lamT(
-          'Housses, couvertures, sangles, chariots.',
-          'Covers, blankets, straps, dollies.',
-          'Bezüge, Decken, Gurte, Rollwagen.',
-          'Coperture, coperte, cinghie, carrelli.'
-        ),
-        icon: 'tabler:box',
-      },
-      {
-        title: lamT('Créneaux fiables', 'Reliable slots', 'Verlässliche Slots', 'Fasce affidabili'),
-        description: lamT(
-          'Arrivée confirmée, créneau matin/après-midi.',
-          'Confirmed arrival, morning/afternoon window.',
-          'Bestätigte Ankunft, Morgen-/Nachmittagsfenster.',
-          'Arrivo confermato, finestra mattina/pomeriggio.'
-        ),
-        icon: 'tabler:calendar-time',
-      },
-    ],
-    ctaTitle: lamT(
-      'Discutons de votre déménagement',
-      'Let’s plan your move',
-      'Lassen Sie uns Ihren Umzug planen',
-      'Pianifichiamo il tuo trasloco'
-    ),
-    ctaSubtitle: lamT(
-      'Expliquez votre volume, vos adresses et la date souhaitée : nous revenons avec un plan clair.',
-      'Share volume, addresses, and target date: we reply with a clear plan.',
-      'Nennen Sie Volumen, Adressen und Wunschtermin: wir antworten mit einem klaren Plan.',
-      'Indica volume, indirizzi e data: ti inviamo un piano chiaro.'
-    ),
-    ctaActions: [
-      {
-        variant: 'primary',
-        text: lamT(
-          'Planifier mon déménagement',
-          'Schedule my move',
-          'Meinen Umzug planen',
-          'Pianifica il mio trasloco'
-        ),
-        href: '/contact#form',
-        icon: 'tabler:mail-forward',
-      },
-      { text: lamT('Voir les tarifs', 'See pricing', 'Preise ansehen', 'Vedi tariffe'), href: '/pricing' },
-    ],
-  };
-}
-
-const accentClass =
-  brandType === 'urgent'
-    ? 'text-orange-100/90'
-    : brandType === 'transport'
-      ? 'text-amber-200/90'
-      : brandType === 'debarras'
-        ? 'text-emerald-100/90'
-        : brandType === 'videmaison'
-          ? 'text-amber-200/90'
-          : brandType === 'videsuccession'
-            ? 'text-amber-100/90'
-            : brandType === 'clean'
-              ? 'text-sky-100/90'
-              : brandType === 'experience'
-                ? 'text-emerald-100/90'
-                : brandType === 'etatdeslieux'
-                  ? 'text-slate-800'
-                  : brandKey === 'lausanne'
-                    ? 'text-slate-200/85'
-                    : 'text-blue-200/80';
-
-const heroToneClass = [
-  'urgent',
-  'transport',
-  'debarras',
-  'videmaison',
-  'videsuccession',
-  'clean',
-  'experience',
-].includes(brandType)
-  ? 'hero-light'
-  : brandKey === 'pedro'
-    ? 'hero-light'
-    : '';
-
-const overlayTextClass = brandType === 'etatdeslieux' ? 'text-slate-900' : 'text-white';
-const overlaySubTextClass =
-  brandType === 'etatdeslieux' ? 'text-slate-800' : isUrgent ? 'text-orange-50/90' : 'text-white/90';
-
-const contentGradient = (() => {
-  switch (brandType) {
-    case 'urgent':
-      return 'rgba(127,29,29,0.26), rgba(127,29,29,0.38), rgba(2,6,23,0.76)';
-    case 'transport':
-      return 'rgba(30,41,59,0.18), rgba(15,23,42,0.42), rgba(2,6,23,0.78)';
-    case 'debarras':
-      return 'rgba(6,95,70,0.22), rgba(6,95,70,0.40), rgba(2,6,23,0.76)';
-    case 'videmaison':
-      return 'rgba(88,60,34,0.22), rgba(59,42,24,0.40), rgba(2,6,23,0.78)';
-    case 'videsuccession':
-      return 'rgba(15,15,20,0.50), rgba(92,45,8,0.34), rgba(0,0,0,0.74)';
-    case 'clean':
-      return brandKey === 'lausannenettoyage'
-        ? 'rgba(2,6,23,0.16), rgba(15,23,42,0.42), rgba(2,6,23,0.88)'
-        : 'rgba(15,118,110,0.22), rgba(15,23,42,0.42), rgba(2,6,23,0.78)';
-    case 'experience':
-      return 'rgba(15,118,110,0.24), rgba(30,41,59,0.34), rgba(2,6,23,0.72)';
-    case 'etatdeslieux':
-      return 'rgba(14,165,233,0.18), rgba(224,242,254,0.35), rgba(255,255,255,0.4)';
-    default:
-      return 'rgba(2,6,23,0.14), rgba(15,23,42,0.34), rgba(2,6,23,0.72)';
-  }
-})();
-
-const optionsGradient = contentGradient;
+const tabOrder = ['femme', 'homme'] as const;
+const serviceTabs = tabOrder.map((key) => ({
+  key,
+  ...toloServicePanels[key],
+}));
 ---
 
-{
-  TonComponent ? (
-    <TonComponent />
-  ) : (
-    <Layout metadata={metadata}>
-      <Hero
-        id="services"
-        tagline={view.tagline}
-        title={view.title}
-        subtitle={view.subtitle}
-        actions={view.actions}
-        class={`${heroToneClass} services-hero`}
-      >
-        <Fragment slot="bg">
-          <img src={heroImage} alt={heroAlt || 'Hero background'} class="absolute inset-0 w-full h-full object-cover" />
-          <div class={`absolute inset-0 ${heroOverlay}`} />
-        </Fragment>
-        <Fragment slot="image">
-          <div
-            class={`relative aspect-[5/3] overflow-hidden rounded-2xl p-10 text-left shadow-2xl bg-cover bg-center ${
-              brandType === 'etatdeslieux'
-                ? 'text-slate-800'
-                : brandKey === 'lausannenettoyage'
-                  ? 'text-white'
-                  : 'text-white'
-            } ${
-              brandKey === 'lausannenettoyage'
-                ? 'lausannenettoyage-hero-card'
-                : brandKey === 'nettoyagesuccession'
-                  ? 'nettoyagesuccession-hero-card'
-                  : ''
-            }`}
-            style={
-              isUrgent
-                ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(185, 28, 28, 0.72),
-          rgba(239, 68, 68, 0.68),
-          rgba(249, 115, 22, 0.62)
-        ),
-        url('${heroCardImage}');`
-                : brandType === 'etatdeslieux'
-                  ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(255, 255, 255, 0.15),
-          rgba(224, 242, 254, 0.28)
-        ),
-        url('${heroCardImage}');`
-                  : brandKey === 'lausannenettoyage'
-                    ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(2, 6, 23, 0.18),
-          rgba(15, 23, 42, 0.46),
-          rgba(2, 6, 23, 0.88)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(56, 189, 248, 0.16),
-          rgba(56, 189, 248, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                    : brandKey === 'nettoyagesuccession'
-                      ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(15, 118, 110, 0.24),
-          rgba(15, 23, 42, 0.48),
-          rgba(2, 6, 23, 0.86)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(34, 211, 238, 0.12),
-          rgba(34, 211, 238, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                      : brandKey === 'transport'
-                        ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(15, 23, 42, 0.24),
-          rgba(15, 23, 42, 0.5),
-          rgba(2, 6, 23, 0.9)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(217, 119, 6, 0.14),
-          rgba(217, 119, 6, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                        : brandKey === 'debarras'
-                          ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(6, 95, 70, 0.24),
-          rgba(6, 95, 70, 0.46),
-          rgba(2, 6, 23, 0.9)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(16, 185, 129, 0.14),
-          rgba(16, 185, 129, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                          : brandKey === 'videmaison'
-                            ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(59, 42, 24, 0.26),
-          rgba(59, 42, 24, 0.5),
-          rgba(2, 6, 23, 0.9)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(197, 143, 85, 0.14),
-          rgba(197, 143, 85, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                            : brandKey === 'videsuccession'
-                              ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(15, 17, 27, 0.3),
-          rgba(15, 17, 27, 0.54),
-          rgba(2, 6, 23, 0.92)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(217, 119, 6, 0.15),
-          rgba(217, 119, 6, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                              : brandKey === 'pedro'
-                                ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(2, 6, 23, 0.24),
-          rgba(15, 23, 42, 0.48),
-          rgba(2, 6, 23, 0.9)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(96, 165, 250, 0.12),
-          rgba(96, 165, 250, 0.03) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                                : brandKey === 'lausanne'
-                                  ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(2, 6, 23, 0.64),
-          rgba(15, 23, 42, 0.56),
-          rgba(2, 6, 23, 0.82)
-        ),
-        radial-gradient(
-          120% 85% at 50% 10%,
-          rgba(56, 189, 248, 0.14),
-          rgba(56, 189, 248, 0.04) 48%,
-          rgba(2, 6, 23, 0) 72%
-        ),
-        url('${heroCardImage}');`
-                                  : `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          rgba(148, 149, 153, 0.55),
-          rgba(15, 23, 42, 0.55),
-          rgba(2, 6, 23, 0.55)
-        ),
-        url('${heroCardImage}');`
-            }
-          >
-            <p class={`text-sm uppercase tracking-[0.35em] ${accentClass}`}>{view.tagline}</p>
-            <h4 class="mt-4 text-4xl font-semibold">{view.cardTitle ?? view.title}</h4>
-            <p
-              class={`mt-6 max-w-xl text-lg ${
-                brandType === 'etatdeslieux' ? 'text-slate-700' : isUrgent ? 'text-orange-50/90' : 'text-white/90'
-              }`}
+<Shell page="services" metadata={metadata}>
+  <section class="tc-section">
+    <p class="tc-kicker">Prestations</p>
+    <h1 class="tc-title">Services femme & homme</h1>
+    <p class="tc-lead">
+      Tarifs officiels en CHF. Navigation par onglets, affichage clair et lecture immédiate des prix.
+    </p>
+  </section>
+
+  <section class="tc-section tc-services" data-tc-services>
+    <div class="tc-tabs" data-tabs-root>
+      <div class="tc-tablist tc-tablist-main" role="tablist" aria-label="Choix des prestations">
+        {
+          serviceTabs.map((tab, index) => (
+            <button
+              id={`tc-tab-${tab.key}`}
+              type="button"
+              role="tab"
+              class={`tc-tab ${index === 0 ? 'is-active' : ''}`}
+              aria-selected={index === 0 ? 'true' : 'false'}
+              aria-controls={`tc-panel-${tab.key}`}
+              tabindex={index === 0 ? '0' : '-1'}
+              data-gender-tab-target={tab.key}
             >
-              {view.cardSubtitle ?? view.subtitle}
-            </p>
-          </div>
-        </Fragment>
-      </Hero>
-
-      <Features2
-        title={view.featureTitle}
-        subtitle={view.featureSubtitle}
-        columns={3}
-        classes={
-          brandType === 'urgent'
-            ? { items: { panel: 'card' }, container: 'urgent-grid' }
-            : brandType === 'transport'
-              ? {
-                  container: 'max-w-6xl',
-                  items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-white border border-amber-200/20' },
-                }
-              : brandType === 'debarras'
-                ? { items: { panel: 'panel-surface rounded-2xl p-6 gap-4 text-emerald-950' } }
-                : brandType === 'videsuccession'
-                  ? { items: { panel: 'panel-contrast rounded-2xl p-6 gap-4 text-amber-100' } }
-                  : brandType === 'clean'
-                    ? {
-                        items: {
-                          panel: 'panel-surface rounded-2xl p-6 gap-4 border border-cyan-200/40 text-slate-900',
-                        },
-                      }
-                    : brandType === 'etatdeslieux'
-                      ? {
-                          items: {
-                            panel:
-                              'panel-grid rounded-2xl p-6 gap-4 text-slate-900 border border-sky-200/40 bg-white/90',
-                          },
-                        }
-                      : brandType === 'experience'
-                        ? {
-                            items: {
-                              panel:
-                                'panel-surface rounded-2xl p-6 gap-4 text-slate-900 border border-emerald-200/40 bg-white/92',
-                            },
-                          }
-                        : brandType === 'videmaison'
-                          ? {
-                              items: {
-                                panel: 'panel-surface rounded-2xl p-6 gap-4 text-amber-950 border border-amber-200/30',
-                              },
-                            }
-                          : {}
+              {tab.title}
+            </button>
+          ))
         }
-        items={view.featureItems}
-      />
+      </div>
 
-      {brandType === 'experience' && (
-        <>
-          <Features2
-            id="experience-formats"
-            title={lceT(
-              'Formats d’expérience',
-              'Experience formats',
-              'Erlebnisformate',
-              'Formati di esperienza',
-              'صيغ التجارب',
-              '体验形式'
-            )}
-            subtitle={lceT(
-              'Décider en 1 regard',
-              'Decide at a glance',
-              'Auf einen Blick entscheiden',
-              'Decidi a colpo d’occhio',
-              'قرار سريع بنظرة',
-              '一眼决断'
-            )}
-            columns={4}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
-              },
-            }}
-            items={experienceFormatsData}
-          />
+      <div class="tc-panels" data-gender-panels>
+        {
+          serviceTabs.map((tab, index) => (
+            <section
+              id={`tc-panel-${tab.key}`}
+              role="tabpanel"
+              aria-labelledby={`tc-tab-${tab.key}`}
+              aria-hidden={index === 0 ? 'false' : 'true'}
+              class={`tc-panel ${index === 0 ? 'is-active' : ''}`}
+              data-gender-panel={tab.key}
+              hidden={index !== 0}
+            >
+              <div class="tc-subtabs" data-subtabs-root={tab.key}>
+                <div class="tc-tablist tc-tablist-sub" role="tablist" aria-label={`Catégories ${tab.title}`}>
+                  {tab.categories.map((category, categoryIndex) => (
+                    <button
+                      id={`tc-subtab-${tab.key}-${categoryIndex}`}
+                      type="button"
+                      role="tab"
+                      class={`tc-subtab ${categoryIndex === 0 ? 'is-active' : ''}`}
+                      aria-selected={categoryIndex === 0 ? 'true' : 'false'}
+                      aria-controls={`tc-subpanel-${tab.key}-${categoryIndex}`}
+                      tabindex={categoryIndex === 0 ? '0' : '-1'}
+                      data-category-tab-target={`${tab.key}-${categoryIndex}`}
+                    >
+                      {category.title}
+                    </button>
+                  ))}
+                </div>
 
-          <Features2
-            id="experience-concierge"
-            title={lceT(
-              'Conciergerie dédiée — concret',
-              'Dedicated concierge — concrete',
-              'Dedizierter Concierge — konkret',
-              'Concierge dedicato — concreto',
-              'كونسيرج مخصص — بوضوح',
-              '专属礼宾 — 具体执行'
-            )}
-            subtitle={lceT(
-              'Inclus dans chaque expérience',
-              'Included in every experience',
-              'Inklusive bei jedem Erlebnis',
-              'Incluso in ogni esperienza',
-              'مشمولة في كل تجربة',
-              '每次体验均包含'
-            )}
-            columns={3}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
-              },
-            }}
-            items={experienceConciergeData}
-          />
+                <div class="tc-subpanels" data-category-panels>
+                  {tab.categories.map((category, categoryIndex) => (
+                    <section
+                      id={`tc-subpanel-${tab.key}-${categoryIndex}`}
+                      role="tabpanel"
+                      aria-labelledby={`tc-subtab-${tab.key}-${categoryIndex}`}
+                      aria-hidden={categoryIndex === 0 ? 'false' : 'true'}
+                      class={`tc-category-panel ${categoryIndex === 0 ? 'is-active' : ''}`}
+                      data-category-panel={`${tab.key}-${categoryIndex}`}
+                      hidden={categoryIndex !== 0}
+                    >
+                      <header class="tc-category-head">
+                        <h2>{category.title}</h2>
+                      </header>
 
-          <Features2
-            id="experience-logistics"
-            title={lceT(
-              'Logistique & précision',
-              'Logistics & precision',
-              'Logistik & Präzision',
-              'Logistica & precisione',
-              'لوجستيات ودقة',
-              '物流与严谨'
-            )}
-            subtitle={lceT(
-              'Ce que nous verrouillons',
-              'What we lock in',
-              'Was wir fixieren',
-              'Cosa blocchiamo',
-              'ما نثبته مسبقاً',
-              '我们提前锁定的要点'
-            )}
-            columns={3}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
-              },
-            }}
-            items={experienceLogisticsData}
-          />
-        </>
-      )}
-
-      <Content id="appartement" isReversed items={view.content1Items}>
-        <Fragment slot="content">
-          <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">{view.content1Title}</h3>
-          {view.content1Subtitle}
-        </Fragment>
-
-        <Fragment slot="image">
-          <div
-            class={`relative visual-card aspect-[4/3] overflow-hidden rounded-xl shadow-xl bg-cover bg-center`}
-            style={`
-      background-image:
-        linear-gradient(
-          to bottom right,
-          ${contentGradient}
-        ),
-        url('${processImage}');`}
-          >
-            <div class={`relative visual-card-body p-10 text-left ${overlayTextClass}`}>
-              <h4 class="text-3xl font-semibold">{overlayRegionTitle}</h4>
-              <p class={`mt-6 max-w-sm ${overlaySubTextClass}`}>{view.content1Subtitle}</p>
-            </div>
-          </div>
-        </Fragment>
-      </Content>
-
-      <Content id="emballage" isAfterContent items={view.content2Items}>
-        <Fragment slot="content">
-          <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">{view.content2Title}</h3>
-          {view.content2Subtitle}
-        </Fragment>
-
-        <Fragment slot="image">
-          <div
-            class={`relative visual-card aspect-[4/3] overflow-hidden rounded-xl shadow-xl bg-cover bg-center`}
-            style={
-              isUrgent
-                ? `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          ${optionsGradient}
-        ),
-        url('${optionsImage}');`
-                : `
-      background-image:
-        linear-gradient(
-          to bottom right,
-          ${optionsGradient}
-        ),
-        url('${optionsImage}');`
-            }
-          >
-            <div class={`relative visual-card-body p-10 text-left ${overlayTextClass}`}>
-              <h4 class="text-3xl font-semibold">{overlayOptionsTitle}</h4>
-              <p class={`mt-6 max-w-sm ${overlaySubTextClass}`}>
-                {isUrgent
-                  ? lamT(
-                      'Nous ajustons l’équipe, le matériel et le créneau pour limiter le temps sur place.',
-                      'We adjust crew, gear and slot to limit time on-site.',
-                      'Wir passen Team, Material und Slot an, um die Zeit vor Ort zu minimieren.',
-                      'Adattiamo squadra, materiale e fascia per ridurre il tempo sul posto.'
-                    )
-                  : overlayOptionsSubtitle}
-              </p>
-            </div>
-          </div>
-        </Fragment>
-      </Content>
-
-      <Features2
-        id="support"
-        title={view.supportTitle}
-        subtitle={view.supportSubtitle}
-        classes={
-          brandType === 'urgent'
-            ? {
-                items: {
-                  panel: 'card rounded-2xl p-6 text-slate-800',
-                  title: 'text-slate-900',
-                  description: 'text-slate-800',
-                },
-                container: 'urgent-grid',
-                headline: {
-                  title: 'text-slate-900',
-                  subtitle: 'text-slate-800',
-                  container: 'max-w-3xl text-left md:text-center mx-auto',
-                },
-              }
-            : brandType === 'transport'
-              ? {
-                  container: 'max-w-6xl',
-                  items: { panel: 'panel-grid rounded-2xl p-6 gap-4 text-white border border-amber-200/20' },
-                }
-              : brandType === 'debarras'
-                ? { items: { panel: 'panel-surface rounded-2xl p-6 gap-4 text-emerald-950' } }
-                : brandType === 'videsuccession'
-                  ? { items: { panel: 'panel-contrast rounded-2xl p-6 gap-4 text-amber-100' } }
-                  : brandType === 'clean'
-                    ? {
-                        items: {
-                          panel: 'panel-surface rounded-2xl p-6 gap-4 border border-cyan-200/40 text-slate-900',
-                        },
-                      }
-                    : brandType === 'etatdeslieux'
-                      ? {
-                          items: {
-                            panel:
-                              'panel-grid rounded-2xl p-6 gap-4 text-slate-900 border border-sky-200/40 bg-white/90',
-                          },
-                        }
-                      : brandType === 'videmaison'
-                        ? {
-                            items: {
-                              panel: 'panel-surface rounded-2xl p-6 gap-4 text-amber-950 border border-amber-200/30',
-                            },
-                          }
-                        : {}
+                      <div class="tc-card-grid">
+                        {category.items.map((item) => (
+                          <article class="tc-service-card">
+                            <div class="tc-service-row">
+                              <h3>{item.name}</h3>
+                              <p class="tc-price">{item.price}</p>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ))
         }
-        columns={3}
-        items={view.supportItems}
-      >
-        {isUrgent ? (
-          <Fragment slot="bg">
-            <div class="absolute inset-0 bg-white" />
-          </Fragment>
-        ) : null}
-      </Features2>
+      </div>
 
-      {brandType === 'experience' && (
-        <>
-          <Features2
-            id="experiences-signature"
-            title={lceT(
-              'Sélection signature',
-              'Signature selection',
-              'Signature Auswahl',
-              'Selezione signature',
-              'اختيار مميز',
-              '甄选体验'
-            )}
-            subtitle={lceT(
-              'Lac, vignobles, gastronomie, altitude',
-              'Lake, vineyards, gastronomy, altitude',
-              'See, Weinberge, Gastronomie, Höhe',
-              'Lago, vigneti, gastronomia, altitudine',
-              'بحيرة، كروم، فنون الطهو، ارتفاع',
-              '湖泊、葡萄园、美食、高地'
-            )}
-            columns={3}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-6 gap-4 text-slate-900 border border-emerald-200/35 bg-white/95',
-              },
-            }}
-            items={signatureExperiences}
-          />
+      <a class="tc-booking" href={toloCoiffureConfig.bookingUrl} target="_blank" rel="noreferrer">{bookingCta}</a>
+    </div>
+  </section>
+</Shell>
 
-          <Features2
-            id="experiences-slow"
-            title={lceT(
-              'Slow & bien-être',
-              'Slow & wellness',
-              'Slow & Wellness',
-              'Slow & benessere',
-              'هدوء ورفاهية',
-              '慢享与身心'
-            )}
-            subtitle={lceT(
-              'Calme, silence, design suisse, thermal',
-              'Calm, silence, Swiss design, thermal',
-              'Ruhe, Stille, Swiss Design, Thermal',
-              'Calma, silenzio, design svizzero, terme',
-              'هدوء، صمت، تصميم سويسري، ينابيع',
-              '安静、静谧、瑞士设计、温泉'
-            )}
-            columns={3}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-6 gap-4 text-slate-900 border border-emerald-200/30 bg-white/92',
-              },
-            }}
-            items={slowExperiences}
-          />
+<script>
+  (() => {
+    const bindTabs = (
+      scope: ParentNode,
+      tabSelector: string,
+      panelSelector: string,
+      tabKeyAttr: string,
+      panelKeyAttr: string
+    ) => {
+      const tabs = Array.from(scope.querySelectorAll<HTMLButtonElement>(tabSelector));
+      const panels = Array.from(scope.querySelectorAll<HTMLElement>(panelSelector));
+      if (!tabs.length || !panels.length) return null;
 
-          <Features2
-            id="experiences-winter"
-            title={lceT(
-              'Hiver & lumière',
-              'Winter & light',
-              'Winter & Licht',
-              'Inverno & luce',
-              'شتاء ونور',
-              '冬季与光影'
-            )}
-            subtitle={lceT(
-              'Chalet, veillées, silence neige, brumes du lac',
-              'Chalet, fireside, snow silence, lake mist',
-              'Chalet, Kamin, Schneestille, Seennebel',
-              'Chalet, focolare, silenzio neve, bruma del lago',
-              'شاليه، دفء الموقد، صمت الثلج، ضباب البحيرة',
-              '木屋、炉火、雪之静、湖雾'
-            )}
-            columns={3}
-            classes={{
-              container: 'max-w-5xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-6 gap-4 text-slate-900 border border-emerald-200/30 bg-white/92',
-              },
-            }}
-            items={winterExperiences}
-          />
+      const keyFromTab = (tab: HTMLButtonElement) => tab.getAttribute(tabKeyAttr) || '';
+      const keyFromPanel = (panel: HTMLElement) => panel.getAttribute(panelKeyAttr) || '';
 
-          <Features2
-            id="experiences-corporate"
-            title={lceT(
-              'Corporate & célébrations',
-              'Corporate & celebrations',
-              'Corporate & Feiern',
-              'Corporate & celebrazioni',
-              'شركات واحتفالات',
-              '商务与庆典'
-            )}
-            subtitle={lceT(
-              'Retraites exécutives, propositions, héritage familial',
-              'Executive retreats, proposals, family heritage',
-              'Executive Retreats, Anträge, Familienerbe',
-              'Ritiri executive, proposte, eredità familiare',
-              'خلوات تنفيذية، عروض زواج، إرث عائلي',
-              '高管静修、求婚、家族传承'
-            )}
-            columns={2}
-            classes={{
-              container: 'max-w-5xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-6 gap-4 text-slate-900 border border-emerald-200/30 bg-white/92',
-              },
-            }}
-            items={corporateExperiences}
-          />
+      let activeKey = keyFromTab(tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0]);
 
-          <Features2
-            id="experience-engagements"
-            title={lceT(
-              'Nos engagements',
-              'Our guarantees',
-              'Unsere Zusagen',
-              'I nostri impegni',
-              'التزاماتنا',
-              '我们的承诺'
-            )}
-            subtitle={lceT(
-              'Ce que nous garantissons',
-              'What we guarantee',
-              'Was wir garantieren',
-              'Cosa garantiamo',
-              'ما نضمنه',
-              '我们保证的事项'
-            )}
-            columns={4}
-            classes={{
-              container: 'max-w-6xl',
-              items: {
-                panel: 'panel-surface rounded-2xl p-5 gap-3 border border-emerald-200/35 bg-white/92 text-slate-900',
-              },
-            }}
-            items={experienceCommitmentsData}
-          />
-        </>
-      )}
+      const applyTabState = (selectedKey: string, focusSelected: boolean) => {
+        tabs.forEach((tab) => {
+          const isSelected = keyFromTab(tab) === selectedKey;
+          tab.setAttribute('aria-selected', String(isSelected));
+          tab.tabIndex = isSelected ? 0 : -1;
+          tab.classList.toggle('is-active', isSelected);
+          if (focusSelected && isSelected) tab.focus();
+        });
+      };
 
-      <CallToAction actions={view.ctaActions}>
-        <Fragment slot="title">{view.ctaTitle}</Fragment>
-        <Fragment slot="subtitle">{view.ctaSubtitle}</Fragment>
-      </CallToAction>
-    </Layout>
-  )
-}
+      const applyPanelState = (selectedKey: string) => {
+        panels.forEach((panel) => {
+          const isSelected = keyFromPanel(panel) === selectedKey;
+          panel.hidden = !isSelected;
+          panel.setAttribute('aria-hidden', String(!isSelected));
+          panel.classList.toggle('is-active', isSelected);
+        });
+      };
+
+      const activate = (nextKey: string, focusSelected = false) => {
+        if (!nextKey) return;
+        activeKey = nextKey;
+        applyTabState(nextKey, focusSelected);
+        applyPanelState(nextKey);
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => activate(keyFromTab(tab), false));
+        tab.addEventListener('keydown', (event: KeyboardEvent) => {
+          const currentIndex = tabs.indexOf(tab);
+          if (currentIndex === -1) return;
+
+          if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+            event.preventDefault();
+            const direction = event.key === 'ArrowRight' ? 1 : -1;
+            const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+            activate(keyFromTab(tabs[nextIndex]), true);
+            return;
+          }
+
+          if (event.key === 'Home' || event.key === 'End') {
+            event.preventDefault();
+            const nextIndex = event.key === 'Home' ? 0 : tabs.length - 1;
+            activate(keyFromTab(tabs[nextIndex]), true);
+          }
+        });
+      });
+
+      activate(activeKey, false);
+      return { activate };
+    };
+
+    const initTabs = () => {
+      const root = document.querySelector<HTMLElement>('[data-tabs-root]');
+      if (!root || root.dataset.tabsBound === 'true') return;
+      root.dataset.tabsBound = 'true';
+
+      bindTabs(root, '[data-gender-tab-target]', '[data-gender-panel]', 'data-gender-tab-target', 'data-gender-panel');
+      root.querySelectorAll<HTMLElement>('[data-subtabs-root]').forEach((subRoot) => {
+        bindTabs(
+          subRoot,
+          '[data-category-tab-target]',
+          '[data-category-panel]',
+          'data-category-tab-target',
+          'data-category-panel'
+        );
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTabs, { once: true });
+    } else {
+      initTabs();
+    }
+    document.addEventListener('astro:page-load', initTabs);
+  })();
+</script>
 
 <style>
-  :global(.hero-light h1),
-  :global(.hero-light h2),
-  :global(.hero-light h3),
-  :global(.hero-light h4),
-  :global(.hero-light h5),
-  :global(.hero-light h6),
-  :global(.hero-light .text-muted),
-  :global(.hero-light .text-secondary) {
-    color: rgba(255, 255, 255, 0.92) !important;
+  .tc-section {
+    margin-bottom: 88px;
   }
-  :global(.hero-light p) {
-    color: rgba(255, 255, 255, 0.9);
+  .tc-kicker {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #4b5563;
   }
-  :global(.hero-light .btn-secondary) {
-    color: #20190b;
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 255, 255, 0.9);
+  .tc-title {
+    font-family: var(--tc-font-heading);
+    font-size: clamp(2rem, 3.8vw, 2.5rem);
+    margin: 0.25rem 0 0.8rem;
+    letter-spacing: -0.012em;
   }
-  :global(.brand-lausanne .services-hero .lausanne-services-hero-overlay) {
-    background:
-      radial-gradient(130% 82% at 8% 24%, rgba(2, 6, 23, 0.28) 0%, rgba(2, 6, 23, 0.08) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(130% 82% at 92% 24%, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.08) 46%, rgba(2, 6, 23, 0) 72%),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.16) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-lausanne .services-hero h1),
-  :global(.brand-lausanne .services-hero h2),
-  :global(.brand-lausanne .services-hero h3),
-  :global(.brand-lausanne .services-hero h4),
-  :global(.brand-lausanne .services-hero h5),
-  :global(.brand-lausanne .services-hero h6) {
-    color: #f8fafc !important;
-  }
-  :global(.brand-lausannenettoyage .services-hero .lausannenettoyage-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.08) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(132% 86% at 92% 24%, rgba(2, 6, 23, 0.22) 0%, rgba(2, 6, 23, 0.08) 46%, rgba(2, 6, 23, 0) 72%),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.05) 0%, rgba(2, 6, 23, 0.15) 58%, rgba(2, 6, 23, 0.93) 100%);
-  }
-  :global(.brand-pedro .services-hero .pedro-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(2, 6, 23, 0.24) 0%, rgba(2, 6, 23, 0.08) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(132% 86% at 92% 24%, rgba(2, 6, 23, 0.2) 0%, rgba(2, 6, 23, 0.08) 46%, rgba(2, 6, 23, 0) 72%),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.06) 0%, rgba(2, 6, 23, 0.14) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-urgent .services-hero .urgent-services-hero-overlay) {
-    background:
-      radial-gradient(
-        132% 86% at 8% 24%,
-        rgba(127, 29, 29, 0.34) 0%,
-        rgba(127, 29, 29, 0.1) 48%,
-        rgba(2, 6, 23, 0) 75%
-      ),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(194, 65, 12, 0.24) 0%,
-        rgba(194, 65, 12, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(127, 29, 29, 0.34) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-transport .services-hero .transport-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.1) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(217, 119, 6, 0.2) 0%,
-        rgba(217, 119, 6, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(15, 23, 42, 0.33) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-debarras .services-hero .debarras-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(6, 95, 70, 0.34) 0%, rgba(6, 95, 70, 0.1) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(16, 185, 129, 0.2) 0%,
-        rgba(16, 185, 129, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(6, 95, 70, 0.34) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-videmaison .services-hero .videmaison-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(59, 42, 24, 0.33) 0%, rgba(59, 42, 24, 0.1) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(140, 97, 54, 0.2) 0%,
-        rgba(140, 97, 54, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.07) 0%, rgba(59, 42, 24, 0.34) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-videsuccession .services-hero .videsuccession-services-hero-overlay) {
-    background:
-      radial-gradient(132% 86% at 8% 24%, rgba(15, 17, 27, 0.4) 0%, rgba(15, 17, 27, 0.13) 48%, rgba(2, 6, 23, 0) 75%),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(180, 83, 9, 0.22) 0%,
-        rgba(180, 83, 9, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(15, 17, 27, 0.38) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-nettoyagesuccession .services-hero .nettoyagesuccession-services-hero-overlay) {
-    background:
-      radial-gradient(
-        132% 86% at 8% 24%,
-        rgba(15, 118, 110, 0.3) 0%,
-        rgba(15, 118, 110, 0.1) 48%,
-        rgba(2, 6, 23, 0) 75%
-      ),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(34, 211, 238, 0.2) 0%,
-        rgba(34, 211, 238, 0.08) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(15, 118, 110, 0.32) 58%, rgba(2, 6, 23, 0.92) 100%);
-  }
-  :global(.brand-laclemanexperience .services-hero .experience-services-hero-overlay) {
-    background:
-      radial-gradient(
-        132% 86% at 8% 24%,
-        rgba(15, 118, 110, 0.22) 0%,
-        rgba(15, 118, 110, 0.08) 48%,
-        rgba(2, 6, 23, 0) 75%
-      ),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(253, 230, 138, 0.16) 0%,
-        rgba(253, 230, 138, 0.06) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.06) 0%, rgba(15, 23, 42, 0.24) 58%, rgba(2, 6, 23, 0.88) 100%);
-  }
-  :global(.brand-etatdeslieux .services-hero .etatdeslieux-services-hero-overlay) {
-    background:
-      radial-gradient(
-        132% 86% at 8% 24%,
-        rgba(14, 165, 233, 0.12) 0%,
-        rgba(14, 165, 233, 0.04) 48%,
-        rgba(2, 6, 23, 0) 75%
-      ),
-      radial-gradient(
-        132% 86% at 92% 24%,
-        rgba(56, 189, 248, 0.12) 0%,
-        rgba(56, 189, 248, 0.04) 46%,
-        rgba(2, 6, 23, 0) 72%
-      ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.5) 0%,
-        rgba(241, 245, 249, 0.72) 58%,
-        rgba(226, 232, 240, 0.92) 100%
-      );
-  }
-  :global(.brand-lausanne .services-hero p),
-  :global(.brand-lausanne .services-hero .text-muted),
-  :global(.brand-lausanne .services-hero .tagline),
-  :global(.brand-lausanne .services-hero .move-subtitle-highlight) {
-    color: rgba(226, 232, 240, 0.95) !important;
-  }
-  :global(.services-hero .btn-secondary) {
-    color: #0b2010;
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 255, 255, 0.9);
-  }
-  :global(.brand-lausanne .services-hero .text-center h1) {
-    color: #f8fafc !important;
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.55);
-  }
-  :global(.brand-lausanne .services-hero .text-center p),
-  :global(.brand-lausanne .services-hero .text-center .text-muted),
-  :global(.brand-lausanne .services-hero .text-center .text-secondary),
-  :global(.brand-lausanne .services-hero .text-center .tagline) {
-    color: rgba(226, 232, 240, 0.95) !important;
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.45);
-  }
-  :global(.brand-lausanne .services-hero .move-subtitle-highlight) {
-    display: inline-block;
-    color: #e2e8f0 !important;
-    background: rgba(2, 6, 23, 0.52) !important;
-    border: 1px solid rgba(226, 232, 240, 0.24);
-    border-radius: 0.6rem;
-    padding: 0.28rem 0.7rem;
-    box-shadow: 0 18px 42px -28px rgba(2, 6, 23, 0.82);
-    backdrop-filter: blur(3px);
-  }
-  :global(.brand-pedro .services-hero .text-center h1),
-  :global(.brand-urgent .services-hero .text-center h1),
-  :global(.brand-debarras .services-hero .text-center h1),
-  :global(.brand-transport .services-hero .text-center h1),
-  :global(.brand-videmaison .services-hero .text-center h1),
-  :global(.brand-videsuccession .services-hero .text-center h1),
-  :global(.brand-nettoyagesuccession .services-hero .text-center h1) {
-    color: #f8fafc !important;
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.58);
-  }
-  :global(.brand-pedro .services-hero .text-center p),
-  :global(.brand-pedro .services-hero .text-center .text-muted),
-  :global(.brand-pedro .services-hero .text-center .text-secondary),
-  :global(.brand-pedro .services-hero .text-center .tagline),
-  :global(.brand-urgent .services-hero .text-center p),
-  :global(.brand-urgent .services-hero .text-center .text-muted),
-  :global(.brand-urgent .services-hero .text-center .text-secondary),
-  :global(.brand-urgent .services-hero .text-center .tagline),
-  :global(.brand-debarras .services-hero .text-center p),
-  :global(.brand-debarras .services-hero .text-center .text-muted),
-  :global(.brand-debarras .services-hero .text-center .text-secondary),
-  :global(.brand-debarras .services-hero .text-center .tagline),
-  :global(.brand-transport .services-hero .text-center p),
-  :global(.brand-transport .services-hero .text-center .text-muted),
-  :global(.brand-transport .services-hero .text-center .text-secondary),
-  :global(.brand-transport .services-hero .text-center .tagline),
-  :global(.brand-videmaison .services-hero .text-center p),
-  :global(.brand-videmaison .services-hero .text-center .text-muted),
-  :global(.brand-videmaison .services-hero .text-center .text-secondary),
-  :global(.brand-videmaison .services-hero .text-center .tagline),
-  :global(.brand-videsuccession .services-hero .text-center p),
-  :global(.brand-videsuccession .services-hero .text-center .text-muted),
-  :global(.brand-videsuccession .services-hero .text-center .text-secondary),
-  :global(.brand-videsuccession .services-hero .text-center .tagline),
-  :global(.brand-nettoyagesuccession .services-hero .text-center p),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .text-muted),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .text-secondary),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .tagline) {
-    color: rgba(226, 232, 240, 0.95) !important;
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.48);
-  }
-  :global(.brand-pedro .services-hero .move-subtitle-highlight),
-  :global(.brand-urgent .services-hero .move-subtitle-highlight),
-  :global(.brand-debarras .services-hero .move-subtitle-highlight),
-  :global(.brand-transport .services-hero .move-subtitle-highlight),
-  :global(.brand-videmaison .services-hero .move-subtitle-highlight),
-  :global(.brand-videsuccession .services-hero .move-subtitle-highlight),
-  :global(.brand-nettoyagesuccession .services-hero .move-subtitle-highlight) {
-    display: inline-block;
-    color: #e2e8f0 !important;
-    background: rgba(2, 6, 23, 0.5) !important;
-    border: 1px solid rgba(226, 232, 240, 0.22);
-    border-radius: 0.6rem;
-    padding: 0.28rem 0.7rem;
-    box-shadow: 0 18px 42px -28px rgba(2, 6, 23, 0.8);
-    backdrop-filter: blur(3px);
-  }
-  :global(.brand-lausannenettoyage .services-hero .text-center h1) {
-    color: #f8fafc !important;
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.58);
-  }
-  :global(.brand-lausannenettoyage .services-hero .text-center p),
-  :global(.brand-lausannenettoyage .services-hero .text-center .text-muted),
-  :global(.brand-lausannenettoyage .services-hero .text-center .text-secondary),
-  :global(.brand-lausannenettoyage .services-hero .text-center .tagline),
-  :global(.brand-lausannenettoyage .services-hero .text-muted),
-  :global(.brand-lausannenettoyage .services-hero .move-subtitle-highlight) {
-    color: rgba(226, 232, 240, 0.95) !important;
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.48);
-  }
-  :global(.brand-lausannenettoyage .services-hero .move-subtitle-highlight) {
-    display: inline-block;
-    color: #e2e8f0 !important;
-    background: rgba(2, 6, 23, 0.52) !important;
-    border: 1px solid rgba(226, 232, 240, 0.22);
-    border-radius: 0.6rem;
-    padding: 0.28rem 0.7rem;
-    box-shadow: 0 18px 42px -28px rgba(2, 6, 23, 0.8);
-    backdrop-filter: blur(3px);
-  }
-  :global(.brand-lausannenettoyage .services-hero .lausannenettoyage-hero-card h4),
-  :global(.brand-lausannenettoyage .services-hero .lausannenettoyage-hero-card p),
-  :global(.brand-lausannenettoyage .services-hero .lausannenettoyage-hero-card .text-sm) {
-    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.58);
-  }
-  :global(.brand-nettoyagesuccession .services-hero .nettoyagesuccession-hero-card h4),
-  :global(.brand-nettoyagesuccession .services-hero .nettoyagesuccession-hero-card p),
-  :global(.brand-nettoyagesuccession .services-hero .nettoyagesuccession-hero-card .text-sm),
-  :global(.brand-pedro .visual-card-body h4),
-  :global(.brand-pedro .visual-card-body p),
-  :global(.brand-pedro .visual-card-body .text-sm),
-  :global(.brand-urgent .visual-card-body h4),
-  :global(.brand-urgent .visual-card-body p),
-  :global(.brand-urgent .visual-card-body .text-sm),
-  :global(.brand-debarras .visual-card-body h4),
-  :global(.brand-debarras .visual-card-body p),
-  :global(.brand-debarras .visual-card-body .text-sm),
-  :global(.brand-transport .visual-card-body h4),
-  :global(.brand-transport .visual-card-body p),
-  :global(.brand-transport .visual-card-body .text-sm),
-  :global(.brand-videmaison .visual-card-body h4),
-  :global(.brand-videmaison .visual-card-body p),
-  :global(.brand-videmaison .visual-card-body .text-sm),
-  :global(.brand-videsuccession .visual-card-body h4),
-  :global(.brand-videsuccession .visual-card-body p),
-  :global(.brand-videsuccession .visual-card-body .text-sm),
-  :global(.brand-nettoyagesuccession .visual-card-body h4),
-  :global(.brand-nettoyagesuccession .visual-card-body p),
-  :global(.brand-nettoyagesuccession .visual-card-body .text-sm) {
-    text-shadow: 0 6px 20px rgba(2, 6, 23, 0.58);
-  }
-  :global(.brand-pedro .services-hero .text-center h1) {
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.56);
-  }
-  :global(.brand-pedro .services-hero .text-center p),
-  :global(.brand-pedro .services-hero .text-center .text-muted),
-  :global(.brand-pedro .services-hero .text-center .text-secondary),
-  :global(.brand-pedro .services-hero .text-center .tagline) {
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.44);
-  }
-  :global(.brand-pedro .services-hero .move-subtitle-highlight) {
-    background: rgba(2, 6, 23, 0.48) !important;
-    border-color: rgba(148, 163, 184, 0.24);
-  }
-  :global(.brand-urgent .services-hero .text-center h1) {
-    text-shadow: 0 9px 30px rgba(2, 6, 23, 0.66);
-  }
-  :global(.brand-urgent .services-hero .text-center p),
-  :global(.brand-urgent .services-hero .text-center .text-muted),
-  :global(.brand-urgent .services-hero .text-center .text-secondary),
-  :global(.brand-urgent .services-hero .text-center .tagline) {
-    text-shadow: 0 5px 19px rgba(2, 6, 23, 0.54);
-  }
-  :global(.brand-urgent .services-hero .move-subtitle-highlight) {
-    background: rgba(69, 10, 10, 0.56) !important;
-    border-color: rgba(252, 165, 165, 0.24);
-  }
-  :global(.brand-debarras .services-hero .text-center h1) {
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.6);
-  }
-  :global(.brand-debarras .services-hero .text-center p),
-  :global(.brand-debarras .services-hero .text-center .text-muted),
-  :global(.brand-debarras .services-hero .text-center .text-secondary),
-  :global(.brand-debarras .services-hero .text-center .tagline) {
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.5);
-  }
-  :global(.brand-debarras .services-hero .move-subtitle-highlight) {
-    background: rgba(2, 44, 34, 0.56) !important;
-    border-color: rgba(110, 231, 183, 0.24);
-  }
-  :global(.brand-transport .services-hero .text-center h1) {
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.6);
-  }
-  :global(.brand-transport .services-hero .text-center p),
-  :global(.brand-transport .services-hero .text-center .text-muted),
-  :global(.brand-transport .services-hero .text-center .text-secondary),
-  :global(.brand-transport .services-hero .text-center .tagline) {
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.5);
-  }
-  :global(.brand-transport .services-hero .move-subtitle-highlight) {
-    background: rgba(15, 23, 42, 0.58) !important;
-    border-color: rgba(252, 211, 77, 0.24);
-  }
-  :global(.brand-videmaison .services-hero .text-center h1) {
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.62);
-  }
-  :global(.brand-videmaison .services-hero .text-center p),
-  :global(.brand-videmaison .services-hero .text-center .text-muted),
-  :global(.brand-videmaison .services-hero .text-center .text-secondary),
-  :global(.brand-videmaison .services-hero .text-center .tagline) {
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.52);
-  }
-  :global(.brand-videmaison .services-hero .move-subtitle-highlight) {
-    background: rgba(68, 47, 27, 0.56) !important;
-    border-color: rgba(252, 211, 153, 0.24);
-  }
-  :global(.brand-videsuccession .services-hero .text-center h1) {
-    text-shadow: 0 10px 32px rgba(2, 6, 23, 0.68);
-  }
-  :global(.brand-videsuccession .services-hero .text-center p),
-  :global(.brand-videsuccession .services-hero .text-center .text-muted),
-  :global(.brand-videsuccession .services-hero .text-center .text-secondary),
-  :global(.brand-videsuccession .services-hero .text-center .tagline) {
-    text-shadow: 0 5px 20px rgba(2, 6, 23, 0.56);
-  }
-  :global(.brand-videsuccession .services-hero .move-subtitle-highlight) {
-    background: rgba(17, 24, 39, 0.6) !important;
-    border-color: rgba(251, 191, 36, 0.24);
-  }
-  :global(.brand-nettoyagesuccession .services-hero .text-center h1) {
-    text-shadow: 0 8px 28px rgba(2, 6, 23, 0.62);
-  }
-  :global(.brand-nettoyagesuccession .services-hero .text-center p),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .text-muted),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .text-secondary),
-  :global(.brand-nettoyagesuccession .services-hero .text-center .tagline) {
-    text-shadow: 0 4px 18px rgba(2, 6, 23, 0.52);
-  }
-  :global(.brand-nettoyagesuccession .services-hero .move-subtitle-highlight) {
-    background: rgba(15, 23, 42, 0.56) !important;
-    border-color: rgba(125, 211, 252, 0.24);
+  .tc-lead {
+    max-width: 800px;
+    color: #374151;
+    font-size: 1rem;
+    line-height: 1.7;
   }
 
-  :global(.move-subtitle-highlight) {
-    background: rgba(255, 255, 255, 0.45);
-    color: rgb(8, 81, 106);
-    padding: 0.23rem 0.65rem;
-    border-radius: 0.1rem;
+  .tc-tabs {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .tc-tablist {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .tc-tablist-main {
+    gap: 0.4rem;
+    width: fit-content;
+    border: 1px solid color-mix(in srgb, var(--tc-line) 86%, var(--tc-accent) 14%);
+    border-radius: 999px;
+    background: color-mix(in srgb, #ffffff 72%, var(--tc-bg) 28%);
+    padding: 0.35rem;
+    box-shadow: 0 18px 38px -34px rgba(43, 29, 20, 0.34);
+  }
+
+  .tc-tab {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: color-mix(in srgb, var(--tc-text) 90%, #000 10%);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+    transition:
+      background-color 240ms ease,
+      color 240ms ease;
+  }
+
+  .tc-tab:hover {
+    background: color-mix(in srgb, var(--tc-accent) 14%, #ffffff 86%);
+  }
+
+  .tc-tab:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--tc-accent) 80%, var(--tc-text) 20%);
+    outline-offset: 2px;
+  }
+
+  .tc-tab.is-active {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--tc-dark) 80%, var(--tc-accent) 20%),
+      color-mix(in srgb, var(--tc-dark) 92%, var(--tc-accent) 8%)
+    );
+    color: #f5efe8;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tc-accent) 42%, transparent);
+  }
+
+  .tc-panels {
+    position: relative;
+    transition: min-height 240ms ease;
+  }
+
+  .tc-panel {
+    display: grid;
+    gap: 1.25rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 240ms ease,
+      transform 240ms ease;
+  }
+
+  .tc-panel.is-enter {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .tc-panel.is-exit {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  .tc-panel.is-measuring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .tc-subtabs {
+    display: grid;
+    gap: 1.2rem;
+  }
+
+  .tc-tablist-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .tc-subtab {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--tc-line) 84%, var(--tc-accent) 16%);
+    border-radius: 999px;
+    background: color-mix(in srgb, #ffffff 84%, var(--tc-bg) 16%);
+    color: color-mix(in srgb, var(--tc-text) 92%, #000 8%);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.5rem 0.85rem;
+    cursor: pointer;
+    transition:
+      background-color 220ms ease,
+      color 220ms ease,
+      border-color 220ms ease;
+  }
+
+  .tc-subtab:hover {
+    border-color: color-mix(in srgb, var(--tc-accent) 52%, var(--tc-line) 48%);
+    background: color-mix(in srgb, var(--tc-accent) 12%, #ffffff 88%);
+  }
+
+  .tc-subtab:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--tc-accent) 80%, var(--tc-text) 20%);
+    outline-offset: 2px;
+  }
+
+  .tc-subtab.is-active {
+    background: color-mix(in srgb, var(--tc-accent) 18%, var(--tc-dark) 82%);
+    color: #f5efe8;
+    border-color: color-mix(in srgb, var(--tc-accent) 68%, var(--tc-dark) 32%);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tc-accent) 32%, transparent);
+  }
+
+  .tc-subpanels {
+    position: relative;
+  }
+
+  .tc-category-panel {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .tc-panel[hidden],
+  .tc-category-panel[hidden] {
+    display: none !important;
+  }
+
+  .tc-category-head h2 {
+    margin: 0;
+    font-family: var(--tc-font-heading);
+    letter-spacing: -0.01em;
+    font-size: clamp(1.35rem, 2.4vw, 1.55rem);
+    color: color-mix(in srgb, var(--tc-text) 94%, #000 6%);
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--tc-line) 70%, transparent);
+  }
+
+  .tc-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .tc-service-card {
+    background: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--tc-line) 78%, var(--tc-accent) 22%);
+    border-radius: 14px;
+    padding: 1.05rem 1.1rem;
+    display: grid;
+    gap: 0.35rem;
+    min-height: 96px;
+    box-shadow: 0 16px 34px -32px rgba(43, 29, 20, 0.42);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .tc-service-card:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--tc-accent) 48%, var(--tc-line) 52%);
+    box-shadow: 0 20px 42px -32px rgba(43, 29, 20, 0.5);
+  }
+
+  .tc-service-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .tc-service-row h3 {
+    margin: 0;
+    letter-spacing: -0.005em;
+    font-size: 1rem;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--tc-text) 95%, #000 5%);
+  }
+
+  .tc-price {
+    margin: 0;
+    white-space: nowrap;
     font-weight: 700;
+    color: var(--tc-dark);
+    font-size: 0.98rem;
+    letter-spacing: 0.015em;
+  }
 
-    box-shadow: 0 10px 30px -16px rgb(8, 81, 106);
+  .tc-booking {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 0.7rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid #111827;
+    color: #111827;
+    background: #ffffff;
+    text-decoration: none;
+    transition:
+      background-color 240ms ease,
+      color 240ms ease;
+  }
+
+  .tc-booking:hover {
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .tc-booking:focus-visible {
+    outline: 2px solid #111827;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 960px) {
+    .tc-card-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .tc-section {
+      margin-bottom: 72px;
+    }
+
+    .tc-tablist-main {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .tc-tab {
+      flex: 1 1 0;
+      text-align: center;
+    }
+
+    .tc-subtab {
+      text-align: center;
+      width: 100%;
+    }
   }
 </style>

@@ -1,20 +1,163 @@
 ---
-import { resolveTenantFromRequest } from '~/lib/tenants';
+import { Image } from 'astro:assets';
+import Shell from '~/tenants/tolo-coiffure/Shell.astro';
+import { toloCoiffureConfig } from '~/tenants/tolo-coiffure/config';
+import { getToloGalleryData } from '~/tenants/tolo-coiffure/gallery';
 
-const tenant = resolveTenantFromRequest(Astro.request);
-const hostCandidates = [
-  Astro.request.headers.get('x-forwarded-host'),
-  Astro.request.headers.get('host'),
-  new URL(Astro.request.url).host,
-]
-  .flatMap((value) => (value || '').split(','))
-  .map((value) => value.toLowerCase().trim().split(':')[0])
-  .filter(Boolean);
-const isToloHost = hostCandidates.some((host) => host.includes('tolocoiffure.ch'));
+const metadata = {
+  title: "L'Atelier — Tolo Coiffure",
+  description:
+    'Philosophie, méthode et espace de Tolo Coiffure : approche éditoriale, matériaux nobles, attention au détail au centre de Lausanne.',
+  ignoreTitleTemplate: true,
+};
 
-if (tenant.slug === 'tolo-coiffure' || isToloHost) {
-  return Astro.rewrite('/tolo-coiffure/atelier');
-}
-
-return Astro.redirect('/');
+const {
+  heroImage: toloHeroImage,
+  atelierInteriorImage: toloAtelierInteriorImage,
+  atelierDetailImage: toloAtelierDetailImage,
+} = await getToloGalleryData();
 ---
+
+<Shell page="atelier" metadata={metadata}>
+  <section class="tc-section">
+    <p class="tc-kicker">L’Atelier</p>
+    <h1 class="tc-title">La couleur comme langage.</h1>
+    <p class="tc-lead">
+      Chaque rendez-vous commence par un dialogue précis : lumière naturelle, carnation, rythme de repousse, habitudes
+      de coiffage. Nous construisons une couleur qui reste belle au quotidien, avec des reflets contrôlés et une matière
+      protégée.
+    </p>
+  </section>
+
+  <section class="tc-section tc-duo">
+    <figure class="tc-image">
+      {
+        (toloAtelierInteriorImage || toloHeroImage) && (
+          <Image
+            src={(toloAtelierInteriorImage || toloHeroImage)!.src}
+            alt="Intérieur Tolo Coiffure"
+            loading="lazy"
+            widths={[700, 1000, 1400]}
+            sizes="(max-width: 780px) 100vw, 50vw"
+            format="webp"
+            quality={82}
+          />
+        )
+      }
+    </figure>
+    <div class="tc-copy tc-copy-highlight">
+      <h2>Un espace calme au centre de Lausanne</h2>
+      <p>
+        Fauteuils en cuir, lumière adoucie, matériaux sobres. La cabine couleur est pensée pour le confort pendant les
+        temps de pose, avec une attention particulière à la température et à la lumière pour garantir un résultat
+        fidèle.
+      </p>
+      <p>
+        Rue Pré-du-Marché 6, 1004 Lausanne — à deux pas du Flon, accessible en transport et parking à proximité. Les
+        horaires sont adaptés aux agendas chargés : {toloCoiffureConfig.phone} pour une arrivée discrète et ponctuelle.
+      </p>
+    </div>
+  </section>
+
+  <section class="tc-section tc-duo reverse">
+    <div class="tc-copy">
+      <h2>Fondatrice</h2>
+      <p>
+        Coiffeuse-coloriste formée aux techniques éditoriales, passionnée par les placements naturels et le soin de la
+        fibre. Chaque geste est mesuré : diagnostics précis, produits dosés, protocoles protecteurs systématiques.
+      </p>
+      <p>
+        L’objectif : un résultat sobre, lumineux, qui reste élégant sans effort. Les rendez-vous sont limités pour
+        garder le temps nécessaire à chaque étape.
+      </p>
+    </div>
+    <figure class="tc-image">
+      {
+        (toloAtelierDetailImage || toloHeroImage) && (
+          <Image
+            src={(toloAtelierDetailImage || toloHeroImage)!.src}
+            alt="Détail de coiffure et finition couleur"
+            loading="lazy"
+            widths={[700, 1000, 1200]}
+            sizes="(max-width: 780px) 100vw, 50vw"
+            format="webp"
+            quality={82}
+          />
+        )
+      }
+    </figure>
+  </section>
+</Shell>
+
+<style>
+  .tc-section {
+    margin-bottom: 110px;
+  }
+  .tc-kicker {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--tc-muted);
+  }
+  .tc-title {
+    font-family: var(--tc-font-heading);
+    font-size: clamp(2rem, 4vw, 2.6rem);
+    letter-spacing: -0.015em;
+    margin: 0.3rem 0 1rem;
+  }
+  .tc-lead {
+    max-width: 760px;
+    color: var(--tc-muted);
+    font-size: 1.08rem;
+    line-height: 1.6;
+  }
+  .tc-duo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.6rem;
+    align-items: center;
+  }
+  .tc-duo.reverse {
+    direction: rtl;
+  }
+  .tc-duo.reverse > * {
+    direction: ltr;
+  }
+  .tc-copy {
+    display: grid;
+    gap: 0.8rem;
+    font-size: 1.03rem;
+    line-height: 1.6;
+    color: var(--tc-muted);
+  }
+  .tc-copy-highlight {
+    padding: clamp(1.2rem, 2.2vw, 1.8rem);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--tc-surface) 82%, var(--tc-accent) 18%);
+    border: 1px solid color-mix(in srgb, var(--tc-accent) 34%, transparent);
+  }
+  .tc-copy h2 {
+    font-family: var(--tc-font-heading);
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+    color: var(--tc-text);
+    margin: 0 0 0.35rem;
+  }
+  .tc-image {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #1d140e;
+  }
+  .tc-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.95) brightness(0.9);
+  }
+  @media (max-width: 640px) {
+    .tc-section {
+      margin-bottom: 90px;
+    }
+  }
+</style>
